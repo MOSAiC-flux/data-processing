@@ -7,7 +7,7 @@ flux stations and central observatory at the MOSAiC drifting ice campaign in 201
 
 ## Code description: 
 
-There are three components to the code. The file that does the actual processing, including QC, data ingest, and writing of files ("create_Daily_*_NetCDF.py"). The file that defines the variables that will be written to disk and their attributes ("*_variable_definitions.py). And a library of useful homebrewed functions ("functions_library.py"), the place where general functions that are used for data processing are located, such as functions that turn observations into turbulent fluxes, etc, et al. Depending on what you're looking for, you should look in one of these three files.
+There are three components to the code. The file that does the actual processing, including QC, data ingest, and writing of files ("create_Daily_\*_NetCDF.py"). The file that defines the variables that will be written to disk and their attributes ("\*_variable_definitions.py). And a library of useful homebrewed functions ("functions_library.py"), the place where general functions that are used for data processing are located, such as functions that turn observations into turbulent fluxes, etc, et al. Depending on what you're looking for, you should look in one of these three files.
 
 We also provide a "devour_data_example.py" that should help quickstart  looking at the data files we are producing. It  brings processed data files into a dataframe and prints some examples. This can be provide to collaborators who are interested in looking at our data so they can get moving on their analysis.
 
@@ -15,11 +15,11 @@ We also provide a "devour_data_example.py" that should help quickstart  looking 
 
 ### Git tutorial: 
 
-If you're new to git, there are a few ways to look at this code. The simplest way is to download the package zip file from the download button to the top right of this readme  and then open the code files in your favorite text editor. If you're new to python, you would probably like to use [Anaconda](https://docs.anaconda.com/anaconda/user-guide/getting-started/). If you're using Anaconda, you can make a copy of this code by [installing git](https://anaconda.org/conda-forge/git) and then running `git clone http://USERNAME@gitlab.psd.esrl.noaa.gov/mgallagher/mosaic-flux-data.git` while attached to the VPN. The NOAA documentation for this NOAA hosted GitLab page can be found (in the NOAA PSD user docs here)[https://userdocs.psd.esrl.noaa.gov/git]
+If you're new to git, there are a few ways to look at this code. The simplest way is to download the package zip file from the download button to the top right of this readme  and then open the code files in your favorite text editor. If you're new to python, you would probably like to use [Anaconda](https://docs.anaconda.com/anaconda/user-guide/getting-started/). If you're using Anaconda, you can make a copy of this code by [installing git](https://anaconda.org/conda-forge/git) and then running `git clone http://USERNAME@gitlab.psd.esrl.noaa.gov/mgallagher/mosaic-flux-data.git` while attached to the VPN. The NOAA documentation for this NOAA hosted GitLab page can be found [in the NOAA PSD user docs here](https://userdocs.psd.esrl.noaa.gov/git)
 
 [A great in depth tutorial on using git and python on the command line can be found at the Earth Lab CU webpage  here](https://www.earthdatascience.org/workshops/setup-earth-analytics-python/)
 
-If you have any questions about running, modifying, or understanding the software, don't hesitate to contact me (Michael Gallagher)[mailto:michael.r.gallagher@noaa.gov]. I'm happy to help with anything. 
+If you have any questions about running, modifying, or understanding the software, don't hesitate to contact me [Michael Gallagher](mailto:michael.r.gallagher@noaa.gov). I'm happy to help with anything. 
 
 ### Required software:
 
