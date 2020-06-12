@@ -1,5 +1,4 @@
-# Changelog to track changes between major revisions for the tower processing code
-
+# Changelog for major revisions of the tower processing code
 
 ## Revision: 0.1, 12/25/2019, M. Gallagher
 The Christmas day data beta ... Merry Christmas from the Polarstern!!!
