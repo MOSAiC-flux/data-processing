@@ -48,7 +48,11 @@ conda install -c anaconda pandas netcdf4 numpy xarray
 Once you have the correct software, the data can be processed by running the create netcdf code directly and providing it with the dates you would like to create, i.e. to run over all of leg 1 and leg 2 with verbose feedback: 
 
 ~~~
-create_Daily_Tower_NetCDF.py -s 20191015 -e 20200301 --verbose
+create_level1_product_asfs.py -s 20191005 -e 20200216 --verbose
+~~~
+then:
+~~~
+create_level2_product_asfs.py -s 20191005 -e 20200216 --verbose
 ~~~
 
 There is also a bash script that can parallel process the tower data for you, when run on a server. This can be modified to suit your needs and then run via `./produce_tower_data_parallel.sh`. It was written to run on 8 cores at once so be careful about how you use it.
