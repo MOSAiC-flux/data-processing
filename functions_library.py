@@ -1,17 +1,334 @@
 # ############################################################################################
-# This is where the different turbulent flux calculators might be defined. Right now the
-# only thing in here is Grachev's 'fluxcapacitor' module, as ported to python by Chris Cox
-# (with some cleaning by MG). In principle, it would be great to make different calculators
-# plug and play (same input vars, same output vars) and then to make comparisons of the
-# results. Maybe some day.....
+# define here the functions that are used across the different pieces of code. 
+# we want to be sure something doesnt change in one module and not another
+#
+# The following functions are defined here (in this order):
+#
+#       def despike(spikey_panda, thresh, filterlen):                                                        
+#       def calculate_metek_ws_wd(data_dates, u, v, hdg_data): # tower heading data is 1s, metek data is 1m  
+#       def calc_humidity_ptu300(RHw, temp, press, Td):                                                      
+#       def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):                                    
+#       def decode_licor_diag(raw_diag):                                                                     
+#       def get_ct(licor_db):                                                                                
+#       def get_dt(licor_db):                                                                                
+#       def get_pll(licor_db):                                                                               
+#       def take_average(array_like_thing, **kwargs):                                                        
+#       def warn(string):                                                                                    
+#       def fatal(string):                                                                                   
+#       def num_missing(series):                                                                             
+#       def perc_missing(series):                                                                            
+#       def column_is_ints(ser):                                                                             
+#       def warn(string):                                                                                    
+#       def fatal(string):                                                                                   
+#       def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
+#
 # ############################################################################################
 import pandas as pd
 import numpy  as np
 import scipy  as sp
 
-from scipy import signal
+from datetime import datetime, timedelta
+from scipy    import signal
 
-def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek,licor, clasp, verbose=False):
+# despiker
+def despike(spikey_panda, thresh, filterlen):
+    # outlier detection from a running median !!!! Replaces outliers with that median !!!!
+    tmp                    = spikey_panda.rolling(window=filterlen, center=True).median()
+    spikes_i               = (np.abs(spikey_panda - tmp)) > thresh
+    spikey_panda[spikes_i] = tmp
+    return spikey_panda
+
+# calculate wind speeds from appropriate metek columns, this code assumes that 'metek_data' is a
+# fully indexed entire days worth of '1 T' frequency data !! Chris modified this to pass
+# u,v,data_dates directly to generalize for other dataframes, thanks Chris
+def calculate_metek_ws_wd(data_dates, u, v, hdg_data): # tower heading data is 1s, metek data is 1m
+    ws = np.sqrt(u**2+v**2)
+    wd = np.mod(90+np.arctan2(v,-u)*180/np.pi,360)
+
+    for time in data_dates[:]: # there has to be a more clever, non-loop, way of doing this
+        avg_hdg  = np.nanmean(hdg_data[time:time+timedelta(seconds=60)])
+        old_wd   = wd[time]
+        wd[time] = np.mod(wd[time]+avg_hdg, 360)
+
+    return ws, wd
+
+# calculate humidity variables following Vaisala
+def calc_humidity_ptu300(RHw, temp, press, Td):
+
+    # Calculations based on Appendix B of the PTU/HMT manual to be mathematically consistent with the
+    # derivations in the on onboard electronics. Checked against Ola's code and found acceptable
+    # agreement (<0.1% in MR). RHi calculation is then made following Hyland & Wexler (1983), which
+    # yields slightly higher (<1%) compared a different method of Ola's
+
+    # calculate saturation vapor pressure (Pws) using two equations sets, Wexler (1976) eq 5 & coefficients
+    c0    = 0.4931358
+    c1    = -0.46094296*1e-2
+    c2    = 0.13746454*1e-4
+    c3    = -0.12743214*1e-7
+    omega = temp - ( c0*temp**0 + c1*temp**1 + c2*temp**2 + c3*temp**3 )
+
+    # eq 6 & coefficients
+    bm1 = -0.58002206*1e4
+    b0  = 0.13914993*1e1
+    b1  = -0.48640239*1e-1
+    b2  = 0.41764768*1e-4
+    b3  = -0.14452093*1e-7
+    b4  = 6.5459673
+    Pws = np.exp( ( bm1*omega**-1 + b0*omega**0 + b1*omega**1 + b2*omega**2 + b3*omega**3 ) + b4*np.log(omega) ) # [Pa]
+
+    Pw = RHw*Pws/100 # # actual vapor pressure (Pw), eq. 7, [Pa]
+
+    x = 1000*0.622*Pw/((press*100)-Pw) # mixing ratio by weight (eq 2), [g/kg]
+
+    # if we no dewpoint available (WXT!) then calculate it, else no need to worry about it
+    if Td == -1:   # dewpoint (frostpoint), we are assuming T ambient < 0 C, which corresponds to these coefs:
+        A = 6.1134
+        m = 9.7911
+        Tn = 273.47
+        Td = Tn / ((m/np.log10((Pw/100)/A)) - 1) # [C] (temperature, not depression!)
+
+    # else: do nothing if arg 4 is any other value and input flag will be returned.
+    a = 216.68*(Pw/temp) # # absolute humidity, eq 3, [g/m3]
+
+    h = (temp-273.15)*(1.01+0.00189*x)+2.5*x # ...and enthalpy, eq 4, [kJ/kg]
+
+    # RHi, the saturation vapor pressure over ice, then finally RHI, Hyland & Wexler (1983)
+    c0 = -5.6745359*1e3     # coefficients
+    c1 = 6.3925247
+    c2 = -9.6778430*1e-3
+    c3 = 6.2215701*1e-7
+    c4 = 2.0747825*1e-9
+    c5 = -9.4840240*1e-13
+    D  = 4.1635019
+
+    # calculate
+    term = (c0*temp**(-1)) + (c1*temp**(0)) + (c2*temp**1) + (c3*temp**2) + (c4*temp**3)+(c5*temp**4)
+
+    # calculate saturation vapor pressure over ice
+    Psi = np.exp(term + (D*np.log(temp)))  # Pa
+
+    # convert to rhi
+    rhi = 100*(RHw*0.01*Pws)/Psi
+
+    return Td, h, a, x, Pw, Pws, rhi
+
+def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
+
+    # This subroutine rotates a vector from one cartesian basis to another, based upon the
+    # three Euler angles, defined as rotations around the reference axes, xyz.
+
+    # Rotates the sonic winds from body coordinates to earth coordinates.  This is the tild
+    # rotation that corrects for heading and the tilt of the sonic reltive to plum.
+
+    # y,x,z in -> u,v,w out
+
+    # This differs from the double rotation into the plane of the wind streamline that is
+    # needed for the flux calculations and is performed in the grachev_fluxcapacitor. The
+    # output from this rotation is the best estimate of the actual wind direction, having
+    # corrected for both heading and contributions to the horizontal wind by z
+
+    # Adapted from coord_trans.m (6/27/96) from Chris Fairall's group by C. Cox 2/22/20
+    #
+    #  phi   = about inclinometer y/u axis (anti-clockwise about Metek north-south) (roll)
+    #  theta = about inclinometer x/v axis (anti-clockwise about Metek east-west) (pitch)
+    #  psi   = about z/w axis (yaw, "heading")
+
+    # calculations are in radians, but inputs are in degrees
+    ct_phi   = np.radians(ct_phi)
+    ct_theta = np.radians(ct_theta)
+    ct_psi   = np.radians(ct_psi)
+
+    ct_u = ct_up*np.cos(ct_theta)*np.cos(ct_psi)\
+           + ct_vp*(np.sin(ct_phi)*np.sin(ct_theta)*np.cos(ct_psi)-np.cos(ct_phi)*np.sin(ct_psi))\
+           + ct_wp*(np.cos(ct_phi)*np.sin(ct_theta)*np.cos(ct_psi)+np.sin(ct_phi)*np.sin(ct_psi))
+
+    ct_v = ct_up*np.cos(ct_theta)*np.sin(ct_psi)\
+           + ct_vp*(np.sin(ct_phi)*np.sin(ct_theta)*np.sin(ct_psi)+np.cos(ct_phi)*np.cos(ct_psi))\
+           + ct_wp*(np.cos(ct_phi)*np.sin(ct_theta)*np.sin(ct_psi)-np.sin(ct_phi)*np.cos(ct_psi))
+
+    ct_w = ct_up*(-np.sin(ct_theta))\
+           + ct_vp*(np.cos(ct_theta)*np.sin(ct_phi))\
+           + ct_wp*(np.cos(ct_theta)*np.cos(ct_phi))
+
+    return ct_u, ct_v, ct_w
+
+def decode_licor_diag(raw_diag):
+
+    # speed things up so we dont wait forever
+    bin_v     = np.vectorize(bin)
+    get_ct_v  = np.vectorize(get_ct)
+    get_dt_v  = np.vectorize(get_dt)
+    get_pll_v = np.vectorize(get_pll)
+
+    # licor diagnostics are encoded in the binary of an integer reported by the sensor. the coding is described
+    # in Licor Technical Document, 7200_TechTip_Diagnostic_Values_TTP29 and unpacked here.
+    licor_diag     = np.int16(raw_diag)
+    pll            = licor_diag*np.nan
+    detector_temp  = licor_diag*np.nan
+    chopper_temp   = licor_diag*np.nan
+    # __"why the %$@$)* can't this be vectorized? This loop is slow"__
+    # well, chris, you asked for vectorization.. now you got it! now to get rid of the list comprehension
+    non_nan_inds  = ~np.isnan(raw_diag) 
+    #if not np.isnan(raw_diag).all():
+    if non_nan_inds.any():
+
+        licor_diag_bin = bin_v(licor_diag[non_nan_inds])
+        chopper_temp_bin = licor_diag_bin[:][2]
+
+        # try to use vectorized functions?
+        # chopper_temp[non_nan_inds]  = get_ct_v(licor_diag_bin)
+        # detector_temp[non_nan_inds] = get_dt_v(licor_diag_bin)
+        # pll[non_nan_inds]           = get_pll_v(licor_diag_bin)
+        
+        # or just use list comprehension? vectorize is doing weird things, and not much faster... maybe this is better
+        chopper_temp[non_nan_inds]  = [np.int(x[2]) if len(x)==10 and x[2]!='b' else np.nan for x in licor_diag_bin]
+        detector_temp[non_nan_inds] = [np.int(x[3]) if len(x)==10 and x[2]!='b' else np.nan for x in licor_diag_bin]
+        pll[non_nan_inds]           = [np.int(x[4]) if len(x)==10 and x[2]!='b' else np.nan for x in licor_diag_bin]
+
+    return pll, detector_temp, chopper_temp
+
+# these functions are for vectorization by numpy to 
+def get_ct(licor_db):
+    if len(licor_db)>4 and licor_db[2]!='b':
+        if licor_db[2] != np.nan:
+            return np.int(licor_db[2])
+    else: return np.nan
+def get_dt(licor_db):
+    if len(licor_db)>4 and licor_db[2]!='b': 
+        if licor_db[3] != np.nan:
+            return np.int(licor_db[3])
+    else: return np.nan
+def get_pll(licor_db):
+    if len(licor_db)>4 and licor_db[2]!='b':
+        if licor_db[4] != np.nan:
+            return np.int(licor_db[4])
+    else: return np.nan
+
+# this is the function that averages for the 1m and 10m averages
+# perc_allowed_missing defines how many data points are required to be non-nan before returning nan
+# i.e. if 10 out of 100 data points are non-nan and you specify 80, this returns nan
+#
+# can be called like:     DataFrame.apply(take_average, perc_allowed_missing=80)
+def take_average(array_like_thing, **kwargs):
+
+    perc_allowed_missing = kwargs.get('perc_allowed_missing')
+    if perc_allowed_missing is None:
+        perc_allowed_missing = 100.0
+    
+    if array_like_thing.size == 0:
+        return nan
+    perc_miss = np.round((np.count_nonzero(np.isnan(array_like_thing))/float(array_like_thing.size))*100.0, decimals=4)
+    if perc_allowed_missing < perc_miss:
+        return nan
+    else:
+        return np.nanmean(array_like_thing)
+
+# functions to make grepping lines easier, differentiating between normal output, warnings, and fatal errors
+def warn(string):
+    max_line = len(max(string.splitlines(), key=len))
+    print('')
+    print("!! Warning: {} !!".format("!"*(max_line)))
+    for line in string.splitlines():
+        print("!! Warning: {} {}!! ".format(line," "*(max_line-len(line))))
+    print("!! Warning: {} !!".format("!"*(max_line)))
+    print('')
+
+def fatal(string):
+    max_line = len(max(string.splitlines(), key=len))
+    print('')
+    print("!! FATAL {} !!".format("!"*(max_line)))
+    for line in string.splitlines():
+        print("!! FATAL {} {}!! ".format(line," "*(max_line-len(line))))
+    center_off = int((max_line-48)/2.)
+    if center_off+center_off != (max_line-len(line)):
+        print("!! FATAL {} I'm sorry, but this forces an exit... goodbye! {} !!".format(" "*center_off," "*(center_off)))
+    else:
+        print("!! FATAL {} I'm sorry, but this forces an exit... goodbye! {} !!".format(" "*center_off," "*center_off))
+    print("!! FATAL {} !!".format("!"*(max_line)))
+    exit()
+
+def num_missing(series):
+    return np.count_nonzero(series==np.NaN)
+
+def perc_missing(series):
+    if series.size == 0: return 100.0
+    return np.round((np.count_nonzero(np.isnan(series))/float(series.size))*100.0, decimals=4)
+
+# checks a column/series in a dataframe to see if it can be stored as ints 
+def column_is_ints(ser): 
+
+    if ser.dtype == object:
+        warn("your pandas series for {} contains objects, that shouldn't happen".format(ser.name))
+        return False
+
+    elif ser.empty or ser.isnull().all():
+        return False
+    else:
+        mx = ser.max()
+        mn = ser.min()
+
+        ser_comp = ser.fillna(mn-1)  
+        ser_zero = ser.fillna(0)
+
+        # test if column can be converted to an integer
+        asint  = ser_zero.astype(np.int32)
+        result = (ser_comp - asint)
+        result = result.sum()
+        if result > -0.01 and result < 0.01:
+
+            # could probably support compression to smaller dtypes but not yet,
+            # for now everything is int32... because simple
+
+            # if mn >= 0:
+            #     if mx < 255:
+            #         return np.uint8
+            #     elif mx < 65535:
+            #         return np.uint16
+            #     elif mx < 4294967295:
+            #         return np.uint32
+            #     else:
+            #         print("our netcdf files dont support int64")
+            # else:
+            #     if mn > np.iinfo(np.int8).min and mx < np.iinfo(np.int8).max:
+            #         return np.int8
+            #     elif mn > np.iinfo(np.int16).min and mx < np.iinfo(np.int16).max:
+            #         return np.int16
+            #     elif mn > np.iinfo(np.int32).min and mx < np.iinfo(np.int32).max:
+            #         return np.int32
+            #     elif mn > np.iinfo(np.int64).min and mx < np.iinfo(np.int64).max:
+            #         print("our netcdf files dont support int64")
+
+            return True
+        else:
+            return False
+
+# functions to make grepping lines easier, differentiating between normal output, warnings, and fatal errors
+def warn(string):
+    max_line = len(max(string.splitlines(), key=len))
+    print('')
+    print("!! Warning: {} !!".format("!"*(max_line)))
+    for line in string.splitlines():
+        print("!! Warning: {} {}!! ".format(line," "*(max_line-len(line))))
+    print("!! Warning: {} !!".format("!"*(max_line)))
+    print('')
+
+def fatal(string):
+    max_line = len(max(string.splitlines(), key=len))
+    print('')
+    print("!! FATAL {} !!".format("!"*(max_line)))
+    for line in string.splitlines():
+        print("!! FATAL {} {}!! ".format(line," "*(max_line-len(line))))
+    center_off = int((max_line-48)/2.)
+    if center_off+center_off != (max_line-len(line)):
+        print("!! FATAL {} I'm sorry, but this forces an exit... goodbye! {} !!".format(" "*center_off," "*(center_off)))
+    else:
+        print("!! FATAL {} I'm sorry, but this forces an exit... goodbye! {} !!".format(" "*center_off," "*center_off))
+    print("!! FATAL {} !!".format("!"*(max_line)))
+    exit()
+
+
+# maybe this goes in a different file?
+def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
 
     # define the verbose print option
     v_print      = print if verbose else lambda *a, **k: None
@@ -94,7 +411,7 @@ def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek,licor, cl
         verboseprint('  No valid data for sonic at height '+np.str(z_level_n))
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
-        turbulence_data.keys    = turbulence_data.keys()+'_'+z_level_nominal
+        turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
         turbulence_data.columns = turbulence_data.keys
         turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}]) 
         return turbulence_data
@@ -103,11 +420,12 @@ def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek,licor, cl
     if sum(U.isna()) > npt/2 or sum(V.isna()) > npt/2 or sum(W.isna()) > npt/2 or sum(T.isna()) > npt/2:
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
-        turbulence_data.keys    = turbulence_data.keys()+'_'+z_level_nominal
+        turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
         turbulence_data.columns = turbulence_data.keys
         turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])
         return turbulence_data
         verboseprint('  No valid data for sonic at height '+np.str(z_level_n))
+
 
     #verboseprint('  Calculating sonic at height '+np.str(z_level_n)+' m and heading '+np.str(np.round(sonic_dir,decimals=1))+' deg...')
 
@@ -891,8 +1209,13 @@ def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek,licor, cl
 
     # we need to give the columns unique names for the netcdf build later...
     # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
-    turbulence_data.keys = turbulence_data.keys()+'_'+z_level_nominal
+    # this needs to be done in code to make this more modular
+
+    turbulence_data.keys = turbulence_data.keys()#+'_'+z_level_nominal
     turbulence_data.columns = turbulence_data.keys
 
     return turbulence_data
 
+# takes datetime object, returns string YYYY-mm-dd
+def dstr(date):
+    return date.strftime("%Y-%m-%d")
