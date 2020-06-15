@@ -386,13 +386,14 @@ def main(): # the main data crunching program
                 if potential_inds[0].size==0: continue # if empty, do nothing, this is unnecessary
                 for ind in potential_inds[0]:
                     #ind = ind.item() # convert to native python type from np.int64, so we can index
-                    lo = ind-5
+                    lo = ind
                     hi = ind+5
                     T_nearby = sdt[param][lo:hi]
                     if np.any(T_nearby < -5) or np.any(T_nearby < 5):    # temps cant go from 0 to +/-5C in 5 minutes
                         sdt[param].iloc[ind] = nan
-                    elif sdt[param][lo:hi].count() == 0: # no way all values for a minute are *exactly* 0
+                    elif (sdt[param].iloc[lo:hi] == 0).all(): # no way all values for a minute are *exactly* 0
                         sdt[param].iloc[lo:hi] = nan
+
 
             # derive some useful parameters that we want to write to the output file
             # ###################################################################################################
@@ -437,6 +438,37 @@ def main(): # the main data crunching program
             #   times with the median of the (30 min?) flux sample.
             # ~~~~~~~~~~~~~~~~~~~~~ (2) Quality control ~~~~~~~~~~~~~~~~~~~~~~~~
             print("... quality controlling the fast data now")
+
+            metek_list = ['metek_x', 'metek_y','metek_z','metek_T']
+            for param in metek_list: # identify when T==0 is actually missing data, this takes some logic
+                potential_inds  = np.where(fdt[param]==0.0)
+                if potential_inds[0].size==0: continue # if empty, do nothing, this is unnecessary
+                if potential_inds[0].size>100000:
+                    print("!!! there were a lot of zeros in your fast data, this shouldn't happen often !!!")
+                    print("!!! {}% of {} was zero today!!!".format(round((potential_inds[0].size/1728000)*100,4),param))
+                    split_val = 10000
+                else: split_val=200
+
+                while split_val>199: 
+                    ind = 0
+                    while ind < len(potential_inds[0]):
+                        curr_ind = potential_inds[0][ind]
+                        hi = int(curr_ind+(split_val))
+                        if hi >= len(fdt[param]): hi=len(fdt[param])-1
+                        vals_nearby = fdt[param][curr_ind:hi]
+                        if (fdt[param].iloc[curr_ind:hi] == 0).all(): # no way all values are consecutively *exactly* 0
+                            fdt[param].iloc[curr_ind:hi] = nan
+                            ind = ind+split_val
+                            continue
+                        else:
+                            ind = ind+1
+
+                    potential_inds  = np.where(fdt[param]==0.0)
+                    if split_val ==10000:
+                        split_val = 200
+                    else:
+                        split_val = split_val -1
+                #print("...ended with {} zeros in the array".format(len(potential_inds[0])))
 
             # I'm being a bit lazy here: no accouting for reasons data was rejected. For another day.
             # Chris said he was lazy first, now I'm being lazy by not making it up, sorry Chris
@@ -672,7 +704,7 @@ def main(): # the main data crunching program
                     # equal "sonic north"?  
                     hdg = sdt['station_heading'].mean()
 
-                    # make the turbulent flux calculations via Grachev module
+                    # make th1e turbulent flux calculations via Grachev module
                     from functions_library import grachev_fluxcapacitor
                     v = False
                     if verbose: v = True;

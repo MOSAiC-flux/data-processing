@@ -39,7 +39,7 @@ def despike(spikey_panda, thresh, filterlen):
     return spikey_panda
 
 # calculate wind speeds from appropriate metek columns, this code assumes that 'metek_data' is a
-# fully indexed entire days worth of '1 T' frequency data !! Chris modified this to pass
+# fully indexed entire days worth of '1T' frequency data !! Chris modified this to pass
 # u,v,data_dates directly to generalize for other dataframes, thanks Chris
 def calculate_metek_ws_wd(data_dates, u, v, hdg_data): # tower heading data is 1s, metek data is 1m
     ws = np.sqrt(u**2+v**2)
@@ -446,6 +446,14 @@ def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek, licor, c
     vm = V.mean()
     wm = W.mean()
     Tm = T.mean()
+
+    # there was one day for asfs30 (10/06/2019) where this was true and so wsp divisions were undefined
+    if um == 0 and vm ==0 and wm ==0: #half hour of _zero_ wind? has to be bad data
+        turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
+        turbulence_data.columns = turbulence_data.keys
+        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])
+        verboseprint('  Bad data for sonic at height {}'.format(np.str(z_level_n)))
+        return turbulence_data
 
     # Rotate!
 

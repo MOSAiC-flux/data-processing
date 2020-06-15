@@ -66,11 +66,11 @@ from asfs_data_definitions import define_global_atts
 from asfs_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl
-import os, inspect, argparse, time, gc 
 
+import os, inspect, argparse, time, gc 
 import numpy  as np
 import pandas as pd
-pd.options.mode.use_inf_as_na = True # no inf values anywhere
+
 
 from threading import Thread
 from queue     import Queue
@@ -104,7 +104,12 @@ def main(): # the main data crunching program
     data_dir  = './data/'
     level1_dir = './processed_data/level1/'  # where does level1 data go
 
-    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties 
+    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties
+    apogee_switch_date = {}
+    apogee_switch_date[flux_stations[0]] = datetime(2019,12,13,11,9,0) # 
+    apogee_switch_date[flux_stations[1]] = datetime(2019,12,13,11,9,0) # 
+    apogee_switch_date[flux_stations[2]] = datetime(2019,11,14,6,11,0) # 
+
     
     global nan, def_fill_int, def_fill_flt # make using nans look better
     nan = np.NaN
@@ -291,10 +296,6 @@ def main(): # the main data crunching program
         # ########################################################################
         # switch apogee target & body T if necessary, date apogee switched in CR1000X software
         if today == start_time: # initialize some params on first loop
-            apogee_switch_date = {}
-            apogee_switch_date[flux_stations[0]] = datetime(2019,12,13,11,9,0) # 
-            apogee_switch_date[flux_stations[1]] = datetime(2019,12,13,11,9,0) # 
-            apogee_switch_date[flux_stations[2]] = datetime(2019,11,14,6,11,0) # 
 
             # correct flux plate sign code from ola
             # jd_flxp_corr(1,1:2)=[modystr(12)-1+31+12/24+00/1440 modystr(10)-1+1+12/24+00/1440]; %ASFS30
@@ -313,23 +314,28 @@ def main(): # the main data crunching program
 
         for curr_station in flux_stations:
             if today == apogee_switch_date[curr_station].replace(hour=0, minute=0, second=0):
+                targ_T = slow_data_today[curr_station]['apogee_targ_T_Avg'].copy()
+                body_T = slow_data_today[curr_station]['apogee_body_T_Avg'].copy()
+                targ_T_std = slow_data_today[curr_station]['apogee_targ_T_Avg_Std'].copy()
+                body_T_std = slow_data_today[curr_station]['apogee_body_T_Avg_Std'].copy()
+
                 slow_data_today[curr_station]['apogee_targ_T_Avg'] = \
                     np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             slow_data_today[curr_station]['apogee_body_T_Avg'],\
-                             slow_data_today[curr_station]['apogee_targ_T_Avg'])
+                             body_T,\
+                             targ_T)
                 slow_data_today[curr_station]['apogee_body_T_Avg'] = \
                     np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             slow_data_today[curr_station]['apogee_targ_T_Avg'],\
-                             slow_data_today[curr_station]['apogee_body_T_Avg'])
+                             targ_T,\
+                             body_T)
 
                 slow_data_today[curr_station]['apogee_targ_T_Std'] = \
                     np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             slow_data_today[curr_station]['apogee_body_T_Std'],\
-                             slow_data_today[curr_station]['apogee_targ_T_Std'])
+                             body_T_std,\
+                             targ_T_std)
                 slow_data_today[curr_station]['apogee_body_T_Std'] = \
                     np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             slow_data_today[curr_station]['apogee_targ_T_Std'],\
-                             slow_data_today[curr_station]['apogee_body_T_Std'])
+                             targ_T_std,\
+                             body_T_std)
 
             elif today < apogee_switch_date[curr_station]:
                 cs_targ_avg = slow_data_today[curr_station]['apogee_targ_T_Avg'] 
@@ -680,8 +686,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     lev1_slow_name  = '{}/{}'.format(out_dir, file_str_slow)
     lev1_fast_name  = '{}/{}'.format(out_dir, file_str_fast)
 
-    global_atts_slow = define_global_atts(curr_station, code_version, "slow") # global atts for level 1 and level 2
-    global_atts_fast = define_global_atts(curr_station, code_version, "fast") # global atts for level 1 and level 2
+    global_atts_slow = define_global_atts(curr_station, "slow") # global atts for level 1 and level 2
+    global_atts_fast = define_global_atts(curr_station, "fast") # global atts for level 1 and level 2
 
     netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w', format='NETCDF4_CLASSIC')
     netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w', format='NETCDF4_CLASSIC')
