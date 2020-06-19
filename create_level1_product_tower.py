@@ -87,7 +87,7 @@ def main(): # the main data crunching program
     global verboseprint  # defines a function that prints only if -v is used when running
 
     # where do we get the data from
-    data_dir   = './data/tower/'
+    data_dir   = './data/tower/0_level_raw/'
     level1_dir = './processed_data/tower/level1/'  # where does level1 data go
 
     # QC params:
@@ -383,12 +383,8 @@ def get_fast_data(subdir, date):
         else: # found a file that is not an 'msc' file...warn user??
             x = 'do nothing' # placeholder, guess we won't warn the user, sorry user!
 
-    # put the date from all files into one data frame before giving it back
-    metek_data = pd.concat(frame_list) # is concat computationally efficient?
-
-
     if nfiles == 0: 
-        warn('NO FAST DATA FOR {} on {} ... MAKE SENSE??\n\n'.format(subdir,date)\
+        fl.warn('NO FAST DATA FOR {} on {} ... MAKE SENSE??\n\n'.format(subdir,date)\
              +'IS THIS A DAY WHEN THE MAST WAS DOWN? NO? UH OH...')  
 
         # create a fake 20hz data frame that's empty and return it             
@@ -401,6 +397,9 @@ def get_fast_data(subdir, date):
 
     elif nfiles != 24:
         warn('{} of 24 {} {} files available for today {}'.format(nfiles,subdir,data_str,date))
+
+    # put the date from all files into one data frame before giving it back
+    metek_data = pd.concat(frame_list) # is concat computationally efficient?
 
     metek_data = metek_data.sort_index()
     return metek_data
