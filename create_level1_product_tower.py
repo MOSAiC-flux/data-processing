@@ -396,7 +396,7 @@ def get_fast_data(subdir, date):
         return frame
 
     elif nfiles != 24:
-        warn('{} of 24 {} {} files available for today {}'.format(nfiles,subdir,data_str,date))
+        fl.warn('{} of 24 {} files available for today {}'.format(nfiles,subdir,date))
 
     # put the date from all files into one data frame before giving it back
     metek_data = pd.concat(frame_list) # is concat computationally efficient?
