@@ -22,12 +22,12 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    code_version = ('0.2β', '6/12/2020', 'mgallagher')
-    return code_version
+    cv = ('0.2β', '6/12/2020', 'mgallagher')
+    return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
-def define_global_atts(station_name, code_version, file_type):
-
+def define_global_atts(station_name, file_type):
+    cv = code_version()
     # global attributes to be written into the netcdf output file
     global_atts = {                
         'date_created'     :'{}'.format(time.ctime(time.time())),
@@ -47,7 +47,7 @@ def define_global_atts(station_name, code_version, file_type):
         'disclaimer'       :'These data do not represent any determination, view, or policy of NOAA or the University of Colorado.',
         'project'          :'PS-122 MOSAiC, ATMOS Flux Team: Thermodynamic and Dynamic Drivers of the Arctic sea ice mass budget at MOSAiC',
         'comment'          :'Preliminary product under development and should not be used for analysis without consultation!',
-        'version'          :'{}'.format(np.str(code_version[0])+', '+np.str(code_version[1])), 
+        'version'          :'{}'.format(np.str(cv[0])+', '+np.str(cv[1])), 
         # !! matlab reads this as UNSUPPORTED DATA TYPE. No idea why. this was true before when it was just a string
         # !! as well for some reason and the beta isnt the reason.
     }

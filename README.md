@@ -23,7 +23,7 @@ If you're new to git, there are a few ways to look at this code. The simplest wa
 
 [A great in depth tutorial on using git and python on the command line can be found at the Earth Lab CU webpage  here](https://www.earthdatascience.org/workshops/setup-earth-analytics-python/)
 
-If you have any questions about running, modifying, or understanding the software, don't hesitate to contact me [Michael Gallagher](mailto:michael.r.gallagher@noaa.gov). I'm happy to help with anything. 
+If you have any questions about running, modifying, or understanding the software, don't hesitate to contact [Michael Gallagher](mailto:michael.r.gallagher@noaa.gov) or [Chris Cox]((mailto:christopher.j.cox@gmail.com)
 
 ### Required software:
 
