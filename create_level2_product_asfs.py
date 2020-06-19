@@ -756,7 +756,7 @@ def main(): # the main data crunching program
     printline()
 
 # loop over all slow files in time range and return data from for full range of days
-def get_slow_netcdf_data(curr_station, start_time, end_time, q): # raw == original text, else "netcdf"
+def get_slow_netcdf_data(curr_station, start_time, end_time, q): 
     l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
 
     data_atts, data_cols = define_level1_slow()
@@ -803,7 +803,7 @@ def get_slow_netcdf_data(curr_station, start_time, end_time, q): # raw == origin
     q.put(data_frame)
 
 # get level1 fast data from netcdf for specified day (each day eats RAM)
-def get_fast_netcdf_data(curr_station, date, q): # raw == original text, else "netcdf"
+def get_fast_netcdf_data(curr_station, date, q): 
     l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
     data_atts, data_cols = define_level1_fast()
     time_var = data_cols[0]
@@ -888,7 +888,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
 
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
-    global_atts = define_global_atts(curr_station, code_version, "level2") # global atts for level 1 and level 2
+    global_atts = define_global_atts(curr_station, "level2") # global atts for level 1 and level 2
     netcdf_lev2 = Dataset(lev2_name, 'w', format='NETCDF4_CLASSIC')
 
     for att_name, att_val in global_atts.items(): # write global attributes 
@@ -980,7 +980,7 @@ def write_turb_netcdf(turb_data, curr_station, date, q):
 
     turb_name  = '{}/{}'.format(out_dir, file_str)
 
-    global_atts = define_global_atts(curr_station, code_version, "turb") # global atts for level 1 and level 2
+    global_atts = define_global_atts(curr_station, "turb") # global atts for level 1 and level 2
     netcdf_turb = Dataset(turb_name, 'w', format='NETCDF4_CLASSIC')
     # output netcdf4_classic files, for backwards compatibility... can be changed later but has some useful
     # features when using the data with 'vintage' processing code. it's the netcdf3 api, wrapped in hdf5
