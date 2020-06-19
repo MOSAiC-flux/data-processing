@@ -734,8 +734,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     # this only works for python versions built with debug symbols, fyi. if you
     # have a python version without, it just segfaults... weird things
 
-    t_slow = netcdf_lev1_slow.createVariable('time', 'i','time') # seconds since
-    t_fast = netcdf_lev1_fast.createVariable('time', 'i','time') # seconds since
+    t_slow = netcdf_lev1_slow.createVariable('time', 'i8','time') # seconds since
+    t_fast = netcdf_lev1_fast.createVariable('time', 'i8','time') # seconds since
 
     while True:
         try:
