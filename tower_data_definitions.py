@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('0.6β', '6/10/2020', 'mgallagher')
+    cv = ('0.5β', '6/10/2020', 'mgallagher')
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
