@@ -1031,12 +1031,12 @@ def write_turb_netcdf(turb_data, curr_station, date, q):
 
         # add a percent_missing attribute to give a first look at "data quality"
         perc_miss = fl.perc_missing(var_turb)
-        # max_val = np.nanmax(var_turb) # masked array max/min/etc
-        # min_val = np.nanmin(var_turb)
-        # avg_val = np.nanmean(var_turb)
-        # netcdf_turb[var_name].setncattr('max_val', max_val)
-        # netcdf_turb[var_name].setncattr('min_val', min_val)
-        # netcdf_turb[var_name].setncattr('avg_val', avg_val)
+        max_val = np.nanmax(var_turb) # masked array max/min/etc
+        min_val = np.nanmin(var_turb)
+        avg_val = np.nanmean(var_turb)
+        netcdf_turb[var_name].setncattr('max_val', max_val)
+        netcdf_turb[var_name].setncattr('min_val', min_val)
+        netcdf_turb[var_name].setncattr('avg_val', avg_val)
         netcdf_turb[var_name].setncattr('percent_missing', perc_miss)
         netcdf_turb[var_name].setncattr('missing_value', def_fill_flt)
 
