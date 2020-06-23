@@ -358,27 +358,51 @@ def get_fast_data(subdir, date):
 
             if metek_file_date >= (date) and metek_file_date < (date+day_delta):
                 nfiles += 1
-                if first_file:
-                    verboseprint('... using the file {} from the day: {}'.format(data_file, metek_file_date))
-                    first_file = False
+                #if first_file:
+                verboseprint('... using the file {} from the day: {}'.format(data_file, metek_file_date))
+                    #first_file = False
                 path        = data_dir+subdir+data_file
                 header_list = None
 
                 # read in data finally, then assign colunm names and convert timestamps after
                 frame = pd.read_csv(path, parse_dates=False, sep='\s+', na_values=['nan','NaN'],
-                                     header=header_list, skiprows=[0], engine='c')
+                                     header=header_list, skiprows=[0], engine='c', encoding = "ISO-8859-1")
 
                 frame.columns = cols
 
                 # convert timestamp into useable datetime array and then set index to timestamps
-                mmssuuu_strs = frame[cols[0]].values.astype('str')
-                noaadate     = np.char.zfill(mmssuuu_strs, 7).tolist()
-                date_now     = ' {}-{}-{}-{}'.format(metek_file_date.year, metek_file_date.month,
+                mmssuuu  = frame[cols[0]].values
+                mmssuuu_copy = np.where(mmssuuu<0, 0, mmssuuu) 
+                if np.any(mmssuuu < 0): #some files have
+                    num_bad = len(mmssuuu[mmssuuu<0])
+                    fl.warn("SOMETHING WRONG WITH TIMESTAMPS IN FILE {}\n\n SORRY, DROPPING {} DATA POINTS".format(data_file, num_bad))
+                    print(mmssuuu_copy[mmssuuu<0])
+                noaadate = np.char.zfill(mmssuuu_copy.astype(int).astype(str), 7)
+                date_now = ' {}-{}-{}-{}'.format(metek_file_date.year, metek_file_date.month,
                                                     metek_file_date.day,  metek_file_date.hour)
-                time_now     = np.array([nd+date_now for nd in noaadate])
-                timestamps   = pd.to_datetime(time_now, format='%M%S%f %Y-%m-%d-%H').rename('TIMESTAMP')
-                frame        = frame.set_index(timestamps)
+                time_now = np.array([nd+date_now for nd in noaadate])
+                weird_vals = [(i,val) for i,val in enumerate(noaadate) if '-' in val]
+                print(weird_vals)
+                print("????????????")
+                if len(weird_vals)>0:
+                    indexes = [i[0] for i in weird_vals]
+                    indexes_min = [i[0]-1 for i in weird_vals]
+                    indexes_max = [i[0]+1 for i in weird_vals]
+                    print(indexes)
+                    print("===========?")
+                    print(mmssuuu[indexes[:]])
+                    print(frame.index)
+                    print(frame)
+                    
+                    print(frame.iloc[indexes[:]])
+                    print(frame.iloc[indexes_min[:]])
+                    print(frame.iloc[indexes_max[:]])
+                    print("===========?")
+                timestamps = pd.to_datetime(time_now, format='%M%S%f %Y-%m-%d-%H').rename('TIMESTAMP')
+                frame = frame.set_index(timestamps)
+                frame = frame[mmssuuu>=0] # drop bad timestamps
                 frame_list.append(frame)
+
 
         else: # found a file that is not an 'msc' file...warn user??
             x = 'do nothing' # placeholder, guess we won't warn the user, sorry user!
@@ -582,7 +606,7 @@ def write_level1_slow(slow_data, date):
             var_dtype = np.int32
             fill_val  = def_fill_int
             slow_data[var_name].fillna(fill_val, inplace=True)
-            var_tmp = slow_data[var_name].values.astype(np.int32)
+            var_tmp = slow_data[var_name].values.astype(np.uint32)
 
         else:
             fill_val  = def_fill_flt
