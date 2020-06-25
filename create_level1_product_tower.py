@@ -356,6 +356,7 @@ def get_fast_data(subdir, date):
     curr_inst = [inst for inst in inst_strs if inst in subdir.lower()][0]
     if curr_inst == '30m': curr_inst='mast' #directory labeled 30m, data vars labeled mast...
     cols = [s for s in fast_vars if curr_inst in s.lower()]
+    if curr_inst == 'licor': cols = cols[0:7] # there's 7 columns in the original data but we're decoding the diags and adding vars
 
     frame_list = []
     first_file = True
