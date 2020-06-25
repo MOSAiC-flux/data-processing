@@ -413,11 +413,11 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
     # in fast_atts to know which atts to apply to which group/variable, the
     # data is the value of the search string, a dict of dicts...
     inst_dict = {}
-    inst_dict["2m_metek"]   = ("2m"    , metek_bottom)
-    inst_dict["6m_metek"]   = ("6m"    , metek_middle)
-    inst_dict["10m_metek"]  = ("10m"   , metek_top)
-    inst_dict["mast_metek"] = ("mast"  , metek_mast)
-    inst_dict["2m_licor"]   = ("licor" , licor_bottom)
+    inst_dict['2m_metek']   = ('2m'    , metek_bottom)
+    inst_dict['6m_metek']   = ('6m'    , metek_middle)
+    inst_dict['10m_metek']  = ('10m'   , metek_top)
+    inst_dict['mast_metek'] = ('mast'  , metek_mast)
+    inst_dict['2m_licor']   = ('licor' , licor_bottom)
 
     fast_atts, fast_vars = define_level1_fast() 
 

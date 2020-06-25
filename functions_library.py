@@ -271,8 +271,6 @@ def column_is_ints(ser):
         # test if column can be converted to an integer
         try: asint  = ser_zero.astype(np.int32)
         except Exception as e:
-            print(ser)
-            print(e)
             return False
         result = (ser_comp - asint)
         result = result.sum()
