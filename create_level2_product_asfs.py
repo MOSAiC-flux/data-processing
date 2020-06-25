@@ -96,7 +96,7 @@ def main(): # the main data crunching program
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global beginning_of_time, integ_time_turb_flux
     beginning_of_time    = datetime(2019,10,5,0,0) # the first day of MOSAiC ASFS data
-    integ_time_turb_flux = 30                      # [minutes] the integration time for the turbulent flux calculation
+    integ_time_turb_flux = 10                      # [minutes] the integration time for the turbulent flux calculation
     calc_fluxes          = True                   # if you want to run turbulent flux calculations and write files
 
     global verboseprint  # defines a function that prints only if -v is used when running

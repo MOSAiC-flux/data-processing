@@ -52,7 +52,7 @@ from tower_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl # functions written by the flux team for processing data
 
-import os, inspect, argparse, time, gc
+import os, inspect, argparse, time, gc, re
 import numpy  as np
 import pandas as pd
 
@@ -76,7 +76,6 @@ def main(): # the main data crunching program
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global beginning_of_time
     beginning_of_time    = datetime(2019,10,15,0,0) # the first day of MOSAiC tower data
-    integ_time_turb_flux = 30 # [minutes] the integration time for the turbulent flux calculation
     process_fast_data    = True
     calc_stats           = False # If False, stats are read from NOAA Services. If True calculated here.
     # should set to True normally because recalculating here accounts for coordinate rotations, QC, and the like
@@ -358,27 +357,49 @@ def get_fast_data(subdir, date):
 
             if metek_file_date >= (date) and metek_file_date < (date+day_delta):
                 nfiles += 1
-                if first_file:
-                    verboseprint('... using the file {} from the day: {}'.format(data_file, metek_file_date))
-                    first_file = False
+                #if first_file:
+                verboseprint('... using the file {} from the day: {}'.format(data_file, metek_file_date))
+                    #first_file = False
                 path        = data_dir+subdir+data_file
                 header_list = None
 
                 # read in data finally, then assign colunm names and convert timestamps after
                 frame = pd.read_csv(path, parse_dates=False, sep='\s+', na_values=['nan','NaN'],
-                                     header=header_list, skiprows=[0], engine='c')
+                                     header=header_list, skiprows=[0], engine='c',)
 
-                frame.columns = cols
+                mmssuuu  = frame[0].values # convert timestamp into useable datetime array and then set index to timestamps
 
-                # convert timestamp into useable datetime array and then set index to timestamps
-                mmssuuu_strs = frame[cols[0]].values.astype('str')
-                noaadate     = np.char.zfill(mmssuuu_strs, 7).tolist()
-                date_now     = ' {}-{}-{}-{}'.format(metek_file_date.year, metek_file_date.month,
+                # rarely, some files have a random amount of "NUL chars" sprinkled at the beginning of lines, must be shutdown periods?
+                # it's rare enough that we don't want to run the conversion on *all* files (v. slow), so we just re-read the bad files
+                # literally only saves one data point of fast data, worth it? we could just drop that line but it took a while to track down and fix
+                # this is written this way because pandas *and* numpy process the nul char in the pipeline before doing conversions and it borks everything
+                # and I couldn't find a reasonable workaround. kind of stupid to essentially re-write a slower version of read_csv
+                if np.any(np.isnan(mmssuuu)): 
+                    bad_inds = np.argwhere(np.isnan(mmssuuu))
+                    fl.warn("SOMETHING WRONG WITH TIMESTAMPS (NUL CHAR?) IN FILE {}\n\n SOMEWHERE NEAR LINES {}.. this is gonna be slow".format(data_file, bad_inds))
+                    with open(path, 'r') as fin:
+                        next(fin)
+                        weird_string_lines = fin.read().split("\n")
+                    for i, line in enumerate(weird_string_lines):
+                        weird_data_line = np.fromstring(line, sep=' ')
+                        if i == 0:
+                            weird_data = weird_data_line.transpose()
+                        if len(weird_data_line) > 0 : weird_data = np.vstack([weird_data, weird_data_line])
+                    frame = pd.DataFrame(weird_data)
+                    frame[0] = pd.to_numeric(frame[0])
+                    mmssuuu  = frame[0].values
+                    bad_inds = np.argwhere(np.isnan(mmssuuu))
+
+                frame.columns = cols # rename columns appropriately
+                noaadate = np.char.zfill(mmssuuu.astype(int).astype(str), 7)
+                date_now = ' {}-{}-{}-{}'.format(metek_file_date.year, metek_file_date.month,
                                                     metek_file_date.day,  metek_file_date.hour)
-                time_now     = np.array([nd+date_now for nd in noaadate])
-                timestamps   = pd.to_datetime(time_now, format='%M%S%f %Y-%m-%d-%H').rename('TIMESTAMP')
-                frame        = frame.set_index(timestamps)
+                time_now = np.array([nd+date_now for nd in noaadate])
+                timestamps = pd.to_datetime(time_now, format='%M%S%f %Y-%m-%d-%H').rename('TIMESTAMP')
+                frame = frame.set_index(timestamps)
+                frame = frame[mmssuuu>=0] # drop bad timestamps
                 frame_list.append(frame)
+
 
         else: # found a file that is not an 'msc' file...warn user??
             x = 'do nothing' # placeholder, guess we won't warn the user, sorry user!
@@ -582,7 +603,7 @@ def write_level1_slow(slow_data, date):
             var_dtype = np.int32
             fill_val  = def_fill_int
             slow_data[var_name].fillna(fill_val, inplace=True)
-            var_tmp = slow_data[var_name].values.astype(np.int32)
+            var_tmp = slow_data[var_name].values.astype(np.uint32)
 
         else:
             fill_val  = def_fill_flt
@@ -607,6 +628,26 @@ def write_level1_slow(slow_data, date):
 # annoying, convert E to e so that python recognizes scientific notation in logger files...
 def convert_sci(array_like_thing):
     return np.float64(array_like_thing.replace('E','e'))
+
+# annoying, get rid of null chars at beginning of lines
+def convert_nulchar(array_like_thing):
+    nul_char_regex = '[\x00]+'
+    valid_data_regex = re.compile(r'^[\.\sa-zA-Z0-9_-]*$')#/^[\sa-zA-Z0-9_-]*$/gm')
+    
+    #alphanumeric_filter = filter(valid_data_regex.search, array_like_thing)
+    #alphanumeric_string = "".join(alphanumeric_filter)  
+    alphanumeric_string = re.sub(nul_char_regex, '', array_like_thing)
+    if alphanumeric_string != array_like_thing:
+        print("not equalssss")
+        print("{} ---- {}".format(alphanumeric_string, array_like_thing))
+    if '\0' in array_like_thing:
+        print("array like thing contains nul charssssss")
+        print(alphanumeric_string)
+    if '\x00' in array_like_thing:
+        print("array like thing contains nulchar")
+        print(alphanumeric_string)
+
+    return alphanumeric_string
 
 # this runs the function main as the main program... this is a hack that allows functions
 # to come after the main code so it presents in a more logical, C-like, way
