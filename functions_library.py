@@ -13,8 +13,6 @@
 #       def get_dt(licor_db):                                                                                
 #       def get_pll(licor_db):                                                                               
 #       def take_average(array_like_thing, **kwargs):                                                        
-#       def warn(string):                                                                                    
-#       def fatal(string):                                                                                   
 #       def num_missing(series):                                                                             
 #       def perc_missing(series):                                                                            
 #       def column_is_ints(ser):                                                                             
@@ -271,7 +269,11 @@ def column_is_ints(ser):
         ser_zero = ser.fillna(0)
 
         # test if column can be converted to an integer
-        asint  = ser_zero.astype(np.int32)
+        try: asint  = ser_zero.astype(np.int32)
+        except Exception as e:
+            print(ser)
+            print(e)
+            return False
         result = (ser_comp - asint)
         result = result.sum()
         if result > -0.01 and result < 0.01:
@@ -301,31 +303,6 @@ def column_is_ints(ser):
             return True
         else:
             return False
-
-# functions to make grepping lines easier, differentiating between normal output, warnings, and fatal errors
-def warn(string):
-    max_line = len(max(string.splitlines(), key=len))
-    print('')
-    print("!! Warning: {} !!".format("!"*(max_line)))
-    for line in string.splitlines():
-        print("!! Warning: {} {}!! ".format(line," "*(max_line-len(line))))
-    print("!! Warning: {} !!".format("!"*(max_line)))
-    print('')
-
-def fatal(string):
-    max_line = len(max(string.splitlines(), key=len))
-    print('')
-    print("!! FATAL {} !!".format("!"*(max_line)))
-    for line in string.splitlines():
-        print("!! FATAL {} {}!! ".format(line," "*(max_line-len(line))))
-    center_off = int((max_line-48)/2.)
-    if center_off+center_off != (max_line-len(line)):
-        print("!! FATAL {} I'm sorry, but this forces an exit... goodbye! {} !!".format(" "*center_off," "*(center_off)))
-    else:
-        print("!! FATAL {} I'm sorry, but this forces an exit... goodbye! {} !!".format(" "*center_off," "*center_off))
-    print("!! FATAL {} !!".format("!"*(max_line)))
-    exit()
-
 
 # maybe this goes in a different file?
 def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek, licor, clasp, verbose=False):

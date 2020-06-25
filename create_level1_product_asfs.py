@@ -89,8 +89,8 @@ print(version_msg)
 def main(): # the main data crunching program
 
     global trial, n_trial_files
-    trial = False # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
-    n_trial_files = 500
+    trial = True # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
+    n_trial_files = 1500
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global beginning_of_time
@@ -295,7 +295,7 @@ def main(): # the main data crunching program
         # level 1 files are written out... and it's all here.
         # ########################################################################
         # switch apogee target & body T if necessary, date apogee switched in CR1000X software
-        if today == start_time: # initialize some params on first loop
+
 
             # correct flux plate sign code from ola
             # jd_flxp_corr(1,1:2)=[modystr(12)-1+31+12/24+00/1440 modystr(10)-1+1+12/24+00/1440]; %ASFS30
@@ -313,11 +313,13 @@ def main(): # the main data crunching program
             # end
 
         for curr_station in flux_stations:
+            #if not slow_data_today[curr_station].empty:
+
             if today == apogee_switch_date[curr_station].replace(hour=0, minute=0, second=0):
                 targ_T = slow_data_today[curr_station]['apogee_targ_T_Avg'].copy()
                 body_T = slow_data_today[curr_station]['apogee_body_T_Avg'].copy()
-                targ_T_std = slow_data_today[curr_station]['apogee_targ_T_Avg_Std'].copy()
-                body_T_std = slow_data_today[curr_station]['apogee_body_T_Avg_Std'].copy()
+                targ_T_std = slow_data_today[curr_station]['apogee_targ_T_Std'].copy()
+                body_T_std = slow_data_today[curr_station]['apogee_body_T_Std'].copy()
 
                 slow_data_today[curr_station]['apogee_targ_T_Avg'] = \
                     np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
@@ -689,8 +691,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     global_atts_slow = define_global_atts(curr_station, "slow") # global atts for level 1 and level 2
     global_atts_fast = define_global_atts(curr_station, "fast") # global atts for level 1 and level 2
 
-    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w', format='NETCDF4_CLASSIC')
-    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w', format='NETCDF4_CLASSIC')
+    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w')#, format='NETCDF4_CLASSIC')
+    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w')#, format='NETCDF4_CLASSIC')
 
     for att_name, att_val in global_atts_slow.items(): # write the global attributes to slow
         netcdf_lev1_slow.setncattr(att_name, att_val)
@@ -761,7 +763,6 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
         if var_name == time_name: continue
 
         var_dtype = slow_data[var_name].dtype
-
         if fl.column_is_ints(slow_data[var_name]):
         # if issubclass(var_dtype.type, np.integer): # netcdf4 classic doesnt like 64 bit integers
             var_dtype = np.int32
