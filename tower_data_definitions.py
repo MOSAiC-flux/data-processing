@@ -318,9 +318,13 @@ def define_level1_slow():
 
     return lev1_slow_atts, list(lev1_slow_atts.keys()).copy() 
 
+# because I decided to include all of the fast instruments in groups inside of one netcdf file, the variable names
+# for the fast level1 data are much more integral to the level1/level2 processing code. so. if you decide you want these
+# names to be different, you're going to have to change the "get_fast" functions in the "create" code as well as some
+# of the processing code in the level2 create file. it's annoying, maybe not the best design choice.
 def define_level1_fast():
 
-    licor_location = 'first level on met city tower'
+    licor_location         = 'first level on met city tower'
     bottom_location_string = 'first level on met city tower'
     middle_location_string = 'second level on met city tower'
     top_location_string    = 'third level on met city tower'
@@ -332,308 +336,323 @@ def define_level1_fast():
     # in the create product code. annoying, sorry. hopefully when I finish this I'll redesign a bit more logically
 
     # units defined here, other properties defined in 'update' call below
-    lev1_fast_atts['TIMESTAMP_2m']         = {'units' : 'time'    }
-    lev1_fast_atts['metek_heatstatus_2m']  = {'units' : 'int'     }
-    lev1_fast_atts['metek_x_2m']           = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_y_2m']           = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_z_2m']           = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_T_2m']           = {'units' : 'C'       }
-    lev1_fast_atts['metek_hspd_2m']        = {'units' : 'int'     }
-    lev1_fast_atts['metek_ts_2m']          = {'units' : 'int'     }
-    lev1_fast_atts['metek_incx_2m']        = {'units' : 'deg'     }
-    lev1_fast_atts['metek_incy_2m']        = {'units' : 'deg'     }
+    lev1_fast_atts['metek_2m_TIMESTAMP']   = {'units' : 'time'    }
+    lev1_fast_atts['metek_2m_heatstatus']  = {'units' : 'int'     }
+    lev1_fast_atts['metek_2m_x']           = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_2m_y']           = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_2m_z']           = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_2m_T']           = {'units' : 'C'       }
+    lev1_fast_atts['metek_2m_hspd']        = {'units' : 'int'     }
+    lev1_fast_atts['metek_2m_ts']          = {'units' : 'int'     }
+    lev1_fast_atts['metek_2m_incx']        = {'units' : 'deg'     }
+    lev1_fast_atts['metek_2m_incy']        = {'units' : 'deg'     }
 
-    lev1_fast_atts['TIMESTAMP_6m']         = {'units' : 'time'    }
-    lev1_fast_atts['metek_heatstatus_6m']  = {'units' : 'int'     }
-    lev1_fast_atts['metek_x_6m']           = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_y_6m']           = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_z_6m']           = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_T_6m']           = {'units' : 'C'       }
-    lev1_fast_atts['metek_hspd_6m']        = {'units' : 'int'     }
-    lev1_fast_atts['metek_ts_6m']          = {'units' : 'int'     }
-    lev1_fast_atts['metek_incx_6m']        = {'units' : 'deg'     }
-    lev1_fast_atts['metek_incy_6m']        = {'units' : 'deg'     }
+    lev1_fast_atts['metek_6m_TIMESTAMP']   = {'units' : 'time'    }
+    lev1_fast_atts['metek_6m_heatstatus']  = {'units' : 'int'     }
+    lev1_fast_atts['metek_6m_x']           = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_6m_y']           = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_6m_z']           = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_6m_T']           = {'units' : 'C'       }
+    lev1_fast_atts['metek_6m_hspd']        = {'units' : 'int'     }
+    lev1_fast_atts['metek_6m_ts']          = {'units' : 'int'     }
+    lev1_fast_atts['metek_6m_incx']        = {'units' : 'deg'     }
+    lev1_fast_atts['metek_6m_incy']        = {'units' : 'deg'     }
 
-    lev1_fast_atts['TIMESTAMP_10m']        = {'units' : 'time'    }
-    lev1_fast_atts['metek_heatstatus_10m'] = {'units' : 'int'     }
-    lev1_fast_atts['metek_x_10m']          = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_y_10m']          = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_z_10m']          = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_T_10m']          = {'units' : 'C'       }
-    lev1_fast_atts['metek_hspd_10m']       = {'units' : 'int'     }
-    lev1_fast_atts['metek_ts_10m']         = {'units' : 'int'     }
-    lev1_fast_atts['metek_incx_10m']       = {'units' : 'deg'     }
-    lev1_fast_atts['metek_incy_10m']       = {'units' : 'deg'     }
+    lev1_fast_atts['metek_10m_TIMESTAMP']  = {'units' : 'time'    }
+    lev1_fast_atts['metek_10m_heatstatus'] = {'units' : 'int'     }
+    lev1_fast_atts['metek_10m_x']          = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_10m_y']          = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_10m_z']          = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_10m_T']          = {'units' : 'C'       }
+    lev1_fast_atts['metek_10m_hspd']       = {'units' : 'int'     }
+    lev1_fast_atts['metek_10m_ts']         = {'units' : 'int'     }
+    lev1_fast_atts['metek_10m_incx']       = {'units' : 'deg'     }
+    lev1_fast_atts['metek_10m_incy']       = {'units' : 'deg'     }
  
-    lev1_fast_atts['TIMESTAMP_mast']        = {'units' : 'time'    }
-    #lev1_fast_atts['metek_heatstatus_mast'] = {'units' : 'int'     }
-    lev1_fast_atts['metek_x_mast']          = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_y_mast']          = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_z_mast']          = {'units' : 'm/s'     }
-    lev1_fast_atts['metek_T_mast']          = {'units' : 'C'       }
+    lev1_fast_atts['metek_mast_TIMESTAMP'] = {'units' : 'time'    }
+    lev1_fast_atts['metek_mast_x']         = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_mast_y']         = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_mast_z']         = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_mast_T']         = {'units' : 'C'       }
 
-    lev1_fast_atts['TIMESTAMP_licor']      = {'units' : 'g/kg'    }
+    lev1_fast_atts['licor_TIMESTAMP']      = {'units' : 'g/kg'    }
     lev1_fast_atts['licor_diag']           = {'units' : 'int'     }
     lev1_fast_atts['licor_co2']            = {'units' : 'g/kg'    }
     lev1_fast_atts['licor_h2o']            = {'units' : 'g/kg'    }
     lev1_fast_atts['licor_T']              = {'units' : 'deg C'   }
     lev1_fast_atts['licor_pr']             = {'units' : 'hPa'     }
     lev1_fast_atts['licor_co2_str']        = {'units' : 'percent' }
+    lev1_fast_atts['licor_pll']            = {'units' : 'boolean' }
+    lev1_fast_atts['licor_dt']             = {'units' : 'boolean' }
+    lev1_fast_atts['licor_ct']             = {'units' : 'boolean' }
 
-    lev1_fast_atts['TIMESTAMP_2m']        .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,}) 
+    lev1_fast_atts['metek_2m_TIMESTAMP']   .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,}) 
 
-    lev1_fast_atts['metek_x_2m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_x']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_y_2m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_y']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_z_2m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_z']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_T_2m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_T']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_heatstatus_2m'] .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_heatstatus']  .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_hspd_2m']       .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_hspd']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_ts_2m']         .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_ts']          .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_incx_2m']       .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
+    lev1_fast_atts['metek_2m_incx']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_incy_2m']       .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : bottom_location_string,})
-
-
-    lev1_fast_atts['TIMESTAMP_6m']        .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,}) 
-
-    lev1_fast_atts['metek_x_6m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_y_6m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_z_6m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_T_6m']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_heatstatus_6m'] .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_hspd_6m']       .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_ts_6m']         .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_incx_6m']       .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
-
-    lev1_fast_atts['metek_incy_6m']       .update({'long_name'     : '',
-                                                   'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
-                                                   'height'        : '6m',
-                                                   'location'      : middle_location_string,})
+    lev1_fast_atts['metek_2m_incy']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : bottom_location_string,})
 
 
-    lev1_fast_atts['TIMESTAMP_10m']        .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_TIMESTAMP']   .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,}) 
+
+    lev1_fast_atts['metek_6m_x']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_y']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_z']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_T']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_heatstatus']  .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_hspd']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_ts']          .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_incx']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+    lev1_fast_atts['metek_6m_incy']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : '6m',
+                                                    'location'      : middle_location_string,})
+
+
+    lev1_fast_atts['metek_10m_TIMESTAMP']  .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,}) 
 
-    lev1_fast_atts['metek_x_10m']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_x']          .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_y_10m']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_y']          .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_z_10m']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_z']          .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_T_10m']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_T']          .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_heatstatus_10m'] .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_heatstatus'] .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_hspd_10m']       .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_hspd']       .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_ts_10m']         .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_ts']         .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_incx_10m']       .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_incx']       .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_incy_10m']       .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_incy']       .update({'long_name'     : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : '',
                                                     'height'        : '10m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['TIMESTAMP_mast']        .update({'long_name'     : '',
-                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                     'methods'       : '',
-                                                     'height'        : 'mast',
-                                                     'location'      : mast_location_string,}) 
+    lev1_fast_atts['metek_mast_TIMESTAMP'] .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : 'mast',
+                                                    'location'      : mast_location_string,}) 
 
-    lev1_fast_atts['metek_x_mast']          .update({'long_name'     : '',
-                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                     'methods'       : '',
-                                                     'height'        : 'mast',
-                                                     'location'      : mast_location_string,})
+    lev1_fast_atts['metek_mast_x']         .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : 'mast',
+                                                    'location'      : mast_location_string,})
 
-    lev1_fast_atts['metek_y_mast']          .update({'long_name'     : '',
-                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                     'methods'       : '',
-                                                     'height'        : 'mast',
-                                                     'location'      : mast_location_string,})
+    lev1_fast_atts['metek_mast_y']         .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : 'mast',
+                                                    'location'      : mast_location_string,})
 
-    lev1_fast_atts['metek_z_mast']          .update({'long_name'     : '',
-                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                     'methods'       : '',
-                                                     'height'        : 'mast',
-                                                     'location'      : mast_location_string,})
+    lev1_fast_atts['metek_mast_z']         .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : 'mast',
+                                                    'location'      : mast_location_string,})
 
-    lev1_fast_atts['metek_T_mast']          .update({'long_name'     : '',
-                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                     'methods'       : '',
-                                                     'height'        : 'mast',
-                                                     'location'      : mast_location_string,})
-
-    # lev1_fast_atts['metek_heatstatus_mast'] .update({'long_name'     : '',
-    #                                                  'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-    #                                                  'methods'       : '',
-    #                                                  'height'        : 'mast',
-    #                                                  'location'      : mast_location_string,})
+    lev1_fast_atts['metek_mast_T']         .update({'long_name'     : '',
+                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                    'methods'       : '',
+                                                    'height'        : 'mast',
+                                                    'location'      : mast_location_string,})
 
 
-    lev1_fast_atts['licor_diag']          .update({'long_name'     : '',
-                                                   'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : licor_location,})
+    lev1_fast_atts['licor_diag']           .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
 
-    lev1_fast_atts['licor_co2']           .update({'long_name'     : '',
-                                                   'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : licor_location,})
+    lev1_fast_atts['licor_co2']            .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
 
-    lev1_fast_atts['licor_h2o']           .update({'long_name'     : '',
-                                                   'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : licor_location,})
+    lev1_fast_atts['licor_h2o']            .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
 
-    lev1_fast_atts['licor_co2_str']       .update({'long_name'     : '',
-                                                   'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : licor_location,})
-
-    lev1_fast_atts['licor_pr']            .update({'long_name'     : '',
-                                                   'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : licor_location,})
+    
+    lev1_fast_atts['licor_pr']             .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
 
     lev1_fast_atts['licor_T']             .update({'long_name'     : '',
                                                    'instrument'    : 'Licor 7500-DS',
                                                    'methods'       : '',
                                                    'height'        : '2m',
                                                    'location'      : licor_location,})
+
+    lev1_fast_atts['licor_co2_str']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
+
+    lev1_fast_atts['licor_pll']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
+
+    lev1_fast_atts['licor_dt']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
+
+    lev1_fast_atts['licor_ct']        .update({'long_name'     : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : '',
+                                                    'height'        : '2m',
+                                                    'location'      : licor_location,})
 
     return lev1_fast_atts, list(lev1_fast_atts.keys()).copy() 
 

@@ -86,7 +86,7 @@ def main(): # the main data crunching program
     global verboseprint  # defines a function that prints only if -v is used when running
 
     # where do we get the data from
-    data_dir   = './data/tower/0_level_raw/'
+    data_dir   = './data/tower/'
     level1_dir = './processed_data/tower/level1/'  # where does level1 data go
 
     # QC params:
@@ -185,18 +185,29 @@ def main(): # the main data crunching program
         targ_T = slow_data['apogee_targ_T'].copy()
         body_T = slow_data['apogee_body_T'].copy() 
         slow_data['apogee_targ_T'] = np.where(slow_data.index < apogee_switch_date,\
-                                body_T,\
-                                targ_T)
+                                              body_T,\
+                                              targ_T)
         slow_data['apogee_body_T'] = np.where(slow_data.index < apogee_switch_date,\
-                             targ_T,\
-                             body_T)
+                                              targ_T,\
+                                              body_T)
 
         metek_bottom = get_fast_data(metek_bottom_dir, today)
         metek_middle = get_fast_data(metek_middle_dir, today)
         metek_top    = get_fast_data(metek_top_dir,    today)
         metek_mast   = get_fast_data(metek_mast_dir,   today)
         licor_bottom = get_fast_data(licor_dir,        today)
+
+        # now clean and QC the fast data subtleties, here we decode the licor diagnostics so it doesn't have to been done every level2 run
+        print("... decoding the Licor diagnostics. it's fast like the Dranitsyn. Gimme a minute...")
         
+        pll, detector_temp, chopper_temp = fl.decode_licor_diag(licor_bottom['licor_diag'])
+        # Phase Lock Loop. Optical filter wheel rotating normally if 1, else "abnormal"
+        # detector temp, if 0 weve drifted too far from set point. should yield a bad calibration, I think
+        # ditto for the chopper housing temp
+        licor_bottom['licor_pll'] = pll
+        licor_bottom['licor_dt']  = detector_temp
+        licor_bottom['licor_ct']  = chopper_temp
+
         # ~~~~~~~~~~~~~~~~~~~~~ (2) Quality control ~~~~~~~~~~~~~~~~~~~~~~~~
         print('... quality controlling the fast data now.')
         # do we want the optionn to put stats values into the "level1" product. probably not... but I'll leave this here for now.
