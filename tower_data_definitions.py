@@ -658,7 +658,11 @@ def define_level1_fast():
 
 def define_level2_variables():  
 
-    inst_boom_location_string = 'top of station at ~2m'
+    licor_location = 'first level on met city tower'
+    bottom_location_string = 'first level on met city tower'
+    middle_location_string = 'second level on met city tower'
+    top_location_string    = 'third level on met city tower'
+    mast_location_string   = 'top of radio mast at met city'
 
     lev2_atts = OrderedDict()
 
@@ -1498,9 +1502,15 @@ def define_level2_variables():
     #                                                'location'      : mast_location_string,})
 
 
-    return lev2_fast_atts, list(lev2_fast_atts.keys()).copy() 
+    return lev2_atts, list(lev2_atts.keys()).copy() 
 
 def define_turb_variables():
+
+    licor_location = 'first level on met city tower'
+    bottom_location_string = 'first level on met city tower'
+    middle_location_string = 'second level on met city tower'
+    top_location_string    = 'third level on met city tower'
+    mast_location_string   = 'top of radio mast at met city'
 
     turb_atts = OrderedDict()
 

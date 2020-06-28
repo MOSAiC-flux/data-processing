@@ -705,12 +705,11 @@ def main(): # the main data crunching program
                     hdg = sdt['station_heading'].mean()
 
                     # make th1e turbulent flux calculations via Grachev module
-                    from functions_library import grachev_fluxcapacitor
                     v = False
                     if verbose: v = True;
                     sonic_z       = 2.50 # what is sonic_z for the flux stations
 
-                    data = fl.grachev_fluxcapacitor('2m', sonic_z, hdg, metek_10hz[ind], [], [], verbose=v)
+                    data = fl.grachev_fluxcapacitor(sonic_z, hdg, metek_10hz[ind], [], [], verbose=v)
 
                     # doubtless there is a better way to initialize this
                     if time_i == 0: turbulencetom = data

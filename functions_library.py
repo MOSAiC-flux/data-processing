@@ -303,7 +303,7 @@ def column_is_ints(ser):
             return False
 
 # maybe this goes in a different file?
-def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
+def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
 
     # define the verbose print option
     v_print      = print if verbose else lambda *a, **k: None
