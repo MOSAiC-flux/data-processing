@@ -379,7 +379,7 @@ def main(): # the main data crunching program
                     lo = ind
                     hi = ind+5
                     T_nearby = sdt[param][lo:hi]
-                    if np.any(T_nearby < -5) or np.any(T_nearby < 5):    # temps cant go from 0 to +/-5C in 5 minutes
+                    if np.any(T_nearby < -5) or np.any(T_nearby > 5):    # temps cant go from 0 to +/-5C in 5 minutes
                         sdt[param].iloc[ind] = nan
                     elif (sdt[param].iloc[lo:hi] == 0).all(): # no way all values for a minute are *exactly* 0
                         sdt[param].iloc[lo:hi] = nan
