@@ -340,32 +340,37 @@ def main(): # the main data crunching program
     # now clean and QC the logger data 'subtleties'. any and all fixing of logger data is done here
     # ###################################################################################################
     # correct apogee_body and apogee_target data, body & targ temperatures were reversed before this time
-
+    verboseprint("... cleaning up slow data")
     # missing met data comes as '0' instead of NaN... good stuff
     zeros_list = ['vaisala_RH_2m','vaisala_RH_6m','vaisala_RH_10m', 'mast_RH','vaisala_P_2m','mast_P','sr50_dist']
     for param in zeros_list: # make the zeros nans
-        slow_data[param] = np.where(slow_data[param]==0.0, nan, slow_data[param])
+        slow_data[param].mask(slow_data[param]==0.0, inplace=True)
 
     temps_list = ['vaisala_T_2m','vaisala_T_6m','vaisala_T_10m','mast_T','apogee_targ_T','apogee_body_T']
-    for param in temps_list: # identify when mast T=0 is missing data, this takes some thinking/logic
+    for param in temps_list: # identify when T==0 is actually missing data, this takes some logic
         potential_inds  = np.where(slow_data[param]==0.0)
         if potential_inds[0].size==0: continue # if empty, do nothing, this is unnecessary
-        for ind in potential_inds[0]:
-            lo = ind-500
-            hi = ind+500
-            T_nearby = slow_data[param][lo:hi]
-            if np.any(T_nearby < -5) or np.any(T_nearby < 5):    # temps cant go from 0 to +/-5C in 60 seconds
-                slow_data[param].iat[ind] = nan
-            elif slow_data[param][ind-30:ind+30].count() == 0: # no way all values for a minute are *exactly* 0
-                slow_data[param].iat[ind-30:ind+30] = nan
+        ind = 0 
+        while ind < len(potential_inds[0]):
+            curr_ind = potential_inds[0][ind]
+            lo = ind
+            hi = ind+60
+            T_nearby = slow_data[param].iloc[lo:hi]
+            if np.any(T_nearby < -5) or np.any(T_nearby > 5):    # temps cant go from 0 to +/-5C in 1 minute
+                slow_data[param].iloc[ind] = nan
+            if (slow_data[param].iloc[lo:hi] == 0).all(): # no way all values for a minute are *exactly* 0
+                ind = ind + 60
+                slow_data[param].iloc[lo:hi] = nan
+            else:
+                ind = ind+1
 
     # here we derive useful parameters computed from logger data that we want to write to the output file
     # ###################################################################################################
     # compute RH wrt ice -- compute RHice(%) from RHw(%), Temperature(deg C), and pressure(mb)
     Td2, h2, a2, x2, Pw2, Pws2, rhi2 = fl.calc_humidity_ptu300(slow_data['vaisala_RH_2m'],\
-                                                            slow_data['vaisala_T_2m']+K_offset,
-                                                            slow_data['vaisala_P_2m'],
-                                                            0)
+                                                               slow_data['vaisala_T_2m']+K_offset,
+                                                               slow_data['vaisala_P_2m'],
+                                                               0)
     slow_data['RHi_vaisala_2m']          = rhi2
     slow_data['enthalpy_vaisala_2m']     = h2
     slow_data['abs_humidity_vaisala_2m'] = a2
@@ -378,9 +383,9 @@ def main(): # the main data crunching program
     pmast = slow_data['mast_P']
 
     Td6, h6, a6, x6, Pw6, Pws6, rhi6 = fl.calc_humidity_ptu300(slow_data['vaisala_RH_6m'],\
-                                                            slow_data['vaisala_T_6m']+K_offset,
-                                                            p6,
-                                                            0)
+                                                               slow_data['vaisala_T_6m']+K_offset,
+                                                               p6,
+                                                               0)
     slow_data['RHi_vaisala_6m']          = rhi6
     slow_data['enthalpy_vaisala_6m']     = h6
     slow_data['abs_humidity_vaisala_6m'] = a6
@@ -398,9 +403,9 @@ def main(): # the main data crunching program
     slow_data['MR_vaisala_10m']           = x10
 
     Tdm, hm, am, xm, Pwm, Pwsm, rhim = fl.calc_humidity_ptu300(slow_data['mast_RH'],\
-                                                           slow_data['mast_T']+K_offset,
-                                                           slow_data['mast_P'],
-                                                           -1)
+                                                               slow_data['mast_T']+K_offset,
+                                                               slow_data['mast_P'],
+                                                               -1)
     slow_data['dewpoint_vaisala_mast']     = Tdm
     slow_data['RHi_vaisala_mast']          = rhim
     slow_data['enthalpy_vaisala_mast']     = hm
