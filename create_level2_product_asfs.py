@@ -52,16 +52,6 @@ code_version = code_version()
 # To profile the code and see what's taking so long:
 # python3 -m cProfile -s cumulative ./create_Daily_Tower_NetCDF.py -v -s 20191201 -e 20191201 
 #
-# UPDATES:
-#
-# Date: 4/10/2019
-# Revision: 0.1 ... from the tower to the stations
-# 
-# Date: 6/12/2019
-# Revision: 0.2 ... a ramshacklle path forward but getting there. we now produce staged
-# level1 and level2 files, including a preliminary turbulent flux product, according to group
-# specs. 
-#
 # ###############################################################################################
 #
 # look at these files for documentation on netcdf vars and nomenclature
