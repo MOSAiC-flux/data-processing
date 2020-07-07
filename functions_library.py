@@ -383,10 +383,11 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     
     # Sanity check: Reject the half hour series if it is too short, less than 2^13 = 8192 points = 13.6 min @ 10 Hz
     if npt < 8192:
-        verboseprint('  No valid data for sonic at height '+np.str(z_level_n))
+        verboseprint('  No valid data for sonic at height (np<8192) '+np.str(z_level_n))
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
         turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
+        #print(turbulence_data)
         turbulence_data.columns = turbulence_data.keys
         turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}]) 
         return turbulence_data
@@ -399,7 +400,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
         turbulence_data.columns = turbulence_data.keys
         turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])
         return turbulence_data
-        verboseprint('  No valid data for sonic at height '+np.str(z_level_n))
+        verboseprint('  No valid data for sonic at height (>50% missing)  '+np.str(z_level_n))
 
 
     #verboseprint('  Calculating sonic at height '+np.str(z_level_n)+' m and heading '+np.str(np.round(sonic_dir,decimals=1))+' deg...')

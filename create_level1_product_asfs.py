@@ -71,6 +71,7 @@ import os, inspect, argparse, time, gc
 import numpy  as np
 import pandas as pd
 
+pd.options.mode.use_inf_as_na = True # no inf values anywhere
 
 from threading import Thread
 from queue     import Queue

@@ -47,6 +47,8 @@ import numpy  as np
 import pandas as pd
 import xarray as xr
 
+pd.options.mode.use_inf_as_na = True # no inf values anywhere
+
 from threading import Thread
 from queue     import Queue
 from datetime  import datetime, timedelta
@@ -304,7 +306,7 @@ def main(): # the main data crunching program
                 licor_index += 1
 
     # mast dates and headings w.r.t. tower from Ola's notes
-    mast_hdg_dates   = [datetime(2019,10,19,5,49) , datetime(2019,10,26,7,0) , datetime(2019,11,18,12,50),\
+    mast_hdg_dates   = [datetime(2019,10,15,0,0) , datetime(2019,10,26,7,0) , datetime(2019,11,18,12,50),\
                        datetime(2019,11,28,4,30) , datetime(2019,12,1,9,50) , datetime(2019,12,8,14,00),\
                        datetime(2019,12,9,7,30)]
     mast_hdg_vals    = {'mast_hdg' : [nan, 40.7, 40.7, 291.2, 291.2, 215, 228],
@@ -788,9 +790,9 @@ def main(): # the main data crunching program
         # now put it all together
         stats_data = pd.DataFrame()
         for inst in metek_inst_keys:
-            stats_data = pd.concat(  [stats_data, metek_stats[inst]] )
-        stats_data = pd.concat(  [stats_data, licor_stats] )
-
+            stats_data = pd.concat(  [stats_data, metek_stats[inst]], axis=1)
+        stats_data = pd.concat(  [stats_data, licor_stats], axis=1 )
+        print(stats_data)
         # ~~~~~~~~~~~~~~~~~~~~ (6) Flux Capacitor  ~~~~~~~~~~~~~~~~~~~~~~~~~
         verboseprint('... calculating turbulent fluxes and associated MO parameter s')
 
@@ -856,31 +858,26 @@ def main(): # the main data crunching program
 
         print('... writing to level2 netcdf files and calcuating averages for day: {}'.format(today))
 
-        # for level2 we are only writing out 1minute+ files so we 
-        l2_data = pd.concat([\
-                             logger_today.resample('1T', label='left').apply(fl.take_average),\
-                             stats_data])
-        
+        # for level2 we are only writing out 1minute+ files so we
+        logger_1min = logger_today.resample('1T', label='left').apply(fl.take_average)
+        l2_data = pd.concat([logger_1min, stats_data], axis=1)
+
         # write out in threads the files separately to save some time... which would be great... but HDF5
         # borks if you try to do it... ? really annoying and I can't find any reason why
         onemin_q = Queue()
         Thread(target=write_level2_netcdf,\
                args=(l2_data.copy(), today, "1min", onemin_q)).start()
-
         onemin_q.get()
 
         turb_q = Queue()
         Thread(target=write_turb_netcdf,\
                args=(turb_data.copy(), today, turb_q)).start()
-
         turb_q  .get()
 
         tenmin_q = Queue()
         Thread(target=write_level2_netcdf,\
                args=(l2_data.copy(), today, "10min", tenmin_q)).start()
-
         tenmin_q.get()
-
 
     printline()
     print('All done! Netcdf output files can be found in: {}'.format(level2_dir))
@@ -1062,21 +1059,21 @@ def write_level2_netcdf(l2_data, date, timestep, q):
             var_dtype = np.int32
             fill_val  = def_fill_int
             l2_data[var_name].fillna(fill_val, inplace=True)
-            var_tmp = l2_data[var_name].values.astype(np.int32)
+            l2_data[var_name] = l2_data[var_name].values.astype(np.int32)
         else:
             fill_val  = def_fill_flt
             l2_data[var_name].fillna(fill_val, inplace=True)
-            var_tmp = l2_data[var_name].values.astype(np.int32)
-
-        var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
-        # write atts to the var now
-        for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
-        netcdf_lev2[var_name].setncattr('missing_value', fill_val)
 
         if timestep != "1min":
             vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
         else: vtmp = l2_data[var_name]
-        var[:] = vtmp.values
+
+        var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+        var[:] = vtmp
+
+        # write atts to the var now
+        for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
+        netcdf_lev2[var_name].setncattr('missing_value', fill_val)
 
         max_val = np.nanmax(vtmp.values) # masked array max/min/etc
         min_val = np.nanmin(vtmp.values)
@@ -1088,6 +1085,12 @@ def write_level2_netcdf(l2_data, date, timestep, q):
         
         # add a percent_missing attribute to give a first look at "data quality"
         netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
+
+        # printline()
+        # print("{}\n:".format(var_name))
+        # print(var)
+        # print('\n')
+        # print(l2_data[var_name])
 
     netcdf_lev2.close() # close and write files for today
     q.put(True)

@@ -309,8 +309,11 @@ def get_slow_data(date):
             if data_file == 'cr1000x_tower.dat':
                 use_file = True
                 verboseprint('... using the daily file {}'.format(data_file))
+            elif data_file == 'CR1000_Noodleville_mast.dat':
+                use_file = False
+                verboseprint("... skipping {} ... what is this file? redundant data?".format(data_file))
             elif len(file_words) > 2:
-                file_date  = datetime.strptime(file_words[2]+file_words[3].strip('.dat'),'%m%d%Y%H%M') # (!)
+                file_date  = datetime.strptime(file_words[-2]+file_words[-1].strip('.dat'),'%m%d%Y%H%M') # (!)
                 if file_date >= (date-fuzzy_window) and file_date <= (date+fuzzy_window): # weirdness
                     use_file = True
                     verboseprint('... using the file {} from the day: {}'.format(data_file,file_date))

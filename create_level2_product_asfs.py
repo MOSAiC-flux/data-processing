@@ -67,6 +67,8 @@ import numpy  as np
 import pandas as pd
 import xarray as xr
 
+pd.options.mode.use_inf_as_na = True # no inf values anywhere
+
 from threading import Thread
 from queue     import Queue
 from datetime  import datetime, timedelta
@@ -324,7 +326,7 @@ def main(): # the main data crunching program
         # ####################################################################################################
         for curr_station in flux_stations:
 
-            fdt = fast_data_today[curr_station] # shorthand to make upcoming code clean
+            fdt = fast_data_today[curr_station] # shorthand to make upcoming code clean(er)
             sdt = slow_data_today[curr_station]
 
             if len(fdt.index) == 0: # data warnings and sanity checks
@@ -364,7 +366,7 @@ def main(): # the main data crunching program
             # 'pw_vaisala','RHw_vaisala','RHi_vaisala','wind_speed_metek','wind_direction_metek',
             # 'temp_metek','temp_variance_metek','radiation_net'
 
-            print("\nQuality controlling data for {}".format(curr_station))
+            print("\nQuality controlling data for {} on {}".format(curr_station, today))
             # clean up missing met data that comes in as '0' instead of NaN... good stuff
             zeros_list = ['rel_humidity_vaisala', 'press_vaisala', 'sr50_dist']
             for param in zeros_list: # make the zeros nans
@@ -541,6 +543,7 @@ def main(): # the main data crunching program
             fdt['metek_z'] = fl.despike(fdt['metek_z'],5,1200)
             fdt['metek_T'] = fl.despike(fdt['metek_T'],5,1200)
 
+
             # ~~~~~~~~~~~~~~~~~~~~~~~ (3) Resample  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             print('... resampling 20 Hz -> 10 Hz.')
             #
@@ -551,7 +554,6 @@ def main(): # the main data crunching program
             # interval. Then the result is indexed onto a complete grid for the
             # whole day, which is nominally 1 hour = 36000 samples at 10 Hz
             # Missing data (like NOAA Services blackouts) are nan
-
             fdt_10hz = fdt.resample('100ms').mean()
             fdt_10hz = fdt_10hz.reindex(index=Hz10_today)
 
@@ -598,10 +600,12 @@ def main(): # the main data crunching program
             #               Planning to develop of floe-scale hdg by using multiple GPS acroess the floe to beat down the error
 
             # Michael made this the average tilt for the day when converting the tower code, do we want to be more subtle?
+
             ct_u, ct_v, ct_w = fl.tilt_rotation(np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
-                                             np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
-                                             np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
-                                             fdt_10hz['metek_y'],fdt_10hz['metek_x'],fdt_10hz['metek_z'])
+                                                np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
+                                                np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
+                                                fdt_10hz['metek_y'], fdt_10hz['metek_x'], fdt_10hz['metek_z'])
+
             fdt_10hz['metek_x'] = ct_v # x -> v on uSonic!
             fdt_10hz['metek_y'] = ct_u # y -> u on uSonic!
             fdt_10hz['metek_z'] = ct_w
@@ -677,7 +681,14 @@ def main(): # the main data crunching program
                 #       clasp = the clasp data frame - currently unused until we get that coded up
                 #
                 metek_10hz = fdt_10hz[['metek_u', 'metek_v', 'metek_w','metek_T']].copy()
-                metek_10hz.columns = ['u', 'v', 'w','T']
+                metek_10hz.rename(columns={\
+                                           'metek_u':'u',
+                                           'metek_v':'v',
+                                           'metek_w':'w',
+                                           'metek_T':'T'}, inplace=True)
+                print(fdt)
+                print(fdt_10hz)
+                print(metek_10hz)
                 for time_i in range(0,len(flux_time_today)-1): # flux_time_today = a DatetimeIndex defined earlier and based on integ_time_turb_flux, the integration window for the calculations that is defined at the top  of the code
 
                     if time_i % 12 == 0:
@@ -689,7 +700,8 @@ def main(): # the main data crunching program
                     # flux_time_today[time_i+1] so we have to split it up in this wacky way
                     ind = metek_10hz.index >= flux_time_today[time_i]
                     ind[metek_10hz.index > flux_time_today[time_i+1]] = False
-
+                    print(ind)
+                    print(metek_10hz)
                     # !! heading...is this meant to be oriented with the sonic North? like, does this
                     # equal "sonic north"?  
                     hdg = sdt['station_heading'].mean()
