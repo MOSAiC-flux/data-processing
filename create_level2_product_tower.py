@@ -348,8 +348,21 @@ def main(): # the main data crunching program
     for param in zeros_list: # make the zeros nans
         slow_data[param].mask(slow_data[param]==0.0, inplace=True)
 
+    RH_list = ['vaisala_RH_2m','vaisala_RH_6m','vaisala_RH_10m', 'mast_RH','vaisala_P_2m','mast_P','sr50_dist']
+    for param in RH_list: # make the zeros nans
+        RH_vals = slow_data[param]
+        slow_data[param].mask( (RH_vals<rh_thresh[0]) | (RH_vals>rh_thresh[1]) , inplace=True)
+
+    press_list = ['vaisala_P_2m','mast_P']
+    for param in RH_list: # make the zeros nans
+        P_vals = slow_data[param]
+        slow_data[param].mask( (P_vals<p_thresh[0]) | (P_vals>p_thresh[1]) , inplace=True)
+
     temps_list = ['vaisala_T_2m','vaisala_T_6m','vaisala_T_10m','mast_T','apogee_targ_T','apogee_body_T']
     for param in temps_list: # identify when T==0 is actually missing data, this takes some logic
+        T_vals = slow_data[param]
+        slow_data[param].mask( (T_vals<T_thresh[0]) | (T_vals>T_thresh[1]) , inplace=True)
+        
         potential_inds  = np.where(slow_data[param]==0.0)
         if potential_inds[0].size==0: continue # if empty, do nothing, this is unnecessary
         ind = 0 
@@ -366,6 +379,7 @@ def main(): # the main data crunching program
             else:
                 ind = ind+1
 
+                
     # here we derive useful parameters computed from logger data that we want to write to the output file
     # ###################################################################################################
     # compute RH wrt ice -- compute RHice(%) from RHw(%), Temperature(deg C), and pressure(mb)
@@ -1066,15 +1080,14 @@ def write_level2_netcdf(l2_data, date, timestep, q):
         if fl.column_is_ints(l2_data[var_name]):
             var_dtype = np.int32
             fill_val  = def_fill_int
-            l2_data[var_name].fillna(fill_val, inplace=True)
             l2_data[var_name] = l2_data[var_name].values.astype(np.int32)
         else:
             fill_val  = def_fill_flt
-            l2_data[var_name].fillna(fill_val, inplace=True)
 
         if timestep != "1min":
             vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
         else: vtmp = l2_data[var_name]
+        vtmp.fillna(fill_val, inplace=True)
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
         var[:] = vtmp

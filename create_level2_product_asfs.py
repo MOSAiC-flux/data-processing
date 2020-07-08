@@ -929,11 +929,9 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
         if fl.column_is_ints(l2_data[var_name]):
             var_dtype = np.int32
             fill_val  = def_fill_int
-            l2_data[var_name].fillna(fill_val, inplace=True)
             var_tmp = l2_data[var_name].values.astype(np.int32)
         else:
             fill_val  = def_fill_flt
-            l2_data[var_name].fillna(fill_val, inplace=True)
             var_tmp = l2_data[var_name].values.astype(np.int32)
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
@@ -944,6 +942,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
         if timestep != "1min":
             vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
         else: vtmp = l2_data[var_name]
+        tmp.fillna(fill_val, inplace=True)
         var[:] = vtmp.values
 
         # add a percent_missing attribute to give a first look at "data quality"
