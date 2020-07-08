@@ -1000,6 +1000,7 @@ def write_level2_netcdf(l2_data, date, timestep, q):
         try: dt = l2_data[var_name].dtype
         except KeyError as e: 
             print(" !!! no {} in data ... does this make sense??".format(var_name))
+            continue
         perc_miss = fl.perc_missing(l2_data[var_name].values)
         if perc_miss < 100: all_missing = False
         if first_loop: 
@@ -1052,7 +1053,14 @@ def write_level2_netcdf(l2_data, date, timestep, q):
 
     for var_name, var_atts in l2_atts.items():
 
-        var_dtype = l2_data[var_name].dtype
+        try:
+            var_dtype = l2_data[var_name].dtype
+        except KeyError as e:
+            var = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+            var[:] = t_ind.values*nan
+            for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
+            continue
+
         perc_miss = fl.perc_missing(l2_data[var_name])
 
         if fl.column_is_ints(l2_data[var_name]):
@@ -1085,12 +1093,6 @@ def write_level2_netcdf(l2_data, date, timestep, q):
         
         # add a percent_missing attribute to give a first look at "data quality"
         netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
-
-        # printline()
-        # print("{}\n:".format(var_name))
-        # print(var)
-        # print('\n')
-        # print(l2_data[var_name])
 
     netcdf_lev2.close() # close and write files for today
     q.put(True)

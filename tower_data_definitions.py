@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('0.5β', '6/10/2020', 'mgallagher')
+    cv = ('0.6β', '6/10/2020', 'mgallagher')
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -66,11 +66,12 @@ def define_global_atts(file_type):
     
 def define_level1_slow():
 
-    licor_location = 'first level on met city tower'
-    bottom_location_string = 'first level on met city tower'
-    middle_location_string = 'second level on met city tower'
-    top_location_string    = 'third level on met city tower'
-    mast_location_string   = 'top of radio mast at met city'
+    licor_location              = 'first level on met city tower'
+    bottom_location_string      = 'first level on met city tower'
+    middle_location_string      = 'second level on met city tower'
+    top_location_string         = 'third level on met city tower'
+    mast_location_string        = 'top of radio mast at met city'
+    noodleville_location_string = 'spring noodleville at met city'
 
     lev1_slow_atts = {}
     lev1_slow_atts['TIMESTAMP']          = {'units' : 'TS'}       
@@ -81,7 +82,7 @@ def define_level1_slow():
     lev1_slow_atts['gps_lon_min']        = {'units' : 'min'}      
     lev1_slow_atts['gps_hdg']            = {'units' : 'deg'}      
     lev1_slow_atts['gps_alt']            = {'units' : 'm'}        
-    lev1_slow_atts['gps_qc']             = {'units' : ''}         
+    lev1_slow_atts['gps_qc']             = {'units' : 'unitless'}         
     lev1_slow_atts['gps_nsat']           = {'units' : 'N'}        
     lev1_slow_atts['gps_hdop']           = {'units' : 'unitless'} 
     lev1_slow_atts['PTemp']              = {'units' : 'degC'}     
@@ -107,6 +108,23 @@ def define_level1_slow():
     lev1_slow_atts['mast_T']             = {'units' : 'degC'}     
     lev1_slow_atts['mast_RH']            = {'units' : '%'}        
     lev1_slow_atts['mast_P']             = {'units' : 'hPa'}
+
+    # noodleville stuff
+    lev1_slow_atts['mast_RECORD']             = {'units' : 'RN'}
+    lev1_slow_atts['mast_gps_lat_deg_Avg']    = {'units' : 'deg'}
+    lev1_slow_atts['mast_gps_lat_min_Avg']    = {'units' : 'min'}
+    lev1_slow_atts['mast_gps_lon_deg_Avg']    = {'units' : 'deg'}
+    lev1_slow_atts['mast_gps_lon_min_Avg']    = {'units' : 'min'}
+    lev1_slow_atts['mast_gps_hdg_Avg']        = {'units' : 'deg'}
+    lev1_slow_atts['mast_gps_alt_Avg']        = {'units' : 'm'}
+    lev1_slow_atts['mast_gps_qc']             = {'units' : 'unitless'}
+    lev1_slow_atts['mast_gps_hdop_Avg']       = {'units' : 'unitless'}
+    lev1_slow_atts['mast_gps_nsat_Avg']       = {'units' : 'N'}
+    lev1_slow_atts['mast_PTemp']              = {'units' : 'degC'}
+    lev1_slow_atts['mast_batt_volt']          = {'units' : 'V'}
+    lev1_slow_atts['mast_call_time_mainscan'] = {'units' : 'mSec'}
+    
+    lev1_slow_atts['licor_ball_mV']      = {'units' : 'mv'}
 
     lev1_slow_atts['TIMESTAMP']          .update({'long_name'  : 'timestamp from tower data logger',     
                                                   'instrument' : 'Campbell CR1000X',                     
@@ -315,6 +333,92 @@ def define_level1_slow():
                                                   'methods'    : 'digitally polled from instument',		
                                                   'height'     : 'variable 23-30m',				
                                                   'location'   : mast_location_string,})
+
+    lev1_slow_atts['licor_ball_mV']      .update({'long_name'  : 'licor heating mv',
+                                                  'instrument' : '',
+                                                  'methods'    : 'digitally polled from instument',		
+                                                  'height'     : '',				
+                                                  'location'   : licor_location,})
+
+    # noodleville stuff
+    lev1_slow_atts['mast_RECORD']             .update({'long_name'  : 'record number from tower data logger',
+                                                       'instrument' : 'Campbell CR1000X',                     
+                                                       'methods'    : '',
+                                                       'height'     : '0m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_lat_deg_Avg']    .update({'long_name'  : 'latitude from gps at noodleville',  
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_lat_min_Avg']    .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_lon_deg_Avg']    .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_lon_min_Avg']    .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_hdg_Avg']        .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_alt_Avg']        .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_qc']             .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_hdop_Avg']       .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_nsat_Avg']       .update({'long_name'  : 'licor heating mv',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
+                                                       'height'     : '1m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_PTemp']              .update({'long_name'  : 'CR1000X Panel Temp (box internal temp) in C*10',
+                                                       'instrument' : 'Campbell CR1000X',
+                                                       'methods'    : '',
+                                                       'height'     : '0m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_batt_volt']          .update({'long_name'  : 'logger internal battery voltage', 
+                                                       'instrument' : 'Campbell CR1000X',           
+                                                       'methods'    : '',                           
+                                                       'height'     : '0m',			    
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_call_time_mainscan'] .update({'long_name'  : 'noodleville data logger maintain scan time duration', 
+                                                       'instrument' : 'Campbell CR1000X',                     
+                                                       'methods'    : '',                                     
+                                                       'height'     : '0m',			                       
+                                                       'location'   : noodleville_location_string,})
+
 
     return lev1_slow_atts, list(lev1_slow_atts.keys()).copy() 
 

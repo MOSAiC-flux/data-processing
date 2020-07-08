@@ -180,7 +180,11 @@ def main(): # the main data crunching program
         slow_data = slow_data[:][today:tomorrow] 
 
         # this fills the entries that didn't exist in the ascii files with nans
-        slow_data = slow_data.reindex(labels=seconds_today, copy=False)
+        try:
+            slow_data = slow_data.reindex(labels=seconds_today, copy=False)
+        except Exception as e:
+            fl.warn("There were duplicates in your slow data for {}\n ".format(today))
+            
 
         targ_T = slow_data['apogee_targ_T'].copy()
         body_T = slow_data['apogee_body_T'].copy() 
@@ -300,6 +304,9 @@ def get_slow_data(date):
 
     slow_atts, slow_vars = define_level1_slow()
     print('... getting slow logger data from: %s' % data_dir+tower_subdir)
+    
+    logger_file_list   = [] # list of filenames to concat into dataframes
+    mast_gps_file_list = [] # list of filenames to concat into mast dataframes
 
     for data_file in os.listdir(data_dir+tower_subdir):
 
@@ -307,40 +314,64 @@ def get_slow_data(date):
 
             file_words = data_file.split(sep='_')
             if data_file == 'cr1000x_tower.dat':
-                use_file = True
+                logger_file_list.append(data_file)
                 verboseprint('... using the daily file {}'.format(data_file))
             elif data_file == 'CR1000_Noodleville_mast.dat':
                 use_file = False
-                verboseprint("... skipping {} ... what is this file? redundant data?".format(data_file))
+                #verboseprint("... skipping {} ... what is this file? redundant data?".format(data_file))
             elif len(file_words) > 2:
                 file_date  = datetime.strptime(file_words[-2]+file_words[-1].strip('.dat'),'%m%d%Y%H%M') # (!)
+                
                 if file_date >= (date-fuzzy_window) and file_date <= (date+fuzzy_window): # weirdness
-                    use_file = True
+                    if file_words[1] == "Noodleville":
+                        mast_gps_file_list.append(data_file)
+                    else:
+                        logger_file_list.append(data_file)
                     verboseprint('... using the file {} from the day: {}'.format(data_file,file_date))
-                else:
-                    use_file = False
-            else: 
-                use_file = False 
-            if use_file:
-                path  = data_dir+tower_subdir+'/'+data_file
-                with open(path) as f:
-                    firstline = f.readlines()[1].rsplit(',')
-                    num_cols = len(firstline)
-                if num_cols != len(slow_vars): # should never happen
-                    print("{} ---- {}".format(num_cols,len(slow_vars)))
-                    printline()
-                    print("{} ---- {}".format(slow_vars,firstline))
-                    fl.fatal("# columns in data file doesn't match expected columns, cant work")
+            else:
+                fl.warn('There is a logger file I cant use, this makes no sense... {}'.format(data_file))
+                use_file = False
 
-                na_vals = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"']
-                frame = pd.read_csv(path,parse_dates=[0],sep=',',na_values=na_vals,\
-                                    index_col=0,header=[1],skiprows=[2,3],engine='c',\
-                                    converters={'gps_alt':convert_sci, 'gps_hdop':convert_sci})#,\
-                                    #dtype=dtype_dict)
-                slow_data = pd.concat([slow_data,frame]) # is concat computationally efficient?
-        else:
-            fl.warn('There is a logger file I cant use, this makes no sense... {}'.format(data_file))
+    logger_df_list = [] # logger dataframes to be concatted all at once
+    for logger_file in logger_file_list:
+        path  = data_dir+tower_subdir+'/'+logger_file
+        with open(path) as f:
+            firstline = f.readlines()[1].rsplit(',')
+            num_cols = len(firstline)
+            na_vals = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"']
+            frame = pd.read_csv(path,parse_dates=[0],sep=',',na_values=na_vals,\
+                                index_col=0,header=[1],skiprows=[2,3],engine='c',\
+                                converters={'gps_alt':convert_sci, 'gps_hdop':convert_sci})#,\
+                                #dtype=dtype_dict)
+            logger_df_list.append(frame)
 
+    logger_df = pd.concat(logger_df_list, verify_integrity=False) # is concat computationally efficient?
+
+    mast_gps_df_list = [] # mast gps dataframes to be concatted all at once
+    for mast_gps_file in mast_gps_file_list:
+        path  = data_dir+tower_subdir+'/'+mast_gps_file
+        with open(path) as f:
+
+            cols = ["TIMESTAMP","mast_RECORD","mast_gps_lat_deg_Avg","mast_gps_lat_min_Avg","mast_gps_lon_deg_Avg",\
+                    "mast_gps_lon_min_Avg","mast_gps_hdg_Avg","mast_gps_alt_Avg","mast_gps_qc","mast_gps_hdop_Avg",\
+                    "mast_gps_nsat_Avg","mast_PTemp","mast_batt_volt","mast_call_time_mainscan","mast_T","mast_RH","mast_P"]
+
+            firstline = f.readlines()[1].rsplit(',')
+            num_cols = len(firstline)
+            na_vals = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"']
+            frame = pd.read_csv(path,names=cols,parse_dates=[0],sep=',',na_values=na_vals,\
+                                index_col=0,skiprows=[0,1,2,3],engine='c',\
+                                converters={'gps_alt':convert_sci, 'gps_hdop':convert_sci})#,\
+                                #dtype=dtype_dict)
+            mast_gps_df_list.append(frame)
+
+    if len(mast_gps_df_list)>0:
+        mast_gps_df = pd.concat(mast_gps_df_list, verify_integrity=False) # is concat computationally efficient?        
+        slow_data = logger_df.combine_first(mast_gps_df) # there's mast_T etc etc in both files, must overwrite
+        slow_data = mast_gps_df.combine_first(logger_df) # there's mast_T etc etc in both files, must overwrite
+        #slow_data = pd.concat([logger_df, mast_gps_df], axis=1) # is concat computationally efficient?
+    else:
+        slow_data = logger_df
     return slow_data.sort_index() # sort logger data (when copied, you lose the file create ordering...)
 
 
@@ -560,6 +591,10 @@ def write_level1_slow(slow_data, date):
 
     # count missing percs for each var and print useful infow
     for var_name, var_atts in slow_atts.items():
+        if var_name not in slow_data.columns:
+            if not 'mast_' in var_name and date < datetime(2020,4,20): # noodleville was born in april
+                verboseprint("... {} not in dataframe but in file, is this a problem?".format(var_name))
+            continue
         if var_name == time_name: continue
         perc_miss = fl.perc_missing(slow_data[var_name].values)
         if perc_miss < 100: all_missing_slow = False
@@ -609,7 +644,12 @@ def write_level1_slow(slow_data, date):
     for att_name, att_val in time_atts_slow.items(): netcdf_lev1_slow['time'].setncattr(att_name,att_val)
 
     for var_name, var_atts in slow_atts.items():
+        if var_name not in slow_data.columns:
+            continue
         if var_name == time_name: continue # already did that
+
+        if var_name == 'mast_T' or var_name == 'mast_RH' or var_name == 'mast_P':
+            print(slow_data[var_name])
 
         var_dtype = slow_data[var_name].dtype
 

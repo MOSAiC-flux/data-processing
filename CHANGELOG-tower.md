@@ -40,3 +40,9 @@ Retreating by Dranitsyn like a lepper, happy April fools!
 ## Revision 0.5 5/25/2020 by M. Gallagher
 Major revamping and refactor again, to bring tower code into spec with level 1, level 2, and other group ideas. Too many changes to list but getting closer to a 1.0 release.
 
+## Revision 0.6 7/7/2020 by M. Gallagher
+Finalize updates/fixes for leg 3 data and file definitions
+- includes many minor changes and improvements after initial commits 
+- "noodleville" gps data currently brough into level1 data
+- ... but currently neglected in level2 for corrections/orientation/etc
+- processing data runs for leg1-leg3 10/15/2019-5/12/2020
