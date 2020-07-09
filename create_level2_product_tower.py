@@ -348,13 +348,13 @@ def main(): # the main data crunching program
     for param in zeros_list: # make the zeros nans
         slow_data[param].mask(slow_data[param]==0.0, inplace=True)
 
-    RH_list = ['vaisala_RH_2m','vaisala_RH_6m','vaisala_RH_10m', 'mast_RH','vaisala_P_2m','mast_P','sr50_dist']
+    RH_list = ['vaisala_RH_2m','vaisala_RH_6m','vaisala_RH_10m', 'mast_RH']
     for param in RH_list: # make the zeros nans
         RH_vals = slow_data[param]
         slow_data[param].mask( (RH_vals<rh_thresh[0]) | (RH_vals>rh_thresh[1]) , inplace=True)
 
     press_list = ['vaisala_P_2m','mast_P']
-    for param in RH_list: # make the zeros nans
+    for param in press_list: # make the zeros nans
         P_vals = slow_data[param]
         slow_data[param].mask( (P_vals<p_thresh[0]) | (P_vals>p_thresh[1]) , inplace=True)
 

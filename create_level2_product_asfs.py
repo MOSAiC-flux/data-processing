@@ -942,7 +942,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
         if timestep != "1min":
             vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
         else: vtmp = l2_data[var_name]
-        tmp.fillna(fill_val, inplace=True)
+        vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp.values
 
         # add a percent_missing attribute to give a first look at "data quality"
