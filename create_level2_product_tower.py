@@ -75,10 +75,10 @@ def main(): # the main data crunching program
     global printline     # prints a line out of dashes, pretty boring
 
     global data_dir, level1_dir, level2_dir, turb_dir # make data available
-    data_dir   = './data/'
-    level1_dir = './processed_data/tower/level1/'  # where does level1 data go
-    level2_dir = './processed_data/tower/level2/'  # where does level2 data go
-    turb_dir   = './processed_data/tower/turb/'    # where does level2 data go
+    data_dir   = '/Volumes/RESOLUTE/data/' # '/data/'
+    level1_dir = '/Volumes/RESOLUTE/data/processed_data/tower/level1/' #'./processed_data/tower/level1/'  # where does level1 data go
+    level2_dir = '/Volumes/RESOLUTE/data/processed_data/tower/level2/' #'./processed_data/tower/level2/'  # where does level2 data go
+    turb_dir   = '/Volumes/RESOLUTE/data/processed_data/tower/turb/'   #'./processed_data/tower/turb/'    # where does level2 data go
 
 
     global nan, def_fill_int, def_fill_flt # make using nans look better
@@ -129,27 +129,19 @@ def main(): # the main data crunching program
 
     # thresholds! limits that can warn you about bad data!
     # these aren't used yet but should be used to warn about spurious data
-    lat_thresh        = (70   ,90)   # limits area where tower can be
-    hdg_thresh_lo     = (0    ,360)  # limits on gps heading
-    irt_targ_lo       = (-80  ,5)    # IRT surface brightness temperature limits [Celsius]
+    irt_targ          = (-80  ,5)    # IRT surface brightness temperature limits [Celsius]
     sr50d             = (1    ,2.5)  # distance limits from SR50 to surface [m]; install height -1 m or +0.5
-    sr50_qc           = (152  ,210)  # reported "quality numbers" 0-151=can't read dist;
-                                     # 210-300=reduced signal; 300+=high uncertainty
     flxp              = (-120 ,120)  # minimum and maximum conductive heat flux (W/m2)
     T_thresh          = (-70  ,20)   # minimum & maximum air temperatures (C)
     rh_thresh         = (5    ,130)  # relative humidity (#)
     p_thresh          = (850  ,1100) # air pressure
     ws_thresh         = (0    ,40)   # wind speed from sonics (m/s)
-    lic_co2sig_thresh = (85   ,100)  # rough estimate of minimum CO2 signal value corresponding to
-                                     # optically-clean window. < 90 = needs cleaned (e.g., salt residue); < ~80?? = ice!
-    lic_h2o           = (0    ,100)  # Licor h2o [mg/m3]
-    lic_co2           = (0    ,5000) # Licor co2 [g/m3]
+    lic_co2sig_thresh = (94   ,100)  # rough estimate of minimum CO2 signal value corresponding to optically-clean window
+    lic_h2o           = (0    ,500)  # Licor h2o [mol/m3]
+    lic_co2           = (0    ,25)   # Licor co2 [mmol/m3]
     max_bad_paths     = (0.01 ,1)    # METEK: maximum [fraction] of bad paths allowed. (0.01 = 1%), but is
                                      # actually in 1/9 increments. This just says we require all paths to be usable.
     incl_range        = (-90  ,90)   # The inclinometer on the metek
-    met_t             = T_thresh     # Vaisala air temperature [C]
-    met_rh            = rh_thresh    # Vaisala relative humidity [#]
-    met_p             = p_thresh     # Vaisala air pressure [hPa or ~mb]
 
     # various calibration params
     # ##########################
@@ -197,6 +189,10 @@ def main(): # the main data crunching program
     vasaila_P_height_raised  = [(1.65)]
     GPS_height_raised        = [(2)]
     SR50_height_raised       = [(2)]
+    
+    # Some other dates
+    fpA_bury_date = datetime(2019,10,24,5,48) 
+    fpB_bury_date = datetime(2019,10,25,1,35) 
 
     # these are the parameters associated with these dates, also stored in a list of tuples
     mast_params = {}
@@ -326,6 +322,7 @@ def main(): # the main data crunching program
            args=(start_time, end_time, 
                  q)).start()
     slow_data = q.get()
+    
 
     n_entries   = slow_data.size
     if slow_data.empty: # 'fatal' is a print function defined at the bottom of this script that exits
@@ -379,7 +376,23 @@ def main(): # the main data crunching program
             else:
                 ind = ind+1
 
-                
+    # Vaisala QC
+    slow_data['vaisala_T_2m']   .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,45,54)] = nan # something unexplained here, need to remove it manually
+    slow_data['vaisala_RH_2m']  .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,45,54)] = nan # ditto
+    slow_data['vaisala_T_6m']   .loc[:datetime(2020,1,15,7,19,34)] = nan # right at the beginning bogus T values
+    slow_data['vaisala_T_10m']  .loc[:datetime(2020,1,15,7,19,34)] = nan # ditto
+    slow_data['vaisala_P_2m']   .mask( (slow_data['vaisala_P_2m']<p_thresh[0])     | (slow_data['vaisala_P_2m']>p_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_T_2m']   .mask( (slow_data['vaisala_T_2m']<T_thresh[0])     | (slow_data['vaisala_T_2m']>T_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_T_6m']   .mask( (slow_data['vaisala_T_6m']<T_thresh[0])     | (slow_data['vaisala_T_6m']>T_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_T_10m']  .mask( (slow_data['vaisala_T_10m']<T_thresh[0])    | (slow_data['vaisala_T_10m']>T_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_Td_2m']  .mask( (slow_data['vaisala_Td_2m']<T_thresh[0])    | (slow_data['vaisala_Td_2m']>T_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_Td_6m']  .mask( (slow_data['vaisala_Td_6m']<T_thresh[0])    | (slow_data['vaisala_Td_6m']>T_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_Td_10m'] .mask( (slow_data['vaisala_Td_10m']<T_thresh[0])   | (slow_data['vaisala_Td_10m']>T_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_RH_2m']  .mask( (slow_data['vaisala_RH_2m']<rh_thresh[0])   | (slow_data['vaisala_RH_2m']>rh_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_RH_6m']  .mask( (slow_data['vaisala_RH_6m']<rh_thresh[0])   | (slow_data['vaisala_RH_6m']>rh_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_RH_10m'] .mask( (slow_data['vaisala_RH_10m']<rh_thresh[0])  | (slow_data['vaisala_RH_10m']>rh_thresh[1]) , inplace=True) # ppl
+    
+             
     # here we derive useful parameters computed from logger data that we want to write to the output file
     # ###################################################################################################
     # compute RH wrt ice -- compute RHice(%) from RHw(%), Temperature(deg C), and pressure(mb)
@@ -392,6 +405,7 @@ def main(): # the main data crunching program
     slow_data['abs_humidity_vaisala_2m'] = a2
     slow_data['pw_vaisala_2m']           = Pw2
     slow_data['MR_vaisala_2m']           = x2
+    
 
     # atm pressure adjusted assuming 1 hPa per 10 m (1[hPA]*ht[m]/10[m]), except for mast, which has a direct meas.
     p6    = slow_data['vaisala_P_2m']-1*6/10
@@ -429,16 +443,38 @@ def main(): # the main data crunching program
     slow_data['pw_vaisala_mast']           = Pwm
     slow_data['MR_vaisala_mast']           = xm
 
-    # add useful data columns, these were sprinkled throughout Ola's code, like information nuggets
+    # QC GPS and add useful data columns, these were sprinkled throughout Ola's code, like information nuggets
     slow_data['tower_lat']     = slow_data['gps_lat_deg']+slow_data['gps_lat_min']/60.0 # add decimal values
     slow_data['tower_lon']     = slow_data['gps_lon_deg']+slow_data['gps_lon_min']/60.0
     slow_data['tower_heading'] = slow_data['gps_hdg']/100.0  # convert to degrees
     slow_data['tower_heading'] = slow_data['tower_heading'].where(~np.isinf(slow_data['tower_heading'])) # infinities->nan
     slow_data['gps_alt']       = slow_data['gps_alt']/1000.0 # convert to meters
+    slow_data['tower_lat'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4) , inplace=True) 
+    slow_data['tower_lon'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
+    slow_data['gps_alt'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
+    slow_data['tower_heading'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
 
-    # sr50 dist in m & snow depth in cm, both corrected for temperature, snwdpth_meas is height in cm on oct 27 2019
+    # sr50 dist QC then in m & snow depth in cm, both corrected for temperature, snwdpth_meas is height in cm on oct 27 2019
+    slow_data['sr50_dist'].loc[:raise_day] = nan # sr50 data is garbage when the tower is down (it's pointed at the horizon or something)
+    slow_data['sr50_dist'].mask( (slow_data['sr50_dist']<sr50d[0])  | (slow_data['sr50_dist']>sr50d[1]) , inplace=True) # ppl
+    slow_data['sr50_dist']  = fl.despike(slow_data['sr50_dist'],0.2,60) # replace spikes outside 20 cm over 60 sec with 60 s median
     slow_data['sr50_dist']  = slow_data['sr50_dist']*sqrt((slow_data['vaisala_T_2m']+K_offset)/K_offset)
     slow_data['snow_depth'] = sr50_init_dist-slow_data['sr50_dist']*100
+
+    # Flux Plate QC
+    slow_data['fp_A_Wm2'].mask( (slow_data['fp_A_Wm2']<flxp[1]) & (abs(slow_data['fp_A_Wm2'])>flxp[1]) , inplace=True) # ppl
+    slow_data['fp_B_Wm2'].mask( (slow_data['fp_B_Wm2']<flxp[1]) & (abs(slow_data['fp_B_Wm2'])>flxp[1]) , inplace=True) # ppl
+    slow_data['fp_A_Wm2'].loc[:fpA_bury_date] = nan # data is garbage before being buried
+    slow_data['fp_B_Wm2'].loc[:fpB_bury_date] = nan # data is garbage before being buried
+    
+    # IRT QC
+    slow_data['apogee_body_T'].mask( (slow_data['apogee_body_T']<irt_targ[1]) & (abs(slow_data['apogee_body_T'])>irt_targ[1]) , inplace=True) # ppl
+    slow_data['apogee_targ_T'].mask( (slow_data['apogee_body_T']<irt_targ[1]) & (abs(slow_data['apogee_targ_T'])>irt_targ[1]) , inplace=True) # ppl
+    slow_data['apogee_body_T'].mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['apogee_body_T'])==0) , inplace=True) # reports spurious 0s sometimes
+    slow_data['apogee_targ_T'].mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['apogee_targ_T'])==0) , inplace=True) # reports spurious 0s sometimes
+    slow_data['apogee_body_T']  = fl.despike(slow_data['apogee_body_T'],2,60) # replace spikes outside 2C over 60 sec with 60 s median
+    slow_data['apogee_targ_T']  = fl.despike(slow_data['apogee_targ_T'],2,60) # replace spikes outside 2C over 60 sec with 60 s median
+
 
     # rename columns to match expected level2 names from data_definitions, there's probably a more clever way to do this
     slow_data.rename(inplace=True, columns =\
@@ -457,8 +493,8 @@ def main(): # the main data crunching program
                          'mast_RH'            : 'rel_humidity_vaisala_mast' ,
                          'vaisala_P_2m'       : 'pressure_vaisala_2m'       ,
                          'mast_P'             : 'mast_pressure'             ,    
-                         'apogee_targ_T'      : 'body_T_IRT'                ,       
-                         'apogee_body_T'      : 'surface_T_IRT'             ,    
+                         'apogee_body_T'      : 'body_T_IRT'                ,       
+                         'apogee_targ_T'      : 'surface_T_IRT'             ,    
                          'fp_A_mV'            : 'flux_plate_A_mv'           ,  
                          'fp_B_mV'            : 'flux_plate_B_mv'           ,  
                          'fp_A_Wm2'           : 'flux_plate_A_Wm2'          , 
