@@ -1203,3 +1203,299 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
 # takes datetime object, returns string YYYY-mm-dd
 def dstr(date):
     return date.strftime("%Y-%m-%d")
+
+# Bulk fluxes
+def cor_ice_A10(bulk_input):
+# ############################################################################################
+# AUTHORS:
+#
+#   Ola Persson  ola.persson@noaa.gov
+#   Python conversion and integration by Christopher Cox (NOAA) christopher.j.cox@noaa.gov
+#
+# PURPOSE:
+#
+# Bulk flux calculations for sea ice written by O. Persson and based on the 
+# calculations made for SHEBA by Andreas et al. (2004) and the COARE algorithm
+# (Fairall et al. 1996) minimization approach to solve for the needed 
+# coefficients.
+# Python version converted from Matlab cor_ice_A10.m
+#
+# References:
+#   Andreas (1987) https://erdc-library.erdc.dren.mil/jspui/bitstream/11681/9435/1/CR-86-9.pdf
+#   Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm
+#   Andreas et al. (2004) https://doi.org/10.1175/1525-7541(2004)005<0611:SOSIAN>2.0.CO;2
+#   Fairall et al. (1996) https://doi.org/10.1029/95JC03205                                 
+#   Fairall et al. (2003) https://doi.org/10.1175/1520-0442(2003)016<0571:BPOASF>2.0.CO;2
+#   Holtslag and De Bruin (1988) https://doi.org/10.1175/1520-0450(1988)027<0689:AMOTNS>2.0.CO;2
+#   Grachev and Fairall (1997) https://doi.org/10.1175/1520-0450(1997)036<0406:DOTMOS>2.0.CO;2
+#   Paulson (1970) https://doi.org/10.1175/1520-0450(1970)009<0857:TMROWS>2.0.CO;2
+#   Smith (1988) https://doi.org/10.1029/JC093iC12p15467
+#   Webb et al. (1980) https://doi.org/10.1002/qj.49710644707
+# 
+# Notes:
+#   - prior to mods (see updates): x=[4.5,0,-10,-5,1,2,203,250,0,600,1010,15,15,15] test data compares to matlab version < 10^-15 error (Cox)
+#   - modified for ice or water (Persson)
+#   - this version has a shortened iteration (Persson) [max iters in stable conditions = 3]
+#   - the 5th variable is a switch, x(5)<3 means ice, >3 means water (Persson)
+#   - uses LKB Rt and Rq for seawater and Andreas 1987 for ice (Persson)
+#   - presently has fixed zo=3e-4 for ice and Smith (1988) for water (Persson)    
+#   - First guess Qs from Buck (qice.m, qwat.m by O. Persson) but hard-coded here. These estimates will
+#     differ slightly from Hyland and Wexler humidity calculations reported at the tower (Cox)
+#  
+# Updates:
+#   - additional documentation (Cox)
+#   - instead of passing LWD, SWD and estimating nets, code now expects netLW and netSW (Cox)
+#   - included rr, rt, rq as outputs
+#   - took nominal zot and zoq out of the loop
+#   - calculating zot, zoq and zo inside the loop now, but not allowing zoq or zot to be smaller than nominal 10^-4 Andreas value
+#   - removed rain rate
+#   - removed cool skin and hardcoded iceconcentration to be 1
+# 
+# Outputs:
+#   hsb: sensible heat flux (Wm-2)
+#   hlb: latent heat flux (Wm-2)
+#   tau: stress                             (Pa)
+#   zo: roughness length, veolicity              (m)
+#   zot:roughness length, temperature (m)
+#   zoq: roughness length, humidity (m)
+#   L: Obukhov length (m)
+#   usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
+#   tsr: temperature scale, tstar (K)
+#   qsr: specific humidity scale, qstar (kg/kg?)
+#   dter:
+#   dqer:
+#   tkt: Cool skin thickness 
+#   hl_webb: Webb density-corrected Hl (Wm-2)
+#   Cd: transfer coefficient for stress
+#   Ch: transfer coefficient for Hs
+#   Ce: transfer coefficient for Hl
+#   Cdn_10: 10 m neutral transfer coefficient for stress
+#   Chn_10: 10 m neutral transfer coefficient for Hs
+#   Cen_10: 10 m neutral transfer coefficient for Hl
+#   rr: Reynolds number
+#   rt: 
+#   rq:
+    
+
+    import math
+     
+    u=bulk_input[0]         # wind speed                         (m/s)
+    us=bulk_input[1]        # surface current                    (m/s)
+    ts=bulk_input[2]        # bulk water/ice surface tempetature (degC)
+    t=bulk_input[3]         # air temperature                    (degC) 
+    Q=bulk_input[4]/1000    # air moisture mixing ratio          (fraction)
+    zi=bulk_input[5]        # inversion height                   (m)
+    P=bulk_input[6]         # surface pressure                   (mb)
+    zu=bulk_input[7]        # height of anemometer               (m)
+    zt=bulk_input[8]        # height of thermometer              (m)
+    zq=bulk_input[9]        # height of hygrometer               (m)
+    
+    
+    
+    ################################# Constants ################################## 
+    # Set
+    Beta=1.25 # gustiness coeff
+    von=0.4 # von Karman constant
+    fdg=1.00 # ratio of thermal to wind von Karman
+    tdk=273.15 
+    grav=9.82 # gravity
+    Ai=1 # ice concentration
+    CDn10=0.001*(1.500+2.233*Ai-2.333*Ai*Ai) # 10-m neutral drag coefficient based on ice concentration
+
+    # Air
+    Rgas=287.1
+    Le=(2.501-.00237*ts)*1e6
+    cpa=1004.67 
+    rhoa=P*100/(Rgas*(t+tdk)*(1+0.61*Q)) # density of air
+    visa=1.325e-5*(1+6.542e-3*t+8.301e-6*t*t-4.8e-9*t*t*t) # kinematic viscosity
+    
+    
+    ##############################################################################
+    
+    
+    
+    ############################### Subfunctions ################################# 
+    
+    # psi_m and psi_h are the stability functions that correct the neutral 
+    # stability calculations for drag and tranfer, respectively, for deviations
+    # from that assumption. They are "known" parameters and are borrowed here
+    # from Paulson (1970) for the unstable state and Holtslag and De Bruin 
+    # (1988) for the stable case, as wad done for SHEBA (Andreas et al. 2004).
+    
+    # for drag
+    def psih_sheba(zet):
+        if zet<0: # instability, Paulson (1970)
+            x=(1-15*zet)**.5
+            psik=2*math.log((1+x)/2)
+            x=(1-34.15*zet)**.3333
+            psic=1.5*math.log((1+x+x*x)/3)-math.sqrt(3)*math.atan((1+2*x)/math.sqrt(3))+4*math.atan(1)/math.sqrt(3)
+            f=zet*zet/(1+zet*zet)
+            psi=(1-f)*psik+f*psic                                              
+        else: # stability, Holtslag and De Bruin (1988)
+            ah = 5 
+            bh = 5 
+            ch = 3
+            BH = math.sqrt(ch**2 - 4)
+            psi = - (bh/2)*math.log(1+ch*zet+zet**2) + (((bh*ch)/(2*BH)) - (ah/BH))*(math.log((2*zet+ch-BH)/(2*zet+ch+BH)) - math.log((ch-BH)/(ch+BH)))
+        return psi
+    
+    # for transfer
+    def psim_sheba(zet):
+        if zet<0: # instability, Paulson (1970)
+            x=(1-15*zet)**.25;
+            psik=2*math.log((1+x)/2)+math.log((1+x*x)/2)-2*math.atan(x)+2*math.atan(1)
+            x=(1-10.15*zet)**.333
+            psic=1.5*math.log((1+x+x*x)/3)-math.sqrt(3)*math.atan((1+2*x)/math.sqrt(3))+4*math.atan(1)/math.sqrt(3)
+            f=zet*zet/(1+zet*zet)
+            psi=(1-f)*psik+f*psic                                             
+        else: # stability, Holtslag and De Bruin (1988)
+            am = 5 
+            bm = am/6.5
+            BM = ((1-bm)/bm)**(1/3)
+            y = (1+zet)**(1/3)
+            psi = - (3*am/bm)*(y-1)+((am*BM)/(2*bm))*(2*math.log((BM+y)/(BM+1))-math.log((BM**2-BM*y+y**2)/(BM**2-BM+1))+2*math.sqrt(3)*math.atan((2*y-BM)/(BM*math.sqrt(3)))-2*math.sqrt(3)*math.atan((2-BM)/(BM*math.sqrt(3))))
+        return psi
+    
+    
+
+    ########################### COARE BULK LOOP ##############################
+         
+    # First guesses 
+    
+    if ts<=0:
+        es=(1.0003+4.18e-6*P)*6.1115*math.exp(22.452*ts/(ts+272.55))
+        Qs=es*622/(1010.0-.378*es)/1000    
+    else:
+        es=6.112*math.exp(17.502*ts/(ts+241.0))*(1.0007+3.46e-6*P)
+        Qs=es*622/(1010.0-.378*es)/1000
+               
+          
+    wetc=0.622*Le*Qs/(Rgas*(ts+tdk)**2)
+            
+    du=u-us
+    dt=ts-t-0.0098*zt
+    dq=Qs-Q
+    ta=t+tdk
+    ug=0.5
+    dter=0
+    
+    ut=math.sqrt(du*du+ug*ug)
+    zogs=10/(math.exp(von*(CDn10)**-0.5)) # drag coefficient estimate
+    
+    
+    # Neutral coefficient
+    u10=ut*math.log(10/zogs)/math.log(zu/zogs)
+    cdhg=von/math.log(10/zogs)    
+    usr=cdhg*u10
+    zo10=zogs
+    
+    Cd10=(von/math.log(10/zo10))**2
+    Ch10=0.0015
+    
+    Ct10=Ch10/math.sqrt(Cd10)
+    zot10=10/math.exp(von/Ct10)
+    Cd=(von/math.log(zu/zo10))**2
+    
+    # Grachev and Fairall (1997)    
+    Ct=von/math.log(zt/zot10) # temp transfer coeff
+    CC=von*Ct/Cd # z/L vs Rib linear coefficient
+    Ribcu=-zu/zi/.004/Beta**3 # Saturation Rib
+    Ribu=-grav*zu/ta*((dt-dter)+.61*ta*dq)/ut**2
+    nits=7 # Number of iterations
+    
+    if Ribu<0:
+    	zetu=CC*Ribu/(1+Ribu/Ribcu) # Unstable, G&F
+    else:
+    	zetu=CC*Ribu*(1+27/9*Ribu/CC) # Stable, I forget where I got this	
+        
+    L10=zu/zetu # MO length
+    
+    if zetu>150:
+    	nits=3 # cutoff iteration if too stable
+    
+    # Figure guess stability dependent scaling params 
+    usr=ut*von/(math.log(zu/zo10)-psim_sheba(zu/L10))
+    tsr=-(dt-dter)*von*fdg/(math.log(zt/zot10)-psih_sheba(zt/L10))
+    qsr=-(dq-wetc*dter)*von*fdg/(math.log(zq/zot10)-psih_sheba(zq/L10))
+    tkt=0.001 # cool skin thickness, first guess
+  
+    zot=1e-4
+    zoq=1e-4 # approximate values found by Andreas et al. (2004)  		    
+    
+    # Bulk Loop
+    for i in range(nits): 
+     
+
+        zet=von*grav*zu/ta*(tsr+0.61*ta*qsr)/(usr**2) # Eq. (7), Fairall et al. (1996)
+        zo=zogs
+        
+        # Fairall et al. (2003)
+        rr=zo*usr/visa # Reynolds
+        
+        # Andreas (1987) for snow/ice
+        if rr<=0.135: # areodynamically smooth
+            rt=rr*math.exp(1.250)
+            rq=rr*math.exp(1.610)
+        elif rr<=2.5: # transition
+            rt=rr*math.exp(0.149-.55*math.log(rr))
+            rq=rr*math.exp(0.351-0.628*math.log(rr))
+        elif rr<=1000: # aerodynamically rough
+            rt=rr*math.exp(0.317-0.565*math.log(rr)-0.183*math.log(rr)*math.log(rr))
+            rq=rr*math.exp(0.396-0.512*math.log(rr)-0.180*math.log(rr)*math.log(rr))
+    
+
+        L=zu/zet
+        usr=ut*von/(math.log(zu/zo)-psim_sheba(zu/L))
+        tsr=-(dt-dter)*von*fdg/(math.log(zt/zot)-psih_sheba(zt/L))
+        qsr=-(dq-wetc*dter)*von*fdg/(math.log(zq/zoq)-psih_sheba(zq/L))
+        Bf=-grav/ta*usr*(tsr+0.61*ta*qsr)
+       
+        if Bf>0:
+            ug=Beta*(Bf*zi)**0.333
+        else:
+            ug=0.2
+            
+                
+        #########    
+        # added by Cox...
+        # this allows zo to be calculated in the loop, which I think it needs to be
+        # zot as well, but not allowing it to go to 0 and brek things.
+        tau=rhoa*usr*usr*du/ut # stress
+        Cd=tau/rhoa/du**2
+        Ch=-usr*tsr/du/(dt-dter)
+        zogs=zu*math.exp( -(von*Cd**-0.5 + psim_sheba(zq/L)) ) # Andreas (2004) eq. 3A
+        zot=zu* math.exp( -(von*Cd**-0.5*Ch**-1 + psih_sheba(zq/L)) ) # Andreas (2004) eq. 3B
+        if zot < 1e-4: zot = 1e-4
+        ##########
+        
+        
+        ut=math.sqrt(du*du+ug*ug)
+        hsb=-rhoa*cpa*usr*tsr
+        hlb=-rhoa*Le*usr*qsr
+    
+        dter=0
+       
+        dqer=wetc*dter
+        
+
+    # end bulk iter loop
+    
+    tau=rhoa*usr*usr*du/ut # stress
+
+    ##############################################################################
+    
+    # Webb et al. correction
+    wbar=1.61*hlb/rhoa/Le+(1+1.61*Q)*hsb/rhoa/cpa/ta
+    hl_webb=wbar*Q*Le
+    # compute transfer coeffs relative to du @meas. ht
+    Cd=tau/rhoa/du**2
+    Ch=-usr*tsr/du/(dt-dter)
+    Ce=-usr*qsr/(dq-dqer)/du
+    # 10-m neutral coeff realtive to ut
+    Cdn_10=von**2/math.log(10/zo)/math.log(10/zo)
+    Chn_10=von**2*fdg/math.log(10/zo)/math.log(10/zot)
+    Cen_10=von**2*fdg/math.log(10/zo)/math.log(10/zoq)
+    
+    bulk_return=[hsb,hlb,tau,zo,zot,zoq,L,usr,tsr,qsr,dter,dqer,tkt,hl_webb,Cd,Ch,Ce,Cdn_10,Chn_10,Cen_10,rr,rt,rq]
+    
+    return bulk_return
