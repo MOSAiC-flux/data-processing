@@ -1263,8 +1263,7 @@ def cor_ice_A10(bulk_input):
 #   tsr: temperature scale, tstar (K)
 #   qsr: specific humidity scale, qstar (kg/kg?)
 #   dter:
-#   dqer:
-#   tkt: Cool skin thickness 
+#   dqer: 
 #   hl_webb: Webb density-corrected Hl (Wm-2)
 #   Cd: transfer coefficient for stress
 #   Ch: transfer coefficient for Hs
@@ -1417,7 +1416,6 @@ def cor_ice_A10(bulk_input):
     usr=ut*von/(math.log(zu/zo10)-psim_sheba(zu/L10))
     tsr=-(dt-dter)*von*fdg/(math.log(zt/zot10)-psih_sheba(zt/L10))
     qsr=-(dq-wetc*dter)*von*fdg/(math.log(zq/zot10)-psih_sheba(zq/L10))
-    tkt=0.001 # cool skin thickness, first guess
   
     zot=1e-4
     zoq=1e-4 # approximate values found by Andreas et al. (2004)  		    
@@ -1496,6 +1494,6 @@ def cor_ice_A10(bulk_input):
     Chn_10=von**2*fdg/math.log(10/zo)/math.log(10/zot)
     Cen_10=von**2*fdg/math.log(10/zo)/math.log(10/zoq)
     
-    bulk_return=[hsb,hlb,tau,zo,zot,zoq,L,usr,tsr,qsr,dter,dqer,tkt,hl_webb,Cd,Ch,Ce,Cdn_10,Chn_10,Cen_10,rr,rt,rq]
+    bulk_return=[hsb,hlb,tau,zo,zot,zoq,L,usr,tsr,qsr,dter,dqer,hl_webb,Cd,Ch,Ce,Cdn_10,Chn_10,Cen_10,rr,rt,rq]
     
     return bulk_return

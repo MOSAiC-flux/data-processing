@@ -1837,7 +1837,31 @@ def define_turb_variables():
     turb_atts['Skew_uT_2m']               = {'units'          : 'unitless'}
     turb_atts['Skew_uT_6m']               = {'units'          : 'unitless'}
     turb_atts['Skew_uT_10m']              = {'units'          : 'unitless'}
-    turb_atts['Skew_uT_mast']             = {'units'          : 'unitless'}
+    turb_atts['Skew_uT_mast']             = {'units'          : 'unitless'}  
+    turb_atts['bulk_Hs_10m']              = {'units'          : 'Wm2'}
+    turb_atts['bulk_Hl_10m']              = {'units'          : 'Wm2'}
+    turb_atts['bulk_tau']                 = {'units'          : 'Pa'}
+    turb_atts['bulk_z0']                  = {'units'          : 'm'}
+    turb_atts['bulk_z0t']                 = {'units'          : 'm'}
+    turb_atts['bulk_z0q']                 = {'units'          : 'm'}
+    turb_atts['bulk_L']                   = {'units'          : 'm'}
+    turb_atts['bulk_ustar']               = {'units'          : 'm/s'}
+    turb_atts['bulk_tstar']               = {'units'          : 'K'}
+    turb_atts['bulk_qstar']               = {'units'          : 'kg/kg'}
+    turb_atts['bulk_dter']                = {'units'          : ''}
+    turb_atts['bulk_dqer']                = {'units'          : ''}
+    turb_atts['bulk_Hl_Webb_10m']         = {'units'          : 'Wm2'}    
+    turb_atts['bulk_Cd_10m']              = {'units'          : 'unitless'}
+    turb_atts['bulk_Ch_10m']              = {'units'          : 'unitless'}                                  
+    turb_atts['bulk_Ce_10m']              = {'units'          : 'unitless'}
+    turb_atts['bulk_Cdn_10m']             = {'units'          : 'unitless'}
+    turb_atts['bulk_Chn_10m']             = {'units'          : 'unitless'}                                  
+    turb_atts['bulk_Cen_10m']             = {'units'          : 'unitless'}                                        
+    turb_atts['bulk_Rr']                  = {'units'          : 'unitless'}                                         
+    turb_atts['bulk_Rt']                  = {'units'          : 'unitless'}  
+    turb_atts['bulk_Rq']                  = {'units'          : 'unitless'}  
+
+    
 
     # Some variables are dimensionless, meaning they are both scaled & unitless and the result is
     # independent of height such that it sounds a little funny to have a var name like
@@ -2958,5 +2982,160 @@ def define_turb_variables():
                                                'cf_name'       : '',
                                                'height'        : '',
                                                'location'      : mast_location_string,})
+
+    turb_atts['bulk_Hs_10m']          .update({'long_name'     : 'sensible heat flux',
+                                               'cf_name'       : 'upward_sensible_heat_flux_in_air',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10m',
+                                               'location'      : top_location_string,})
+    
+    turb_atts['bulk_Hl_10m']          .update({'long_name'     : 'latent heat flux',
+                                               'cf_name'       : 'upward_latent_heat_flux_in_air',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10m',
+                                               'location'      : top_location_string,})
+    
+    turb_atts['bulk_tau']            .update({'long_name'      : 'stress',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10m',
+                                               'location'      : top_location_string,})
+    
+    turb_atts['bulk_z0']             .update({'long_name'      : 'roughness length',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : 'n/a',
+                                               'location'      : top_location_string,})
+
+    turb_atts['bulk_z0t']            .update({'long_name'      : 'roughness length, temperature',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : 'n/a',
+                                               'location'      : top_location_string,})
+
+    turb_atts['bulk_z0q']            .update({'long_name'      : 'roughness length, humidity',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : 'n/a',
+                                               'location'      : top_location_string,})
+    
+    turb_atts['bulk_L']             .update({'long_name'      : 'Obukhov length',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : 'n/a',
+                                              'location'      : top_location_string,})       
+        
+    turb_atts['bulk_ustar']        .update({'long_name'       : 'friction velocity (sqrt(momentum flux)), ustar',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : 'n/a',
+                                              'location'      : top_location_string,})   
+
+    turb_atts['bulk_tstar']        .update({'long_name'       : 'temperature scale, tstar',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : 'n/a',
+                                              'location'      : top_location_string,})   
+
+    turb_atts['bulk_qstar']        .update({'long_name'       : 'specific humidity scale, qstar ',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : 'n/a',
+                                              'location'      : top_location_string,})       
+    
+    turb_atts['bulk_dter']         .update({'long_name'       : 'diagnostic',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : 'n/a',
+                                              'location'      : top_location_string,})            
+
+    turb_atts['bulk_dqer']         .update({'long_name'       : 'diagnostic',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : 'n/a',
+                                              'location'      : top_location_string,})         
+
+    turb_atts['bulk_Hl_Webb_10m']  .update({'long_name'       : 'latent heat flux, Webb density correction applied',
+                                              'cf_name'       : 'upward_latent_heat_flux_in_air',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm, Webb et al. (1980) https://doi.org/10.1002/qj.49710644707',
+                                              'height'        : 'n/a',
+                                              'location'      : top_location_string,})   
+
+    turb_atts['bulk_Cd_10m']       .update({'long_name'       : 'transfer coefficient for stress',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '10m',
+                                              'location'      : top_location_string,})   
+
+
+    turb_atts['bulk_Ch_10m']       .update({'long_name'       : 'transfer coefficient for Hs',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '10m',
+                                              'location'      : top_location_string,})
+
+    turb_atts['bulk_Ce_10m']       .update({'long_name'       : 'transfer coefficient for Hl',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '10m',
+                                              'location'      : top_location_string,})   
+
+    turb_atts['bulk_Cdn_10m']      .update({'long_name'       : '10 m neutral transfer coefficient for stress',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '10m',
+                                              'location'      : top_location_string,})       
+
+    turb_atts['bulk_Chn_10m']      .update({'long_name'       : '10 m neutral transfer coefficient for Hs',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '10m',
+                                              'location'      : top_location_string,})       
+
+    turb_atts['bulk_Cen_10m']      .update({'long_name'       : '10 m neutral transfer coefficient for Hl',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '10m',
+                                              'location'      : top_location_string,})       
+
+    turb_atts['bulk_Rr']           .update({'long_name'       : 'Reynolds number',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '',
+                                              'location'      : top_location_string,})      
+    
+    turb_atts['bulk_Rt']           .update({'long_name'       : '',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '',
+                                              'location'      : top_location_string,})   
+
+    turb_atts['bulk_Rq']           .update({'long_name'       : '',
+                                              'cf_name'       : '',
+                                              'instrument'    : 'various',
+                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                              'height'        : '',
+                                              'location'      : top_location_string,})   
 
     return turb_atts, list(turb_atts.keys()).copy() 

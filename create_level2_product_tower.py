@@ -74,13 +74,6 @@ def main(): # the main data crunching program
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
 
-    global data_dir, level1_dir, level2_dir, turb_dir # make data available
-    data_dir   = '/Volumes/RESOLUTE/data/' #'/data/'
-    level1_dir = data_dir+'processed_data/tower/level1/'  # where does level1 data go
-    level2_dir = data_dir+'processed_data/tower/level2/'  # where does level2 data go
-    turb_dir   = data_dir+'processed_data/tower/turb/'    # where does level2 data go
-
-
     global nan, def_fill_int, def_fill_flt # make using nans look better
     nan = np.NaN
     def_fill_int = -9999
@@ -100,10 +93,22 @@ def main(): # the main data crunching program
 
     # add verboseprint function for extra info using verbose flag, ignore these 5 lines if you want
     parser.add_argument('-v', '--verbose', action ='count', help='print verbose log messages')
+    
+    # pass the base path to make it more mobile
+    parser.add_argument('-p', '--path', metavar='str', help='base path to data up to, including /data/, include trailing slash')
+
 
     args         = parser.parse_args()
     v_print      = print if args.verbose else lambda *a, **k: None
     verboseprint = v_print
+    
+    # paths
+    global data_dir, level1_dir, level2_dir, turb_dir # make data available
+    data_dir   = args.path #'/Volumes/RESOLUTE/data/' #'/data/'
+    level1_dir = data_dir+'processed_data/tower/level1/'  # where does level1 data go
+    level2_dir = data_dir+'processed_data/tower/level2/'  # where does level2 data go
+    turb_dir   = data_dir+'processed_data/tower/turb/'    # where does level2 data go
+    
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
               .format(startline, endline))
@@ -459,7 +464,7 @@ def main(): # the main data crunching program
     slow_data['sr50_dist'].mask( (slow_data['sr50_dist']<sr50d[0])  | (slow_data['sr50_dist']>sr50d[1]) , inplace=True) # ppl
     slow_data['sr50_dist']  = fl.despike(slow_data['sr50_dist'],0.2,60) # replace spikes outside 20 cm over 60 sec with 60 s median
     slow_data['sr50_dist']  = slow_data['sr50_dist']*sqrt((slow_data['vaisala_T_2m']+K_offset)/K_offset)
-    slow_data['snow_depth'] = sr50_init_dist-slow_data['sr50_dist']*100
+    slow_data['snow_depth'] = sr50_init_depth + (sr50_init_dist-slow_data['sr50_dist']*100)
 
     # Flux Plate QC
     slow_data['fp_A_Wm2'].mask( (slow_data['fp_A_Wm2']<flxp[1]) & (abs(slow_data['fp_A_Wm2'])>flxp[1]) , inplace=True) # ppl
@@ -860,6 +865,7 @@ def main(): # the main data crunching program
         #       licor = the licor DataFrame - currently unused until we get that coded up
         #       clasp = the clasp data frame - currently unused until we get that coded up
         #
+
         turb_data = pd.DataFrame()    
         flux_freq = '{}T'.format(integ_time_turb_flux)
         flux_time_today = pd.date_range(today, today+timedelta(1), freq=flux_freq)
@@ -905,6 +911,64 @@ def main(): # the main data crunching program
             verboseprint("... concatting turbulence calculations to one dataframe")
             inst_data.index = flux_time_today[0:-1]
             turb_data = pd.concat( [turb_data, inst_data], axis=1) # concat columns alongside each other without adding indexes
+            
+        # calculate the bulk every 30 min
+        print('... calculating bulk fluxes for day: {}'.format(today))
+        # Input dataframe
+            # first get 1 s wind speed. i dont care about direction. 
+        ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v'])**0.5
+        ws = ws.resample('1s',label='left').apply(fl.take_average)
+            # make a better surface temperature
+        tsfc = (((slow_data['surface_T_IRT']+273.15)**4 / 0.985)**0.25)-273.15
+        empty_data = np.zeros(np.size(slow_data['MR_vaisala_10m']))
+        bulk_input = pd.DataFrame()
+        bulk_input['u']  = ws                                # wind speed                         (m/s)
+        bulk_input['us'] = empty_data                        # surface current                    (m/s)
+        bulk_input['ts'] = tsfc                              # bulk water/ice surface tempetature (degC) this needs to be corrected for reflected
+        bulk_input['t']  = slow_data['temp_vaisala_10m']     # air temperature                    (degC) 
+        bulk_input['Q']  = slow_data['MR_vaisala_10m']/1000  # air moisture mixing ratio          (fraction)
+        bulk_input['zi'] = empty_data+600                    # inversion height                   (m) wild guess
+        bulk_input['P']  = slow_data['pressure_vaisala_2m']  # surface pressure                   (mb)
+        bulk_input['zu'] = empty_data+10                     # height of anemometer               (m)
+        bulk_input['zt'] = empty_data+10                     # height of thermometer              (m)
+        bulk_input['zq'] = empty_data+10                     # height of hygrometer               (m)      
+        bulk_input = bulk_input.resample('30min',label='left').apply(fl.take_average)
+   
+        # output dataframe
+        empty_data = np.zeros(len(bulk_input))
+        bulk = pd.DataFrame() 
+        bulk['bulk_Hs_10m']      = empty_data*nan # hsb: sensible heat flux (Wm-2)
+        bulk['bulk_Hl_10m']      = empty_data*nan # hlb: latent heat flux (Wm-2)
+        bulk['bulk_tau']         = empty_data*nan # tau: stress                             (Pa)
+        bulk['bulk_z0']          = empty_data*nan # zo: roughness length, veolicity              (m)
+        bulk['bulk_z0t']         = empty_data*nan # zot:roughness length, temperature (m)
+        bulk['bulk_z0q']         = empty_data*nan # zoq: roughness length, humidity (m)
+        bulk['bulk_L']           = empty_data*nan # L: Obukhov length (m)       
+        bulk['bulk_ustar']       = empty_data*nan # usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
+        bulk['bulk_tstar']       = empty_data*nan # tsr: temperature scale, tstar (K)
+        bulk['bulk_qstar']       = empty_data*nan # qsr: specific humidity scale, qstar (kg/kg?)
+        bulk['bulk_dter']        = empty_data*nan # dter
+        bulk['bulk_dqer']        = empty_data*nan # dqer
+        bulk['bulk_Hl_Webb_10m'] = empty_data*nan # hl_webb: Webb density-corrected Hl (Wm-2)
+        bulk['bulk_Cd_10m']      = empty_data*nan # Cd: transfer coefficient for stress
+        bulk['bulk_Ch_10m']      = empty_data*nan # Ch: transfer coefficient for Hs
+        bulk['bulk_Ce_10m']      = empty_data*nan # Ce: transfer coefficient for Hl
+        bulk['bulk_Cdn_10m']     = empty_data*nan # Cdn_10: 10 m neutral transfer coefficient for stress
+        bulk['bulk_Chn_10m']     = empty_data*nan # Chn_10: 10 m neutral transfer coefficient for Hs
+        bulk['bulk_Cen_10m']     = empty_data*nan # Cen_10: 10 m neutral transfer coefficient for Hl
+        bulk['bulk_Rr']          = empty_data*nan # Reynolds number
+        bulk['bulk_Rt']          = empty_data*nan # 
+        bulk['bulk_Rq']          = empty_data*nan # 
+        bulk=bulk.reindex(index=bulk_input.index)
+
+        for ii in range(len(bulk)):
+            tmp = [bulk_input['u'][ii],bulk_input['us'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
+            bulkout = fl.cor_ice_A10(tmp)
+            for hh in range(len(bulkout)):
+                bulk[bulk.columns[hh]][ii]=bulkout[hh]
+     
+        # add this to the EC data
+        turb_data = pd.concat( [turb_data, bulk], axis=1) # concat columns alongside each other without adding indexes
 
         print('... writing to level2 netcdf files and calcuating averages for day: {}'.format(today))
 
