@@ -46,3 +46,28 @@ Finalize updates/fixes for leg 3 data and file definitions
 - "noodleville" gps data currently brough into level1 data
 - ... but currently neglected in level2 for corrections/orientation/etc
 - processing data runs for leg1-leg3 10/15/2019-5/12/2020
+
+## Revision 0.7 7/15/2020 by C. Cox
+Added quality control to tower slow instrumentation of level 1 for level 2 in level 2 code
+- some dates manually identified, spurious dates hardcoaded and removed
+- changes to and implementation of ppl
+- despiking where necessary
+- removal of some data before tower raise when it is nonsense (e.g. sr50)
+- flux plate bury dates estiamted from data, removed prior
+- gps qc/hdop/nsat incporporated
+
+Added cor_ice_A10 to the functions_library. This is the COARE/SHEBA (Persson/Andreas) bulk flux algorithm. 
+- matlab -> python test data differences 0 to 10^-15 
+- additional documentation
+- instead of passing LWD, SWD and estimating nets, code now expects netLW and netSW (Cox)
+- included rr, rt, rq as outputs
+- took nominal zot and zoq out of the loop
+- calculating zot, zoq and zo inside the loop now, but not allowing zoq or zot to be smaller than nominal 10^-4 Andreas value
+- removed rain rate
+- removed cool skin and hardcoded ice concentration to be 1
+
+
+
+
+
+
