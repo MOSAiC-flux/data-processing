@@ -75,10 +75,10 @@ def main(): # the main data crunching program
     global printline     # prints a line out of dashes, pretty boring
 
     global data_dir, level1_dir, level2_dir, turb_dir # make data available
-    data_dir   = '/data/'
-    level1_dir = './processed_data/tower/level1/'  # where does level1 data go
-    level2_dir = './processed_data/tower/level2/'  # where does level2 data go
-    turb_dir   = './processed_data/tower/turb/'    # where does level2 data go
+    data_dir   = '/Volumes/RESOLUTE/data/' #'/data/'
+    level1_dir = data_dir+'processed_data/tower/level1/'  # where does level1 data go
+    level2_dir = data_dir+'processed_data/tower/level2/'  # where does level2 data go
+    turb_dir   = data_dir+'processed_data/tower/turb/'    # where does level2 data go
 
 
     global nan, def_fill_int, def_fill_flt # make using nans look better
