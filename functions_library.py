@@ -311,17 +311,17 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     nan          = np.NaN  # make using nans look better
 
     # some setup
-    samp_freq = 10            # sonic sampling rate in Hz
-    npos      = len(metek)    # 3600*samp_freq , highest possible number of data points (36000)
+    samp_freq = 10             # sonic sampling rate in Hz
+    npos      = 1800*samp_freq # highest possible number of data points (36000)
     sfreq     = 1/samp_freq
-    nx        = samp_freq*(npos-1)
-    npt       = npos
+    nx        = samp_freq*(1800-1)
 
     # this should subset to 30 min and loop. get to it later.
-    U = metek['u']
-    V = metek['v']
-    W = metek['w']
-    T = metek['T']
+    U   = metek['u']
+    V   = metek['v']
+    W   = metek['w']
+    T   = metek['T']
+    npt = len(U)
 
     # Goodness, there are going to be a lot of things to save. Lets package it up.
     turbulence_data = pd.DataFrame(columns=[\
@@ -448,7 +448,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     rot[1,0] = -np.sin(thet)
     rot[1,1] = np.cos(thet)
     rot[1,2] = 0
-    rot[2,1] = -1*np.sin(phi)*np.cos(thet)
+    rot[2,0] = -1*np.sin(phi)*np.cos(thet)
     rot[2,1] = -1*np.sin(phi)*np.sin(thet)
     rot[2,2] = np.cos(phi)
 
@@ -672,7 +672,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     wu_csp = cwux   # wu-covariance based on the wu-cospectra integration
     wv_csp = cwvx   # wv-covariance based on the wv-cospectra integration
     uv_csp = cuvx   # uv-covariance based on the uv-cospectra integration
-    ustar = - np.sign(wu_csp)*(np.abs(wu_csp))**0.5 # the friction velocity based only on the downstream, uw,  stress components (m/s)
+    ustar = -np.sign(wu_csp)*(np.abs(wu_csp))**0.5 # the friction velocity based only on the downstream, uw,  stress components (m/s)
     # ustar = - sign(wu_csp)*((abs(wu_csp))^2 + (abs(wv_csp))^2)^(1/4);  # ustar is based on both stress components (m/s)
 
     # >>> Sensible heat flux:
@@ -684,7 +684,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     uT_csp = cuTx   # ut-covariance, horizontal flux of the sonic temperature (along-wind component) [deg m/s]
     vT_csp = cvTx   # vt-covariance, horizontal flux of the sonic temperature (cross-wind component) [deg m/s]
     Hs = wT_csp*rho*cp    # sensible heat flux (W/m2) - Based on the sonic temperature!!!
-    Tstar = - wT_csp/np.abs(ustar) # the temperature scale
+    Tstar = -wT_csp/np.abs(ustar) # the temperature scale
 
     # The loop below is added for cases when number of points < 32768 (54.61333 min) or < 16384 (27.30667 min)
     # It defines frequencies for fluxes in the high-frequency subrange and defines the inertial subrange
@@ -768,8 +768,8 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     wT_csp_hi = np.sum(cwTs[fsl:fsn]*dfs[fsl:fsn])
     uT_csp_hi = np.sum(cuTs[fsl:fsn]*dfs[fsl:fsn])
     vT_csp_hi = np.sum(cvTs[fsl:fsn]*dfs[fsl:fsn])
-    ustar_hi = - np.sign(wu_csp_hi)*(np.abs(wu_csp_hi))**0.5 # friction velocity based on the high-frequency part of downstream, uw_hi,  stress components (m/s)
-    Tstar_hi = - wT_csp_hi/np.abs(ustar_hi) # the temperature scale based on the high-frequency part of the turbulent fluxes
+    ustar_hi = -np.sign(wu_csp_hi)*(np.abs(wu_csp_hi))**0.5 # friction velocity based on the high-frequency part of downstream, uw_hi,  stress components (m/s)
+    Tstar_hi = -wT_csp_hi/np.abs(ustar_hi) # the temperature scale based on the high-frequency part of the turbulent fluxes
     Hs_hi = wT_csp_hi*rho*cp    # sensible heat flux (sonic temperature!) based on the high-frequency part of the cospectrum(W/m2)
 
     # >>> Compute standard deviations in the high-frequency part of the appropriate spectra
