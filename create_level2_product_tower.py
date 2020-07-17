@@ -105,9 +105,9 @@ def main(): # the main data crunching program
     # paths
     global data_dir, level1_dir, level2_dir, turb_dir # make data available
     data_dir   = args.path #'/Volumes/RESOLUTE/data/' #'/data/'
-    level1_dir = data_dir+'tower/level1_ingest/'  # where does level1 data go
-    level2_dir = data_dir+'tower/level2_product/'  # where does level2 data go
-    turb_dir   = data_dir+'tower/level2_product/'    # where does level2 data go
+    level1_dir = data_dir+'tower/1_level_ingest/'  # where does level1 data go
+    level2_dir = data_dir+'tower/2_level_product/' # where does level2 data go
+    turb_dir   = data_dir+'tower/2_level_product/'    # where does level2 data go
     
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
