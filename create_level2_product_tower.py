@@ -105,9 +105,9 @@ def main(): # the main data crunching program
     # paths
     global data_dir, level1_dir, level2_dir, turb_dir # make data available
     data_dir   = args.path #'/Volumes/RESOLUTE/data/' #'/data/'
-    level1_dir = data_dir+'processed_data/tower/level1/'  # where does level1 data go
-    level2_dir = data_dir+'processed_data/tower/level2/'  # where does level2 data go
-    turb_dir   = data_dir+'processed_data/tower/turb/'    # where does level2 data go
+    level1_dir = data_dir+'tower/level1_ingest/'  # where does level1 data go
+    level2_dir = data_dir+'tower/level2_product/'  # where does level2 data go
+    turb_dir   = data_dir+'tower/level2_product/'    # where does level2 data go
     
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -865,7 +865,6 @@ def main(): # the main data crunching program
         #       licor = the licor DataFrame - currently unused until we get that coded up
         #       clasp = the clasp data frame - currently unused until we get that coded up
         #
-
         turb_data = pd.DataFrame()    
         flux_freq = '{}T'.format(integ_time_turb_flux)
         flux_time_today = pd.date_range(today, today+timedelta(1), freq=flux_freq)
@@ -875,7 +874,6 @@ def main(): # the main data crunching program
         for i_inst, inst in enumerate(metek_inst_keys):
             verboseprint("... processing turbulence data for {}".format(inst))
             for time_i in range(0,len(flux_time_today)-1): # flux_time_today = 
-
                 # Get the index, ind, of the metek frame that pertains to the present calculation 
                 inds = (fast_data_10hz[inst].index >= flux_time_today[time_i]) \
                        & \

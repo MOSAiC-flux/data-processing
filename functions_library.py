@@ -302,6 +302,38 @@ def column_is_ints(ser):
         else:
             return False
 
+# despik.m
+def despik(uraw):
+    uz = np.array(uraw)
+    on=np.array(range(0, len(uz)))
+    uz=np.column_stack([on,uz])
+    
+    npt=np.size(uz,0)
+    
+    uu2=uz[uz[:,1].argsort(),]
+    uu=uu2[0:npt,1]
+    mp=np.floor(npt/2)
+    mu=uu[int(mp)]
+    sp=np.floor(0.84*npt)
+    sm=np.floor(0.16*npt)
+    sig=(uu[int(sp)]-uu[int(sm)])/2
+    dsig=max(4*sig,0.5)
+    im=1
+    while abs(mu-uu[im])>dsig:
+       im=im+1
+    
+    ip=npt-1
+    while abs(uu[ip]-mu)>dsig:
+       ip=ip-1
+    
+    pct=(im+npt-ip)/npt*100
+    uu2[0:im,1]=mu
+    uu2[ip:npt,1]=mu
+    uy=uu2[uu2[:,0].argsort(),]
+    uu=uy[0:npt,1]
+    
+    return uu
+
 # maybe this goes in a different file?
 def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
 
@@ -437,7 +469,6 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     # compute the longitudinal, lateral, and vertical velocity components in real time (Kaimal and Finnigan
     # 1994, Sect. 6.6).
     ss = (um**2+vm**2)**0.5
-
     # working in radians in this block
     thet     = np.arctan2(vm,um)
     phi      = np.arctan2(wm,ss)
@@ -452,16 +483,17 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     rot[2,1] = -1*np.sin(phi)*np.sin(thet)
     rot[2,2] = np.cos(phi)
 
-    # for some reason this wsa originally a loop and is slooooow. I wrote it vectorized, but haven't fully tested
-    #for i in range(npt):
-        #x=numpy.transpose(numpy.array([df['u'][j],df['v'][j],df['w'][j]])[numpy.newaxis])
-    #    x=np.array([U[i],V[i],W[i]])
-    #    xr=np.dot(rot,x) #  numpy.transpose(x)
-    #    U[i]=xr[0]
-    #    V[i]=xr[1]
-    #    W[i]=xr[2]
+    # the original matlab code is written in a loop like so, but this can be
+    # very slow so I've vectorized it below. The differences in the approach
+    # agree to exactly
+    # for i in range(npt):
+    #     x=np.array([U[i],V[i],W[i]])
+    #     xr=np.dot(rot,np.transpose(x))
+    #     U[i]=xr[0]
+    #     V[i]=xr[1]
+    #     W[i]=xr[2]
     x=np.array([U,V,W])
-    xr=np.dot(rot,x) #  numpy.transpose(x)U = xr[0,:]
+    xr=np.dot(rot,x)
     U = xr[0,:]
     V = xr[1,:]
     W = xr[2,:]
@@ -471,7 +503,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     urm = U.mean()
     vrm = V.mean()
     wrm = W.mean()
-
+    
     #
     # Compute the spectra and cospectra
     #
@@ -527,14 +559,16 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     # Also spectrum of wind speed direction is added (AG)
     F,swdir = signal.welch(wdirs-wdirsm,10,signal.windows.hamming(nf),detrend='linear')
 
+
+
     # Spectra smoothing
 
     nfd2 = nf/2
     c1   = 0.1
-    jx   = 1
+    jx   = 0
     dx   = 1
-    ix   = 1
-    inx  = 1
+    ix   = 0
+    inx  = 0
            
     sus    = np.zeros(int(nfd2), dtype=complex)
     svs    = np.zeros(int(nfd2), dtype=complex)
@@ -552,7 +586,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
 
     while jx<nfd2:
         dx     = (dx*np.exp(c1))
-        d1     = np.int16(np.floor(dx))
+        d1     = np.int32(np.floor(dx))
         acu    = 0
         acv    = 0
         acw    = 0
@@ -565,25 +599,24 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
         acuv   = 0
         acwdir = 0
         ac2    = 0
-
-        k=1
-        for jx in range(ix,ix+d1-1):
+        k=0
+        for jx in range(ix,ix+d1):
             if (jx==nfd2):
                 break
-            else:
-                acu    = acu+su[jx]
-                acv    = acv+sv[jx]
-                acw    = acw+sw[jx]
-                acT    = acT+sT[jx]
-                acwu   = acwu+swu[jx]
-                acwv   = acwv+swv[jx]
-                acwT   = acwT+swT[jx]
-                acuT   = acuT+suT[jx]
-                acvT   = acvT+svT[jx]
-                acuv   = acuv+suv[jx]
-                acwdir = acwdir+swdir[jx]
-                ac2    = ac2+F[jx]
-                k=k+1    
+            acu    = acu+su[jx]
+            acv    = acv+sv[jx]
+            acw    = acw+sw[jx]
+            acT    = acT+sT[jx]
+            acwu   = acwu+swu[jx]
+            acwv   = acwv+swv[jx]
+            acwT   = acwT+swT[jx]
+            acuT   = acuT+suT[jx]
+            acvT   = acvT+svT[jx]
+            acuv   = acuv+suv[jx]
+            acwdir = acwdir+swdir[jx]
+            ac2    = ac2+F[jx]
+            k=k+1    
+
         sus[inx] = acu/k   
         svs[inx] = acv/k   
         sws[inx] = acw/k   
@@ -599,7 +632,21 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
         dfs[inx]=F[jx]-F[ix]+F[1]
         ix=jx+1
         inx=inx+1
-
+    
+    sus = sus[0:inx]
+    svs = svs[0:inx]
+    sws = sws[0:inx]
+    sTs = sTs[0:inx]
+    cwus = cwus[0:inx]
+    cwvs = cwvs[0:inx]
+    cwTs = cwTs[0:inx]
+    cuTs = cuTs[0:inx]
+    cvTs = cvTs[0:inx]
+    cuvs = cuvs[0:inx]
+    swdirs = swdirs[0:inx]
+    fs = fs[0:inx]
+    dfs = dfs[0:inx]
+    
     # take the real part
     sus    = np.real(sus)
     svs    = np.real(svs)
