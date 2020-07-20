@@ -1326,15 +1326,14 @@ def cor_ice_A10(bulk_input):
     import math
      
     u=bulk_input[0]         # wind speed                         (m/s)
-    us=bulk_input[1]        # surface current                    (m/s)
-    ts=bulk_input[2]        # bulk water/ice surface tempetature (degC)
-    t=bulk_input[3]         # air temperature                    (degC) 
-    Q=bulk_input[4]/1000    # air moisture mixing ratio          (fraction)
-    zi=bulk_input[5]        # inversion height                   (m)
-    P=bulk_input[6]         # surface pressure                   (mb)
-    zu=bulk_input[7]        # height of anemometer               (m)
-    zt=bulk_input[8]        # height of thermometer              (m)
-    zq=bulk_input[9]        # height of hygrometer               (m)
+    ts=bulk_input[1]        # bulk water/ice surface tempetature (degC)
+    t=bulk_input[2]         # air temperature                    (degC) 
+    Q=bulk_input[3]         # air moisture mixing ratio          (fraction)
+    zi=bulk_input[4]        # inversion height                   (m)
+    P=bulk_input[5]         # surface pressure                   (mb)
+    zu=bulk_input[6]        # height of anemometer               (m)
+    zt=bulk_input[7]        # height of thermometer              (m)
+    zq=bulk_input[8]        # height of hygrometer               (m)
     
     
     
@@ -1345,8 +1344,7 @@ def cor_ice_A10(bulk_input):
     fdg=1.00 # ratio of thermal to wind von Karman
     tdk=273.15 
     grav=9.82 # gravity
-    Ai=1 # ice concentration
-    CDn10=0.001*(1.500+2.233*Ai-2.333*Ai*Ai) # 10-m neutral drag coefficient based on ice concentration
+    CDn10=1.5e-3 # guestimated 10-m neutral drag coefficient
 
     # Air
     Rgas=287.1
@@ -1418,7 +1416,7 @@ def cor_ice_A10(bulk_input):
           
     wetc=0.622*Le*Qs/(Rgas*(ts+tdk)**2)
             
-    du=u-us
+    du=u
     dt=ts-t-0.0098*zt
     dq=Qs-Q
     ta=t+tdk

@@ -914,14 +914,13 @@ def main(): # the main data crunching program
         print('... calculating bulk fluxes for day: {}'.format(today))
         # Input dataframe
             # first get 1 s wind speed. i dont care about direction. 
-        ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v'])**0.5
+        ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v']**2)**0.5
         ws = ws.resample('1s',label='left').apply(fl.take_average)
             # make a better surface temperature
         tsfc = (((slow_data['surface_T_IRT']+273.15)**4 / 0.985)**0.25)-273.15
         empty_data = np.zeros(np.size(slow_data['MR_vaisala_10m']))
         bulk_input = pd.DataFrame()
         bulk_input['u']  = ws                                # wind speed                         (m/s)
-        bulk_input['us'] = empty_data                        # surface current                    (m/s)
         bulk_input['ts'] = tsfc                              # bulk water/ice surface tempetature (degC) this needs to be corrected for reflected
         bulk_input['t']  = slow_data['temp_vaisala_10m']     # air temperature                    (degC) 
         bulk_input['Q']  = slow_data['MR_vaisala_10m']/1000  # air moisture mixing ratio          (fraction)
@@ -960,7 +959,7 @@ def main(): # the main data crunching program
         bulk=bulk.reindex(index=bulk_input.index)
 
         for ii in range(len(bulk)):
-            tmp = [bulk_input['u'][ii],bulk_input['us'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
+            tmp = [bulk_input['u'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
             bulkout = fl.cor_ice_A10(tmp)
             for hh in range(len(bulkout)):
                 bulk[bulk.columns[hh]][ii]=bulkout[hh]
