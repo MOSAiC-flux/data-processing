@@ -107,6 +107,19 @@ def main(): # the main data crunching program
     fast_var_list_dict['licor_h2o'] = ['licor_h2o']
     fast_var_list_dict['licor_T']   = ['licor_T']
     fast_var_list_dict['licor_pr']  = ['licor_pr']
+    
+
+    for name, var_list in slow_var_list_dict.items():
+        for var in var_list:
+            if var not in slow_vars:
+                print("{} not found in level1 slow definintions, the definition probably changed but you didn't change this code... exiting".format(var))
+                exit()
+
+    for name, var_list in fast_var_list_dict.items():
+        for var in var_list:
+            if var not in fast_vars:
+                print("{} not found in fast definintions, the definition probably changed but you didn't change this code... exiting".format(var))
+                exit()
 
     print("\n retreiving data from netcdf files...")
     print("           ... fyi we resample the 20hz fast data to 10 minutessampl because plotting 20hz data is s.l.o.w.\n\n")
