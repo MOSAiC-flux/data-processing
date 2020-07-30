@@ -62,8 +62,8 @@ os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
 
 # some mobility details to do this from the linux trio
 import sys
-trio_lib_path =  /psd3data/arctic/MOSAiC/python_libs/'
-if path.exists(trio_lib_path):
+trio_lib_path =  '/psd3data/arctic/MOSAiC/python_libs/'
+if os.path.exists(trio_lib_path):
     sys.path.insert(0,trio_lib_path)
 else: computing_on_trio=False # placeholder
 import xarray as xr
