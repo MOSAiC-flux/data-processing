@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('0.7β', '7/15/2020', 'ccox')
+    cv = ['0.7', '7/15/2020', 'ccox']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -40,11 +40,8 @@ def define_global_atts(file_type):
         'disclaimer'       :'These data do not represent any determination, view, or policy of NOAA or the University of Colorado.',
         'project'          :'PS-122 MOSAiC, ATMOS-MET Team: Thermodynamic and Dynamic Drivers of the Arctic sea ice mass budget at MOSAiC',
         'comment'          :'Preliminary product under development and should not be used for analysis!',
-        'version'          :'{}'.format(np.str(cv[0])+', '+np.str(cv[1])), 
-        # !! matlab reads this as UNSUPPORTED DATA TYPE. No idea why. this was true before when it was just a string
-        # !! as well for some reason and the beta isnt the reason.
+        'version'          : cv[0]+', '+cv[1],
     }
-
     # Some specifics for the tubulence file
     if file_type == "slow":
         global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',

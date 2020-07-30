@@ -29,12 +29,18 @@ from datetime import datetime, timedelta
 from scipy    import signal
 
 # despiker
-def despike(spikey_panda, thresh, filterlen):
+def despike(spikey_panda, thresh, filterlen, medfill):
     # outlier detection from a running median !!!! Replaces outliers with that median !!!!
-    tmp                    = spikey_panda.rolling(window=filterlen, center=True).median()
+    tmp                    = spikey_panda.rolling(window=filterlen, center=True, min_periods=1).median()
     spikes_i               = (np.abs(spikey_panda - tmp)) > thresh
-    spikey_panda[spikes_i] = tmp
+    if medfill == 'yes': # fill with median
+        spikey_panda[spikes_i] = tmp
+    elif medfill == 'no': # fill with nan
+        spikey_panda[spikes_i] = nan
+    else: # just return bad indices
+        spikey_panda = spikes_i
     return spikey_panda
+
 
 # calculate wind speeds from appropriate metek columns, this code assumes that 'metek_data' is a
 # fully indexed entire days worth of '1T' frequency data !! Chris modified this to pass
@@ -109,6 +115,73 @@ def calc_humidity_ptu300(RHw, temp, press, Td):
     rhi = 100*(RHw*0.01*Pws)/Psi
 
     return Td, h, a, x, Pw, Pws, rhi
+
+
+def calculate_initial_angle(latA,lonA, latB, lonB):
+
+    # Function provided by Martin Radenz, TROPOS
+    
+    # Calculates the bearing between two points.
+    # The formulae used is the following:
+    #     ? = atan2(sin(?long).cos(lat2),
+    #               cos(lat1).sin(lat2) ? sin(lat1).cos(lat2).cos(?long))
+
+    # source: https://gist.github.com/jeromer/2005586
+
+    # initial_bearing = math.degrees(initial_bearing)
+    # compass_bearing = (initial_bearing + 360) % 360
+
+    # :Parameters:
+    #   - `pointA: The tuple representing the latitude/longitude for the
+    #     first point. Latitude and longitude must be in decimal degrees
+    #   - `pointB: The tuple representing the latitude/longitude for the
+    #     second point. Latitude and longitude must be in decimal degrees
+    # :Returns:
+    #   The bearing in degrees
+    # :Returns Type:
+    #   float
+
+#     if (type(pointA) != tuple) or (type(pointB) != tuple):
+#         raise TypeError("Only tuples are supported as arguments")
+
+    lat1 = np.radians(latA)
+    lat2 = np.radians(latB)
+
+    diffLong = np.radians(lonB - lonA)
+
+    x = np.sin(diffLong) * np.cos(lat2)
+    y = np.cos(lat1) * np.sin(lat2) - (np.sin(lat1)
+            * np.cos(lat2) * np.cos(diffLong))
+
+    initial_bearing = np.arctan2(x, y)
+
+    # Now we have the initial bearing but math.atan2 return values
+    # from -180∞ to + 180∞ which is not what we want for a compass bearing
+    # The solution is to normalize the initial bearing as shown below
+
+    #print((math.degrees(initial_bearing) + 360) % 360)
+    initial_bearing = initial_bearing/np.pi*180
+    
+    compass_bearing = (initial_bearing + 360) % 360
+    return compass_bearing
+
+
+def distance(lat1, lon1, lat2, lon2):
+    
+    # Function provided by Martin Radenz, TROPOS
+        
+    #     lat1, lon1 = origin
+    #     lat2, lon2 = destination
+    radius = 6371 # km
+
+    dlat = np.radians(lat2-lat1)
+    dlon = np.radians(lon2-lon1)
+    a = np.sin(dlat/2) * np.sin(dlat/2) + np.cos(np.radians(lat1))         * np.cos(np.radians(lat2)) * np.sin(dlon/2) * np.sin(dlon/2)
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
+    d = radius * c
+
+    return d
+
 
 def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
 

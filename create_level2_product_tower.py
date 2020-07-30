@@ -57,6 +57,18 @@ from netCDF4   import Dataset
 
 import warnings; warnings.filterwarnings(action='ignore') # vm python version problems, cleans output....
 
+# just in case... avoids some netcdf nonsense involving the default file locking across mounts
+os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
+
+# some mobility details to do this from the linux trio
+import sys
+trio_lib_path =  /psd3data/arctic/MOSAiC/python_libs/'
+if path.exists(trio_lib_path):
+    sys.path.insert(0,trio_lib_path)
+else: computing_on_trio=False # placeholder
+import xarray as xr
+print(xr.__file__) # should show it was picked up from trio_lib_path
+
 version_msg = '\n\nPS-122 MOSAiC Met Tower processing code v.'+code_version[0]\
               +', last updates: '+code_version[1]+' by '+code_version[2]+'\n\n'
 
@@ -105,9 +117,10 @@ def main(): # the main data crunching program
     # paths
     global data_dir, level1_dir, level2_dir, turb_dir # make data available
     data_dir   = args.path #'/Volumes/RESOLUTE/data/' #'/data/'
-    level1_dir = data_dir+'tower/1_level_ingest/'  # where does level1 data go
-    level2_dir = data_dir+'tower/2_level_product/' # where does level2 data go
-    turb_dir   = data_dir+'tower/2_level_product/'    # where does level2 data go
+    level1_dir = data_dir+'MOSAiC/tower/1_level_ingest/'  # where does level1 data go
+    level2_dir = data_dir+'MOSAiC/tower/2_level_product/' # where does level2 data go
+    turb_dir   = data_dir+'MOSAiC/tower/2_level_product/' # where does level2 data go
+    ais_dir    = data_dir+'MOSAiC_dump/ais/'              # this is where ais data lives
     
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -316,7 +329,7 @@ def main(): # the main data crunching program
     mast_hdg_df = pd.DataFrame(mast_hdg_vals, index=mast_hdg_dates)
 
 
-    # #################################################################################################
+    # ################################################################################################# 
     # Now that everything is defined, we read in the logger data for the date range requested and then do vector
     # operations for data QC, as well as any processing to derive output variables from these data. i.e. no loops
 
@@ -332,7 +345,7 @@ def main(): # the main data crunching program
     n_entries   = slow_data.size
     if slow_data.empty: # 'fatal' is a print function defined at the bottom of this script that exits
         fl.fatal('No slow data for time range {} ---> {} ?'.format(start_time,end_time))
-
+        
     verboseprint('===================================================')
     verboseprint('Data and observations provided by the slow data:')
     verboseprint('===================================================')
@@ -382,10 +395,18 @@ def main(): # the main data crunching program
                 ind = ind+1
 
     # Vaisala QC
+    slow_data['mast_P']         .loc[datetime(2020,3,13,0,0,0):datetime(2020,5,13,0,0,0)] = nan # something went horribly wrong with the pressure sensor during the leg 3 newdle reboot           
     slow_data['vaisala_T_2m']   .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,45,54)] = nan # something unexplained here, need to remove it manually
     slow_data['vaisala_RH_2m']  .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,45,54)] = nan # ditto
-    slow_data['vaisala_T_6m']   .loc[:datetime(2020,1,15,7,19,34)] = nan # right at the beginning bogus T values
-    slow_data['vaisala_T_10m']  .loc[:datetime(2020,1,15,7,19,34)] = nan # ditto
+    slow_data['vaisala_T_2m']   .loc[:datetime(2019,10,19,7,19,37)] = nan # right at the beginning bogus T values
+    slow_data['vaisala_T_6m']   .loc[:datetime(2019,10,19,5,57,56)] = nan # ditto
+    slow_data['vaisala_T_10m']  .loc[:datetime(2019,10,15,7,31,29)] = nan # ditto    
+    slow_data['vaisala_RH_2m']  .loc[:datetime(2019,10,15,8,55,0)] = nan # ditto
+    slow_data['vaisala_RH_6m']  .loc[:datetime(2019,10,15,8,55,0)] = nan # ditto
+    slow_data['vaisala_RH_10m'] .loc[:datetime(2019,10,15,8,55,0)] = nan # ditto   
+    slow_data['vaisala_Td_2m']  .loc[:datetime(2019,10,15,8,55,0)] = nan # ditto
+    slow_data['vaisala_Td_6m']  .loc[:datetime(2019,10,15,8,55,0)] = nan # ditto
+    slow_data['vaisala_Td_10m'] .loc[:datetime(2019,10,15,8,55,0)] = nan # ditto  
     slow_data['vaisala_P_2m']   .mask( (slow_data['vaisala_P_2m']<p_thresh[0])     | (slow_data['vaisala_P_2m']>p_thresh[1]) , inplace=True) # ppl
     slow_data['vaisala_T_2m']   .mask( (slow_data['vaisala_T_2m']<T_thresh[0])     | (slow_data['vaisala_T_2m']>T_thresh[1]) , inplace=True) # ppl
     slow_data['vaisala_T_6m']   .mask( (slow_data['vaisala_T_6m']<T_thresh[0])     | (slow_data['vaisala_T_6m']>T_thresh[1]) , inplace=True) # ppl
@@ -396,8 +417,21 @@ def main(): # the main data crunching program
     slow_data['vaisala_RH_2m']  .mask( (slow_data['vaisala_RH_2m']<rh_thresh[0])   | (slow_data['vaisala_RH_2m']>rh_thresh[1]) , inplace=True) # ppl
     slow_data['vaisala_RH_6m']  .mask( (slow_data['vaisala_RH_6m']<rh_thresh[0])   | (slow_data['vaisala_RH_6m']>rh_thresh[1]) , inplace=True) # ppl
     slow_data['vaisala_RH_10m'] .mask( (slow_data['vaisala_RH_10m']<rh_thresh[0])  | (slow_data['vaisala_RH_10m']>rh_thresh[1]) , inplace=True) # ppl
-    
-             
+    slow_data['mast_T']         .mask( (slow_data['mast_T']<T_thresh[0])           | (slow_data['mast_T']>T_thresh[1]) , inplace=True) # ppl
+    slow_data['mast_T']         .mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['mast_T'])==0) , inplace=True)    
+
+    # Vaisala relative corrections
+    #   Tower was lowered from 2019,10,19,7,19,0 to 2019,10,24,5,30,0 (n=425459 sec)
+    #   The precised heights were within 20 cm above the surface a little more than a meter high (see vasaila_T_height_on_ground)
+    #   This is a slight correction (inside measurement uncertainty) to the measured temperatures that make them more 
+    #   intercomparable for making profiles. The bias correction forces the three sensors to the mean of the sensors 
+    #   during the comparison period. It is based on the mean differences. Temperature dependencies are not (qualitatively) conclusive 
+    #   enough, nor are any dependencies easily parameterized, nor does the comparison period span a large enough range in
+    #   temperature to justify either intrpolation or extrapolation of correction factors.
+    slow_data['vaisala_T_2m'] = slow_data['vaisala_T_2m']+0.0643
+    slow_data['vaisala_T_6m'] = slow_data['vaisala_T_6m']-0.0513
+    slow_data['vaisala_T_10m'] = slow_data['vaisala_T_10m']-0.0130      
+       
     # here we derive useful parameters computed from logger data that we want to write to the output file
     # ###################################################################################################
     # compute RH wrt ice -- compute RHice(%) from RHw(%), Temperature(deg C), and pressure(mb)
@@ -414,8 +448,10 @@ def main(): # the main data crunching program
 
     # atm pressure adjusted assuming 1 hPa per 10 m (1[hPA]*ht[m]/10[m]), except for mast, which has a direct meas.
     p6    = slow_data['vaisala_P_2m']-1*6/10
-    p10   = slow_data['vaisala_P_2m']-1*10/10
-    pmast = slow_data['mast_P']
+    p10   = slow_data['vaisala_P_2m']-1*10/10    
+        # we are missing a lot of the mast pressures so I will fill in with an approximation    
+    pmast = slow_data['mast_P'] 
+    pmast.fillna(slow_data['vaisala_P_2m']-1*mast_params['mast_sonic_heights'][mast_index]/10, inplace=True)
 
     Td6, h6, a6, x6, Pw6, Pws6, rhi6 = fl.calc_humidity_ptu300(slow_data['vaisala_RH_6m'],\
                                                                slow_data['vaisala_T_6m']+K_offset,
@@ -439,7 +475,7 @@ def main(): # the main data crunching program
 
     Tdm, hm, am, xm, Pwm, Pwsm, rhim = fl.calc_humidity_ptu300(slow_data['mast_RH'],\
                                                                slow_data['mast_T']+K_offset,
-                                                               slow_data['mast_P'],
+                                                               pmast,
                                                                -1)
     slow_data['dewpoint_vaisala_mast']     = Tdm
     slow_data['RHi_vaisala_mast']          = rhim
@@ -462,7 +498,7 @@ def main(): # the main data crunching program
     # sr50 dist QC then in m & snow depth in cm, both corrected for temperature, snwdpth_meas is height in cm on oct 27 2019
     slow_data['sr50_dist'].loc[:raise_day] = nan # sr50 data is garbage when the tower is down (it's pointed at the horizon or something)
     slow_data['sr50_dist'].mask( (slow_data['sr50_dist']<sr50d[0])  | (slow_data['sr50_dist']>sr50d[1]) , inplace=True) # ppl
-    slow_data['sr50_dist']  = fl.despike(slow_data['sr50_dist'],0.2,60) # replace spikes outside 20 cm over 60 sec with 60 s median
+    slow_data['sr50_dist']  = fl.despike(slow_data['sr50_dist'],0.05,300,"yes") # replace spikes outside 2 cm over 5 min sec with 5 min median
     slow_data['sr50_dist']  = slow_data['sr50_dist']*sqrt((slow_data['vaisala_T_2m']+K_offset)/K_offset)
     slow_data['snow_depth'] = sr50_init_depth + (sr50_init_dist-slow_data['sr50_dist']*100)
 
@@ -471,15 +507,38 @@ def main(): # the main data crunching program
     slow_data['fp_B_Wm2'].mask( (slow_data['fp_B_Wm2']<flxp[1]) & (abs(slow_data['fp_B_Wm2'])>flxp[1]) , inplace=True) # ppl
     slow_data['fp_A_Wm2'].loc[:fpA_bury_date] = nan # data is garbage before being buried
     slow_data['fp_B_Wm2'].loc[:fpB_bury_date] = nan # data is garbage before being buried
-    
+
     # IRT QC
-    slow_data['apogee_body_T'].mask( (slow_data['apogee_body_T']<irt_targ[1]) & (abs(slow_data['apogee_body_T'])>irt_targ[1]) , inplace=True) # ppl
-    slow_data['apogee_targ_T'].mask( (slow_data['apogee_body_T']<irt_targ[1]) & (abs(slow_data['apogee_targ_T'])>irt_targ[1]) , inplace=True) # ppl
+    slow_data['apogee_body_T'].mask( (slow_data['apogee_body_T']<irt_targ[0]) | slow_data['apogee_body_T']>irt_targ[1] , inplace=True) # ppl
+    slow_data['apogee_targ_T'].mask( (slow_data['apogee_targ_T']<irt_targ[0]) | slow_data['apogee_targ_T']>irt_targ[1] , inplace=True) # ppl
     slow_data['apogee_body_T'].mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['apogee_body_T'])==0) , inplace=True) # reports spurious 0s sometimes
     slow_data['apogee_targ_T'].mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['apogee_targ_T'])==0) , inplace=True) # reports spurious 0s sometimes
-    slow_data['apogee_body_T']  = fl.despike(slow_data['apogee_body_T'],2,60) # replace spikes outside 2C over 60 sec with 60 s median
-    slow_data['apogee_targ_T']  = fl.despike(slow_data['apogee_targ_T'],2,60) # replace spikes outside 2C over 60 sec with 60 s median
+    slow_data['apogee_body_T']  = fl.despike(slow_data['apogee_body_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
+    slow_data['apogee_targ_T']  = fl.despike(slow_data['apogee_targ_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
 
+    # Calculate bearings and adjust heading
+    # Read today's Met City AIS 
+    print('...finding bearing, adjusting heading') 
+    # Load it
+    ais_df = pd.DataFrame()  
+    for i in range(-1,(end_time-start_time).days+2,1):
+       path  = ais_dir+'floenavi-ais_211003823-'+(start_time+timedelta(i)).strftime('%Y%m%d')+'.dat'       
+       if  os.path.isfile(path) and os.stat(path).st_size > 0:           
+           df = pd.read_csv(path,sep='\s+',parse_dates={'date': [0,1]}).set_index('date')
+           df.columns = ["lat","lon"]
+           ais_df = pd.concat([ais_df,df]) 
+    
+    if ais_df.empty == False:       
+        ais_df=ais_df.resample('1s').interpolate().reindex(slow_data.index)
+        lat1 = np.array(ais_df['lat'])
+        lon1 = np.array(ais_df['lon'])
+        lat2 = np.array(slow_data['tower_lat'])
+        lon2 = np.array(slow_data['tower_lat'])
+        dd=fl.distance(lat1,lon1,lat2,lon2) # just a sanity check... distance from AIS to tower is 22.9 m
+        br=fl.calculate_initial_angle(lat1,lon1,lat2,lon2) 
+        ais_df['br']=br
+        ais_df['br']=ais_df['br']#-(ais_df['br'].mean()-slow_data['tower_heading'].mean())
+        slow_data['tower_heading']=ais_df['br']
 
     # rename columns to match expected level2 names from data_definitions, there's probably a more clever way to do this
     slow_data.rename(inplace=True, columns =\
@@ -673,10 +732,19 @@ def main(): # the main data crunching program
         #   args go like return = despike(input,oulier_threshold_in_m/s,window_length_in_n_samples)
         #   !!!! Replaces failures with the median of the window !!!!
         for inst in metek_inst_keys:
-            raw_fast_data[inst][inst+'_x'] = fl.despike(raw_fast_data[inst][inst+'_x'],5,1200)
-            raw_fast_data[inst][inst+'_y'] = fl.despike(raw_fast_data[inst][inst+'_y'],5,1200)
-            raw_fast_data[inst][inst+'_z'] = fl.despike(raw_fast_data[inst][inst+'_z'],5,1200)
-            raw_fast_data[inst][inst+'_T'] = fl.despike(raw_fast_data[inst][inst+'_T'],5,1200)
+            raw_fast_data[inst][inst+'_x'] = fl.despike(raw_fast_data[inst][inst+'_x'],5,1200,'yes')
+            raw_fast_data[inst][inst+'_y'] = fl.despike(raw_fast_data[inst][inst+'_y'],5,1200,'yes')
+            raw_fast_data[inst][inst+'_z'] = fl.despike(raw_fast_data[inst][inst+'_z'],5,1200,'yes')
+            raw_fast_data[inst][inst+'_T'] = fl.despike(raw_fast_data[inst][inst+'_T'],5,1200,'yes')
+            
+        # There are bad measurements right on the edge of radpidly changing co2_str where co2_str is
+        # high enough not to be screen out, but is still changeing, e.g., after cleaning. This is an attempt
+        # to screen that out and hopefully it doesn't overdo it. The threshold translates to 1% per 30 min. 
+        bad_licor = fl.despike(raw_licor_data['licor_co2_str'],1,36000,'ret')        
+        raw_licor_data['licor_co2'][bad_licor==True] = nan
+        raw_licor_data['licor_h2o'][bad_licor==True] = nan
+        raw_licor_data['licor_T'][bad_licor==True] = nan
+        raw_licor_data['licor_pr'][bad_licor==True] = nan
 
         # ~~~~~~~~~~~~~~~~~~~~~~~ (3) Resample  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         print('... resampling 20 Hz -> 10 Hz.')
@@ -835,12 +903,23 @@ def main(): # the main data crunching program
             metek_stats[inst]['stddev_w_'+inst]       = fast_data_10hz[inst][inst+'_w'].resample('1T',label='left').std()
             metek_stats[inst]['stddev_T_'+inst]       = fast_data_10hz[inst][inst+'_T'].resample('1T',label='left').std()
 
+        # Each mean is followed by a screeening that rejects mean containing < 50% (300/600 10Hz samples per minute) of valid
+        # (non nan) data. I do this for licor but not for metek (above) because in licor this is associated with time when
+        # optics and sensor temepratures are at the edge of acceptable limits but are still recording spurious data, perhaps
+        # becausse there is a change undeerway (eg, signal strength changing after cleaning as ethanol evaporates). This causes
+        # a bias in licor. In metek it probably just means noise and most <50% valid samples are casued by attenutation from
+        # blowing snow where the samples that do appear in the window are still "good".    
         licor_stats                     = pd.DataFrame()
         licor_stats['H2O_licor']        = licor_10hz['licor_h2o']     .resample('1T',label='left').mean()
+        licor_stats['H2O_licor'][(licor_10hz['licor_h2o']*0+1).resample('1T',label='left').sum() < 300] = nan  
         licor_stats['CO2_licor']        = licor_10hz['licor_co2']     .resample('1T',label='left').mean()
+        licor_stats['CO2_licor'][(licor_10hz['licor_co2']*0+1).resample('1T',label='left').sum() < 300] = nan         
         licor_stats['temp_licor']       = licor_10hz['licor_T']       .resample('1T',label='left').mean()
+        licor_stats['temp_licor'][(licor_10hz['licor_T']*0+1).resample('1T',label='left').sum() < 300] = nan        
         licor_stats['pr_licor']         = licor_10hz['licor_pr']      .resample('1T',label='left').mean()*10 # [to hPa]
+        licor_stats['pr_licor'][(licor_10hz['licor_pr']*0+1).resample('1T',label='left').sum() < 300] = nan        
         licor_stats['co2_signal_licor'] = licor_10hz['licor_co2_str'] .resample('1T',label='left').mean()
+        licor_stats['co2_signal_licor'][(licor_10hz['licor_co2_str']*0+1).resample('1T',label='left').sum() < 300] = nan 
 
         # now put it all together
         stats_data = pd.DataFrame()
@@ -918,17 +997,17 @@ def main(): # the main data crunching program
         ws = ws.resample('1s',label='left').apply(fl.take_average)
             # make a better surface temperature
         tsfc = (((slow_data['surface_T_IRT']+273.15)**4 / 0.985)**0.25)-273.15
-        empty_data = np.zeros(np.size(slow_data['MR_vaisala_10m']))
+        empty_data = np.zeros(np.size(slow_data['MR_vaisala_10m'][seconds_today]))
         bulk_input = pd.DataFrame()
-        bulk_input['u']  = ws                                # wind speed                         (m/s)
-        bulk_input['ts'] = tsfc                              # bulk water/ice surface tempetature (degC) this needs to be corrected for reflected
-        bulk_input['t']  = slow_data['temp_vaisala_10m']     # air temperature                    (degC) 
-        bulk_input['Q']  = slow_data['MR_vaisala_10m']/1000  # air moisture mixing ratio          (fraction)
-        bulk_input['zi'] = empty_data+600                    # inversion height                   (m) wild guess
-        bulk_input['P']  = slow_data['pressure_vaisala_2m']  # surface pressure                   (mb)
-        bulk_input['zu'] = empty_data+10                     # height of anemometer               (m)
-        bulk_input['zt'] = empty_data+10                     # height of thermometer              (m)
-        bulk_input['zq'] = empty_data+10                     # height of hygrometer               (m)      
+        bulk_input['u']  = ws                                               # wind speed                         (m/s)
+        bulk_input['ts'] = tsfc                                             # bulk water/ice surface tempetature (degC) this needs to be corrected for reflected
+        bulk_input['t']  = slow_data['temp_vaisala_10m'][seconds_today]     # air temperature                    (degC) 
+        bulk_input['Q']  = slow_data['MR_vaisala_10m'][seconds_today]/1000  # air moisture mixing ratio          (fraction)
+        bulk_input['zi'] = empty_data+600                                   # inversion height                   (m) wild guess
+        bulk_input['P']  = slow_data['pressure_vaisala_2m'][seconds_today]  # surface pressure                   (mb)
+        bulk_input['zu'] = empty_data+10                                    # height of anemometer               (m)
+        bulk_input['zt'] = empty_data+10                                    # height of thermometer              (m)
+        bulk_input['zq'] = empty_data+10                                    # height of hygrometer               (m)      
         bulk_input = bulk_input.resample('30min',label='left').apply(fl.take_average)
    
         # output dataframe
@@ -957,12 +1036,13 @@ def main(): # the main data crunching program
         bulk['bulk_Rt']          = empty_data*nan # 
         bulk['bulk_Rq']          = empty_data*nan # 
         bulk=bulk.reindex(index=bulk_input.index)
-
+       
         for ii in range(len(bulk)):
             tmp = [bulk_input['u'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
-            bulkout = fl.cor_ice_A10(tmp)
-            for hh in range(len(bulkout)):
-                bulk[bulk.columns[hh]][ii]=bulkout[hh]
+            if not any(np.isnan(tmp)):
+                bulkout = fl.cor_ice_A10(tmp)
+                for hh in range(len(bulkout)):
+                    bulk[bulk.columns[hh]][ii]=bulkout[hh]
      
         # add this to the EC data
         turb_data = pd.concat( [turb_data, bulk], axis=1) # concat columns alongside each other without adding indexes
@@ -1126,7 +1206,7 @@ def write_level2_netcdf(l2_data, date, timestep, q):
     print("... writing {} level2 on {}, ~{}% of data is present".format(timestep, date, 100-avg_missing))
 
     out_dir  = level2_dir
-    file_str = '/level2_preliminary_tower_{}.{}.nc'.format(timestep,date.strftime('%Y%m%d'))
+    file_str = '/mosflxtowermet.level2.{}.{}.nc'.format(timestep,date.strftime('%Y%m%d.%H%M%S'))
 
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
@@ -1227,7 +1307,7 @@ def write_turb_netcdf(turb_data, date, q):
     print("... writing turbulence data for on {}, ~{}% of data is present".format(date, 100-avg_missing))
 
     out_dir  = turb_dir
-    file_str = '/turb_preliminary_{}min_tower.{}.nc'.format(integ_time_turb_flux, date.strftime('%Y%m%d'))
+    file_str = '/mosflxtowerturb.level2.{}.{}.nc'.format(integ_time_turb_flux, date.strftime('%Y%m%d.%H%M%S'))
 
     turb_name  = '{}/{}'.format(out_dir, file_str)
 
