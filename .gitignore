@@ -1,0 +1,12 @@
+__pycache__
+*.log
+*.pyc
+*.CR1X
+*.zip
+*.tgz
+*.m
+*.mat
+.DS_Store
+
+processed_data
+quicklooks

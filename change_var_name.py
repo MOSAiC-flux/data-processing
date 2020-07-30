@@ -23,8 +23,10 @@ import re
 
 def main(): 
 
-    asfs_files  = ("asfs_data_definitions.py", "create_level1_product_asfs.py", "create_level2_product_asfs.py")
-    tower_files  = ("tower_data_definitions.py", "create_level1_product_tower.py", "create_level2_product_tower.py")
+    asfs_files  = ("asfs_data_definitions.py", "create_level1_product_asfs.py", "create_level2_product_asfs.py",
+                   "plot_scripts/plot_asfs_lev2_quicklooks.py","plot_scripts/plot_asfs_lev1_quicklooks.py")
+    tower_files = ("tower_data_definitions.py", "create_level1_product_tower.py", "create_level2_product_tower.py",
+                   "plot_scripts/plot_asfs_lev2_quicklooks.py","plot_scripts/plot_asfs_lev1_quicklooks.py")
 
     printline()
     print("\nThis is pretty stupid software, it will do exactly what you ask it to do...")
