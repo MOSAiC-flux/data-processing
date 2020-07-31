@@ -172,7 +172,7 @@ def distance(lat1, lon1, lat2, lon2):
         
     #     lat1, lon1 = origin
     #     lat2, lon2 = destination
-    radius = 6371 # km
+    radius = 6361 # km
 
     dlat = np.radians(lat2-lat1)
     dlon = np.radians(lon2-lon1)

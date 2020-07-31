@@ -60,14 +60,6 @@ import warnings; warnings.filterwarnings(action='ignore') # vm python version pr
 # just in case... avoids some netcdf nonsense involving the default file locking across mounts
 os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
 
-# some mobility details to do this from the linux trio
-import sys
-trio_lib_path =  '/psd3data/arctic/MOSAiC/python_libs/'
-if os.path.exists(trio_lib_path):
-    sys.path.insert(0,trio_lib_path)
-else: computing_on_trio=False # placeholder
-import xarray as xr
-print(xr.__file__) # should show it was picked up from trio_lib_path
 
 version_msg = '\n\nPS-122 MOSAiC Met Tower processing code v.'+code_version[0]\
               +', last updates: '+code_version[1]+' by '+code_version[2]+'\n\n'
@@ -516,29 +508,32 @@ def main(): # the main data crunching program
     slow_data['apogee_body_T']  = fl.despike(slow_data['apogee_body_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
     slow_data['apogee_targ_T']  = fl.despike(slow_data['apogee_targ_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
 
-    # Calculate bearings and adjust heading
-    # Read today's Met City AIS 
-    print('...finding bearing, adjusting heading') 
-    # Load it
-    ais_df = pd.DataFrame()  
-    for i in range(-1,(end_time-start_time).days+2,1):
-       path  = ais_dir+'floenavi-ais_211003823-'+(start_time+timedelta(i)).strftime('%Y%m%d')+'.dat'       
-       if  os.path.isfile(path) and os.stat(path).st_size > 0:           
-           df = pd.read_csv(path,sep='\s+',parse_dates={'date': [0,1]}).set_index('date')
-           df.columns = ["lat","lon"]
-           ais_df = pd.concat([ais_df,df]) 
+    # something Chris is working on
+   # # Calculate bearings and adjust heading
+   #  # Read today's Met City AIS 
+   #  print('...finding bearing, adjusting heading') 
+   #  # Load it
+   #  ais_df = pd.DataFrame()  
+   #  for i in range(-1,(end_time-start_time).days+2,1):
+   #     path  = ais_dir+'floenavi-ais_211003823-'+(start_time+timedelta(i)).strftime('%Y%m%d')+'.dat'       
+   #     if  os.path.isfile(path) and os.stat(path).st_size > 0:  
+   #         df = pd.read_csv(path,sep='\s+',parse_dates={'date': [0,1]}).set_index('date')
+   #         df.columns = ["lat","lon"]
+   #         ais_df = pd.concat([ais_df,df]) 
+
     
-    if ais_df.empty == False:       
-        ais_df=ais_df.resample('1s').interpolate().reindex(slow_data.index)
-        lat1 = np.array(ais_df['lat'])
-        lon1 = np.array(ais_df['lon'])
-        lat2 = np.array(slow_data['tower_lat'])
-        lon2 = np.array(slow_data['tower_lat'])
-        dd=fl.distance(lat1,lon1,lat2,lon2) # just a sanity check... distance from AIS to tower is 22.9 m
-        br=fl.calculate_initial_angle(lat1,lon1,lat2,lon2) 
-        ais_df['br']=br
-        ais_df['br']=ais_df['br']#-(ais_df['br'].mean()-slow_data['tower_heading'].mean())
-        slow_data['tower_heading']=ais_df['br']
+   #  if ais_df.empty == False:   
+   #      ais_df.drop_duplicates(inplace=True)
+   #      ais_df=ais_df.resample('1s').interpolate().reindex(slow_data.index)
+   #      lat1 = np.array(ais_df['lat'])
+   #      lon1 = np.array(ais_df['lon'])
+   #      lat2 = np.array(slow_data['tower_lat'])
+   #      lon2 = np.array(slow_data['tower_lon'])
+   #      dd=fl.distance(lat1,lon1,lat2,lon2) # just a sanity check... distance from AIS to tower is 22.9 m
+   #      br=fl.calculate_initial_angle(lat1,lon1,lat2,lon2) 
+   #      ais_df['br']=br
+   #      ais_df['dd']=dd*1000
+   #      slow_data['tower_heading']=ais_df['br']
 
     # rename columns to match expected level2 names from data_definitions, there's probably a more clever way to do this
     slow_data.rename(inplace=True, columns =\
