@@ -36,7 +36,7 @@ code_version = code_version()
 # HOWTO:
 #
 # To run this package with verbose printing over the data from Dec 1st:
-# python3 create_level1_product_tower.py -v -s 20191015 -e 20200231
+# python3 create_level1_product_tower.py -v -s 20191015 -e 20200231 -p /psd3data/arctic
 #
 # To profile the code and see what's taking so long:
 # python -m cProfile -s cumulative ./create_Daily_Tower_NetCDF.py -v -s 20191201 -e 20191201 -f
@@ -62,6 +62,9 @@ from datetime  import datetime, timedelta
 from numpy     import sqrt
 from netCDF4   import Dataset
 
+# just in case... avoids some netcdf nonsense involving the default file locking across mounts
+os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
+
 import warnings; warnings.filterwarnings(action='ignore') # vm python version problems, cleans output....
 
 version_msg = '\n\nPS-122 MOSAiC Met Tower processing code v.'+code_version[0]\
@@ -85,20 +88,36 @@ def main(): # the main data crunching program
     global printline     # prints a line out of dashes, pretty boring
     global verboseprint  # defines a function that prints only if -v is used when running
 
-    # where do we get the data from
-    data_dir   = './data/tower/0_level_raw/'
-    level1_dir = './processed_data/tower/level1/'  # where does level1 data go
+    # there are two command line options that effect processing, the start and end date...
+    # ... if not specified it runs over all the data. format: '20191001' AKA '%Y%m%d'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--start_time', metavar='str', help='beginning of processing period, Ymd syntax')
+    parser.add_argument('-e', '--end_time', metavar='str', help='end  of processing period, Ymd syntax')
 
+    # add verboseprint function for extra info using verbose flag, ignore these 5 lines if you want
+    parser.add_argument('-v', '--verbose', action ='count', help='print verbose log messages')
+   
+    # pass the base path to make it more mobile
+    parser.add_argument('-p', '--path', metavar='str', help='base path to data up to, including /data/, include trailing slash')
+
+    args         = parser.parse_args()
+    v_print      = print if args.verbose else lambda *a, **k: None
+    verboseprint = v_print
+    
+    # where do we get the data from
+    data_dir   = args.path #'./data/tower/0_level_raw/'
+    level1_dir = data_dir+'MOSAiC/tower/1_level_ingest' #./processed_data/tower/level1/'  # where does level1 data go
+    
     # QC params:
     apogee_switch_date = datetime(2019,11,12,10,21,29) # Nov. 12th, 10:21::29
 
     # these are subdirs of the data_dir
-    metek_bottom_dir = 'Metek02m/'
-    metek_middle_dir = 'Metek06m/'
-    metek_top_dir    = 'Metek10m/'
-    metek_mast_dir   = 'Metek30m/'
-    licor_dir        = 'Licor02m/'
-    tower_logger_dir = 'CR1000X/daily_files/'
+    metek_bottom_dir = 'MOSAiC/tower/0_level_raw/Metek02m/'
+    metek_middle_dir = 'MOSAiC/tower/0_level_raw/Metek06m/'
+    metek_top_dir    = 'MOSAiC/tower/0_level_raw/Metek10m/'
+    metek_mast_dir   = 'MOSAiC/tower/0_level_raw/Metek30m/'
+    licor_dir        = 'MOSAiC/tower/0_level_raw/Licor02m/'
+    tower_logger_dir = 'MOSAiC/tower/0_level_raw/CR1000X/daily_files/'
 
     # constants for calculations
     global nan, def_fill_int, def_fill_flt # make using nans look better
@@ -109,19 +128,6 @@ def main(): # the main data crunching program
     K_offset = 273.15  # convert C to K
     h2o_mass = 18      # are the obvious things...
     co2_mass = 44      # ... ever obvious?
-
-    # there are two command line options that effect processing, the start and end date...
-    # ... if not specified it runs over all the data. format: '20191001' AKA '%Y%m%d'
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--start_time', metavar='str', help='beginning of processing period, Ymd syntax')
-    parser.add_argument('-e', '--end_time', metavar='str', help='end  of processing period, Ymd syntax')
-
-    # add verboseprint function for extra info using verbose flag, ignore these 5 lines if you want
-    parser.add_argument('-v', '--verbose', action ='count', help='print verbose log messages')
-
-    args         = parser.parse_args()
-    v_print      = print if args.verbose else lambda *a, **k: None
-    verboseprint = v_print
 
     def printline(startline='',endline=''): # make for pretty printing
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -297,7 +303,7 @@ def main(): # the main data crunching program
     print('---------------------------------------------------------------------------------------------')
 
 def get_slow_data(date):
-    tower_subdir = 'CR1000X/daily_files/'
+    tower_subdir = 'MOSAiC/tower/0_level_raw/CR1000X/daily_files/'
     slow_data  = pd.DataFrame()
     fuzzy_window = timedelta(2) # we look for files 2 days before and after because we didn't save even days...(?!)
     # fuzzy_window>=2 required for the earlier days of MOSAiC where logger info is spread out across 'daily-ish' files
@@ -346,7 +352,6 @@ def get_slow_data(date):
             logger_df_list.append(frame)
 
     logger_df = pd.concat(logger_df_list, verify_integrity=False) # is concat computationally efficient?
-
     mast_gps_df_list = [] # mast gps dataframes to be concatted all at once
     for mast_gps_file in mast_gps_file_list:
         path  = data_dir+tower_subdir+'/'+mast_gps_file
@@ -363,13 +368,29 @@ def get_slow_data(date):
                                 index_col=0,skiprows=[0,1,2,3],engine='c',\
                                 converters={'gps_alt':convert_sci, 'gps_hdop':convert_sci})#,\
                                 #dtype=dtype_dict)
+                                    
             mast_gps_df_list.append(frame)
 
     if len(mast_gps_df_list)>0:
-        mast_gps_df = pd.concat(mast_gps_df_list, verify_integrity=False) # is concat computationally efficient?        
+        mast_gps_df = pd.concat(mast_gps_df_list, verify_integrity=False) # is concat computationally efficient? 
+        # need to shift some times because of a drfted clock -ccox notes.txt 20200422         
+        # mast_gps_df.loc[datetime(2020,4,13,12,27,49):datetime(2020,4,22,14,51,16)].index=mast_gps_df.loc[datetime(2020,4,13,12,27,49):datetime(2020,4,22,14,51,16)].index.shift(freq='+248s') # this should work, but .loc and .shift or .reindex do not play nicely together
+        # however, I cannot find a graceful solution after more hours than I'd like to recall so F$#k it        
+       # aa = mast_gps_df[:datetime(2020,4,13,12,27,48)]
+       # bb = mast_gps_df[datetime(2020,4,13,12,27,49):datetime(2020,4,22,14,51,16)]
+       # cc = mast_gps_df[datetime(2020,4,22,14,51,17):]
+       # bb.index=bb.index.shift(freq='+248s') 
+       # mast_gps_df = pd.concat([aa,bb,cc])
+       # mast_gps_df.drop_duplicates(inplace=True)
+        aa = mast_gps_df[(mast_gps_df.index <= datetime(2020,4,13,12,27,49))]  
+        bb = mast_gps_df[(mast_gps_df.index > datetime(2020,4,13,12,27,49)) & (mast_gps_df.index <= datetime(2020,4,22,14,51,16))] 
+        cc = mast_gps_df[(mast_gps_df.index > datetime(2020,4,22,14,51,16))]  
+        bb.index=bb.index.shift(freq='+248s') 
+        mast_gps_df = pd.concat([aa,bb,cc])
+  
         slow_data = logger_df.combine_first(mast_gps_df) # there's mast_T etc etc in both files, must overwrite
         slow_data = mast_gps_df.combine_first(logger_df) # there's mast_T etc etc in both files, must overwrite
-        #slow_data = pd.concat([logger_df, mast_gps_df], axis=1) # is concat computationally efficient?
+        #slow_data = pd.concat([logger_df, mast_gps_df], axis=1) # is concat computationally efficient?  
     else:
         slow_data = logger_df
     return slow_data.sort_index() # sort logger data (when copied, you lose the file create ordering...)

@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['0.7', '7/15/2020', 'ccox']
+    cv = ['1.0', '8/14/2020', 'ccox']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -770,11 +770,13 @@ def define_level2_variables():
     lev2_atts['tower_lat']                 = {'units'         : 'degrees_north'}
     lev2_atts['tower_lon']                 = {'units'         : 'degrees_east'}
     lev2_atts['tower_heading']             = {'units'         : 'degrees_true'}
-    lev2_atts['gps_alt']                   = {'units'         : 'meters'}
-    lev2_atts['gps_qc']                    = {'units'         : 'code'}
-    lev2_atts['gps_nsat']                  = {'units'         : 'counts'}
-    lev2_atts['gps_hdop']                  = {'units'         : 'unitless'}
-    lev2_atts['logger_scantime']           = {'units'         : 'milliseconds'}
+    lev2_atts['tower_ice_alt']             = {'units'         : 'meters'}
+    lev2_atts['mast_heading']              = {'units'         : 'deg'}
+    lev2_atts['mast_lat']                  = {'units'         : 'min'}
+    lev2_atts['mast_lon']                  = {'units'         : 'deg'}
+    lev2_atts['mast_ice_alt']              = {'units'         : 'm'}
+    lev2_atts['ship_bearing']              = {'units'         : 'degrees'}
+    lev2_atts['ship_distance']             = {'units'         : 'meters'}
     lev2_atts['sr50_dist']                 = {'units'         : 'meters'}
     lev2_atts['temp_vaisala_2m']           = {'units'         : 'deg C'}
     lev2_atts['temp_vaisala_6m']           = {'units'         : 'deg C'}
@@ -858,82 +860,78 @@ def define_level2_variables():
     lev2_atts['stddev_w_metek_mast']       = {'units'         : 'm/s'}
     lev2_atts['stddev_T_metek_mast']       = {'units'         : 'deg C'}
     lev2_atts['co2_signal_licor']          = {'units'         : 'percent'}
-
-    # lev2_atts['good_u_2m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_v_2m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_w_2m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_T_2m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_u_6m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_v_6m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_w_6m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_T_6m']                 = {'units'         : 'counts'}
-    # lev2_atts['good_u_10m']                = {'units'         : 'counts'}
-    # lev2_atts['good_v_10m']                = {'units'         : 'counts'}
-    # lev2_atts['good_w_10m']                = {'units'         : 'counts'}
-    # lev2_atts['good_T_10m']                = {'units'         : 'counts'}
-    # lev2_atts['good_u_mast']               = {'units'         : 'counts'}
-    # lev2_atts['good_v_mast']               = {'units'         : 'counts'}
-    # lev2_atts['good_w_mast']               = {'units'         : 'counts'}
-    # lev2_atts['good_T_mast']               = {'units'         : 'counts'}
-
-
+    
     # add the other important things to the data variable NetCDF attributes
     # #########################################################################################################
-    lev2_atts['tower_lat']                 .update({'long_name'     : 'latitude from gps at tower',
+    lev2_atts['tower_lat']                 .update({'long_name'     : 'latitude from gps at the tower',
                                                     'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                     'height'        : '1m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_lon']                 .update({'long_name'     :'longitude from gps at tower',
+    lev2_atts['tower_lon']                 .update({'long_name'     :'longitude from gps at the tower',
                                                     'cf_name'       :'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
                                                     'height'        : '1m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_heading']             .update({'long_name'     : 'heading from gps at tower',
+    lev2_atts['tower_heading']             .update({'long_name'     : 'heading from gps at the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
                                                     'height'        : '1m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['gps_alt']                   .update({'long_name'     : 'altitude from gps at tower',
+    lev2_atts['tower_ice_alt']             .update({'long_name'     : 'altitude from gps at the tower corrected to altitude of ice top surface',
                                                     'cf_name'       : 'altitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                     'height'        : '1m',
                                                     'location'      : bottom_location_string,})
-
-    lev2_atts['gps_qc']                    .update({'long_name'     : 'fix quality: 0 = invalid; 1 = gps fix (sps); 2 = dgps fix; 3 = pps fix; 4 = real time kinematic; 5 = float rtk; 6 = estimated (deck reckoning); 7 = manual input mode; 8 = simulation mode.',
-                                                    'cf_name'       : '',
+    
+    lev2_atts['mast_lat']                 .update({'long_name'      : 'latitude from gps at the mast',
+                                                    'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '1m',
+                                                    'height'        : '0.5m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['gps_nsat']                  .update({'long_name'     : 'number of satellites available to gps',
+    lev2_atts['mast_lon']                 .update({'long_name'      :'longitude from gps at the mast',
+                                                    'cf_name'       :'longitude',
+                                                    'instrument'    : 'Hemisphere V102',
+                                                    'methods'       : '$GPRMC, $GPGGA, GPGZDA',
+                                                    'height'        : '0.5m',
+                                                    'location'      : bottom_location_string,})
+
+    lev2_atts['mast_heading']             .update({'long_name'      : 'heading from gps at the mast',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
-                                                    'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '1m',
+                                                    'methods'       : '$HEHDT',
+                                                    'height'        : '0.5m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['gps_hdop']                  .update({'long_name'     : 'horizontal dilution of precision',
-                                                    'cf_name'       : '',
+    lev2_atts['mast_ice_alt']              .update({'long_name'     : 'altitude from gps at the mast corrected to altitude of ice top surface',
+                                                    'cf_name'       : 'altitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '1m',
-                                                    'location'      : bottom_location_string,})
-
-    lev2_atts['logger_scantime']           .update({'long_name'     : 'time taken for logger to complete scan',
+                                                    'height'        : '0.5m',
+                                                    'location'      : bottom_location_string,})  
+    
+    lev2_atts['ship_bearing']              .update({'long_name'     : 'absolute bearing (rel. to true north) of ship from the position of the tower',
                                                     'cf_name'       : '',
-                                                    'instrument'    : 'Campbell Scientific CR1000X',
+                                                    'instrument'    : 'Hemisphere V102 & Polarstern Leica GPS',
                                                     'methods'       : '',
                                                     'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
+    
+    lev2_atts['ship_distance']             .update({'long_name'     : 'distance between the ship and the tower',
+                                                    'cf_name'       : '',
+                                                    'instrument'    : 'Hemisphere V102 & Polarstern Leica GPS',
+                                                    'methods'       : '',
+                                                    'height'        : 'N/A',
+                                                    'location'      : bottom_location_string,})  
 
     lev2_atts['sr50_dist']                 .update({'long_name'     : 'distance to surface from SR50; temperature compensation correction applied',
                                                     'cf_name'       : '',

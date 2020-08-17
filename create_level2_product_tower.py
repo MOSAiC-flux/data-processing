@@ -108,7 +108,7 @@ def main(): # the main data crunching program
     
     # paths
     global data_dir, level1_dir, level2_dir, turb_dir # make data available
-    data_dir   = args.path #'/Volumes/RESOLUTE/data/' #'/data/'
+    data_dir   = args.path 
     level1_dir = data_dir+'MOSAiC/tower/1_level_ingest/'  # where does level1 data go
     level2_dir = data_dir+'MOSAiC/tower/2_level_product/' # where does level2 data go
     turb_dir   = data_dir+'MOSAiC/tower/2_level_product/' # where does level2 data go
@@ -131,10 +131,14 @@ def main(): # the main data crunching program
     else:
         end_time = beginning_of_time.today() # any datetime object can provide current time
         end_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
+    
+    # expand the load by 1 day to facilite gps processing    
+    start_time = start_time-timedelta(1)
+    end_time = end_time+timedelta(1)
 
     print('The first day of the experiment is:    %s' % beginning_of_time)
-    print('The first day we  process data is:     %s' % start_time)
-    print('The last day we will process data is:  %s' % end_time)
+    print('The first day we  process data is:     %s' % str(start_time+timedelta(1)))
+    print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
     printline()
 
     # thresholds! limits that can warn you about bad data!
@@ -143,15 +147,17 @@ def main(): # the main data crunching program
     sr50d             = (1    ,2.5)  # distance limits from SR50 to surface [m]; install height -1 m or +0.5
     flxp              = (-120 ,120)  # minimum and maximum conductive heat flux (W/m2)
     T_thresh          = (-70  ,20)   # minimum & maximum air temperatures (C)
-    rh_thresh         = (5    ,130)  # relative humidity (#)
+    rh_thresh         = (40   ,130)  # relative humidity (#)
     p_thresh          = (850  ,1100) # air pressure
-    ws_thresh         = (0    ,40)   # wind speed from sonics (m/s)
+    ws_thresh         = (0    ,27)   # wind speed from sonics (m/s)
     lic_co2sig_thresh = (94   ,100)  # rough estimate of minimum CO2 signal value corresponding to optically-clean window
     lic_h2o           = (0    ,500)  # Licor h2o [mol/m3]
     lic_co2           = (0    ,25)   # Licor co2 [mmol/m3]
     max_bad_paths     = (0.01 ,1)    # METEK: maximum [fraction] of bad paths allowed. (0.01 = 1%), but is
                                      # actually in 1/9 increments. This just says we require all paths to be usable.
     incl_range        = (-90  ,90)   # The inclinometer on the metek
+    twr_alt_lim       = (-3.5,10.2)  # tower +/- 3sigma on the altitude data
+    mst_alt_lim       = (-4.5,7.6)   # mast +/- 3sigma on the altitude data
 
     # various calibration params
     # ##########################
@@ -199,6 +205,10 @@ def main(): # the main data crunching program
     vasaila_P_height_raised  = [(1.65)]
     GPS_height_raised        = [(2)]
     SR50_height_raised       = [(2)]
+    
+    # mast gps height for ice alt calc
+    twr_GPS_height_raised_precise = [(1.985)] # estimate of height above ice surface on 10/25 = 2.3 cm snow + 179 cm SR50 + 9 cm SR50 sensor len + 1.25 cm pipe rad + 6.9 cm gps height
+    mst_GPS_height_raised_precise = [(0.799)] # 27 cm snow depth + 46 cm Hardigg box height + 6.9 cm gps height. the snow depth is and average of the two nearby (~5 m) obs, 17 and 37 cm; it was in a transiton into a drifted ridge
     
     # Some other dates
     fpA_bury_date = datetime(2019,10,24,5,48) 
@@ -311,12 +321,30 @@ def main(): # the main data crunching program
             if start_time > date and date!= licor_dates[0]:
                 licor_index += 1
 
-    # mast dates and headings w.r.t. tower from Ola's notes
-    mast_hdg_dates   = [datetime(2019,10,15,0,0) , datetime(2019,10,26,7,0) , datetime(2019,11,18,12,50),\
-                       datetime(2019,11,28,4,30) , datetime(2019,12,1,9,50) , datetime(2019,12,8,14,00),\
-                       datetime(2019,12,9,7,30)]
-    mast_hdg_vals    = {'mast_hdg' : [nan, 40.7, 40.7, 291.2, 291.2, 215, 228],
-                        'gps_hdg'  : [nan, 291.2, 291.2, 291.2, 291.2, 290, 291.5], # 'gps_hdg_mast_setup'??
+    # mast dates and headings w.r.t. tower from available notes and a deductions, assumptions
+    # mast_hdg_dates map to mast_hdg_vals 1 to 1        
+    # ccox made an effort, but without heights and with so many changes to the mast between 12/1 and 12/9, without notes the adjustments are arbitrarily set to match the 10 m data, which has not benefits. We can revisit later. I 'll leave it where I left off, a combination of my guesses adn Ola's notes.            
+    mast_hdg_dates   = [datetime(2019,10,15,0,0)    , # Beginning of time; just a placeholder
+                        datetime(2019,10,26,7,0)    , # Tower raised to 30 m; Ola's notes based on manual heading reading on 00:56:55 Oct 30, 2019
+                        datetime(2019,11,18,12,50)  , # Tower falls down; Ola's notes
+                        datetime(2019,11,28,4,30)   , # Sonic tests at 2 m; Ola's notes, says he's guessing. The results suggest there is a problem so some adjustments have been made
+                        datetime(2019,11,29,0,0)    , # added by ccox based on comparison to early Dec, see above
+                        datetime(2019,12,1,9,51),
+                        datetime(2019,12,1,23,58),
+                        datetime(2019,12,2,23,58),
+                        datetime(2019,12,3,23,58),
+                        datetime(2019,12,4,23,58),  
+                        datetime(2019,12,5,23,58),  
+                        datetime(2019,12,6,6,27), 
+                        datetime(2019,12,8,0,0)     , # ccox
+                        datetime(2019,12,8,12,42)   , # ccox
+                        datetime(2019,12,8,14,1)    , # Not sure what is going on on 12/8-12/9, Ola's notes, says he's guessing
+                        datetime(2019,12,9,0,0)     , # ccox 
+                        datetime(2019,12,9,7,31)    , # Placeholder, see next line
+                        datetime(2020,3,17,12,0)]     # Chris took a reading here. However, note that the tower and mast had ben separaated on 3/11 so this is difficult to interpret.
+    
+    mast_hdg_vals    = {'mast_hdg' : [nan, 40.7,  205.1, 205.1, 196.6, 268.6, 268.6, 276.1, 279.1, 282.6, 286.6, 104.1, 214.7, 291.2, 215, 193.9, 215, 228], # These are the manual readings at the mast. The final position could be replaced with 99.1 from 3/17 (first obs since Dec), but this was after teh 3/11 lead.
+                        'gps_hdg'  : [nan, 290.7, 290.7, 291.2, 291.2, 281.7, 282.1, 284.2, 286.5, 288.9, 291.3, 291.9, 292.9, 290,   290, 290,   290, 291.3], # These are the manual readings at the tower when the mast obs were made. The final position could be replaced with 199.6 from 3/17 (first obs since Dec), but this was after teh 3/11 lead. Cox adjusted some using the values from thee filtered tower gps when the date of the reading (NOT the date of the change from mast_hdg_dates!) was recorded
                         'date'     : mast_hdg_dates,}
     mast_hdg_df = pd.DataFrame(mast_hdg_vals, index=mast_hdg_dates)
 
@@ -332,7 +360,6 @@ def main(): # the main data crunching program
            args=(start_time, end_time, 
                  q)).start()
     slow_data = q.get()
-    
 
     n_entries   = slow_data.size
     if slow_data.empty: # 'fatal' is a print function defined at the bottom of this script that exits
@@ -387,9 +414,12 @@ def main(): # the main data crunching program
                 ind = ind+1
 
     # Vaisala QC
-    slow_data['mast_P']         .loc[datetime(2020,3,13,0,0,0):datetime(2020,5,13,0,0,0)] = nan # something went horribly wrong with the pressure sensor during the leg 3 newdle reboot           
-    slow_data['vaisala_T_2m']   .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,45,54)] = nan # something unexplained here, need to remove it manually
-    slow_data['vaisala_RH_2m']  .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,45,54)] = nan # ditto
+    slow_data['mast_P']         .loc[datetime(2020,3,13,0,0,0):datetime(2020,5,13,0,0,0)] = nan # something went horribly wrong with the pressure sensor during the leg 3 newdle reboot  
+    slow_data['mast_RH']        .loc[datetime(2019,11,26,12,14,0):datetime(2019,11,26,12,45,0)] = nan # bad data when turned back on after nov storm        
+    slow_data['vaisala_T_2m']   .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,55,0)] = nan # something unexplained here, need to remove it manually
+    slow_data['vaisala_RH_2m']  .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,55,0)] = nan # ditto
+    slow_data['vaisala_P_2m']   .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,55,0)] = nan # ditto
+    slow_data['vaisala_Td_2m']   .loc[datetime(2020,1,17,17,21,32):datetime(2020,1,19,11,55,0)] = nan # ditto
     slow_data['vaisala_T_2m']   .loc[:datetime(2019,10,19,7,19,37)] = nan # right at the beginning bogus T values
     slow_data['vaisala_T_6m']   .loc[:datetime(2019,10,19,5,57,56)] = nan # ditto
     slow_data['vaisala_T_10m']  .loc[:datetime(2019,10,15,7,31,29)] = nan # ditto    
@@ -410,8 +440,127 @@ def main(): # the main data crunching program
     slow_data['vaisala_RH_6m']  .mask( (slow_data['vaisala_RH_6m']<rh_thresh[0])   | (slow_data['vaisala_RH_6m']>rh_thresh[1]) , inplace=True) # ppl
     slow_data['vaisala_RH_10m'] .mask( (slow_data['vaisala_RH_10m']<rh_thresh[0])  | (slow_data['vaisala_RH_10m']>rh_thresh[1]) , inplace=True) # ppl
     slow_data['mast_T']         .mask( (slow_data['mast_T']<T_thresh[0])           | (slow_data['mast_T']>T_thresh[1]) , inplace=True) # ppl
-    slow_data['mast_T']         .mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['mast_T'])==0) , inplace=True)    
+    slow_data['mast_T']         .mask( (slow_data['mast_T']<-1) & (abs(slow_data['mast_T'])==0) , inplace=True)    
+    slow_data['mast_RH']        .mask( (slow_data['mast_RH']<rh_thresh[0])   | (slow_data['mast_RH']>rh_thresh[1]) , inplace=True) # ppl
+    slow_data['vaisala_RH_2m']  = fl.despike(slow_data['vaisala_RH_2m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
+    slow_data['vaisala_RH_6m']  = fl.despike(slow_data['vaisala_RH_6m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
+    slow_data['vaisala_RH_10m']  = fl.despike(slow_data['vaisala_RH_10m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
 
+    # When the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. The equillibration period is 15-30 min and has a characteristic shape:
+    # when the tower turns on the RH starts ver low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened
+    # the RH data. 
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,10,19,5,56,0):datetime(2019,10,19,6,6,0)] = nan
+
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,10,19,6,52,0):datetime(2019,10,19,6,53,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,18,11,11,0):datetime(2019,11,18,11,13,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,18,11,11,0):datetime(2019,11,18,11,13,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,18,11,11,0):datetime(2019,11,18,11,13,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,19,3,59,0):datetime(2019,11,19,4,26,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,19,3,59,0):datetime(2019,11,19,4,26,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,19,3,59,0):datetime(2019,11,19,4,26,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,19,11,16,0):datetime(2019,11,19,11,20,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,19,11,16,0):datetime(2019,11,19,11,20,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,19,11,16,0):datetime(2019,11,19,11,20,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,20,8,39,0):datetime(2019,11,20,8,55,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,20,8,39,0):datetime(2019,11,20,8,55,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,20,8,39,0):datetime(2019,11,20,8,55,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,20,9,50,0):datetime(2019,11,20,9,56,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,20,9,50,0):datetime(2019,11,20,9,56,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,20,9,50,0):datetime(2019,11,20,9,56,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,21,4,5,0):datetime(2019,11,21,4,16,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,21,4,5,0):datetime(2019,11,21,4,16,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,21,4,5,0):datetime(2019,11,21,4,16,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,21,11,23,0):datetime(2019,11,21,11,34,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,21,11,23,0):datetime(2019,11,21,11,34,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,21,11,23,0):datetime(2019,11,21,11,34,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,23,4,16,0):datetime(2019,11,23,4,30,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,23,4,16,0):datetime(2019,11,23,4,30,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,23,4,16,0):datetime(2019,11,23,4,30,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,23,11,11,0):datetime(2019,11,23,11,33,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,23,11,11,0):datetime(2019,11,23,11,33,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,23,11,11,0):datetime(2019,11,23,11,33,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,25,4,51,0):datetime(2019,11,25,4,59,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,25,4,51,0):datetime(2019,11,25,4,59,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,25,4,51,0):datetime(2019,11,25,4,59,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,25,9,34,0):datetime(2019,11,25,9,54,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,25,9,34,0):datetime(2019,11,25,9,54,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,25,9,34,0):datetime(2019,11,25,9,54,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,26,5,36,0):datetime(2019,11,26,6,0,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,26,5,36,0):datetime(2019,11,26,6,0,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,26,5,36,0):datetime(2019,11,26,6,0,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,27,4,55,0):datetime(2019,11,27,5,44,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,27,4,55,0):datetime(2019,11,27,5,44,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,27,4,55,0):datetime(2019,11,27,5,44,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,28,4,35,0):datetime(2019,11,28,4,48,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,28,4,35,0):datetime(2019,11,28,4,48,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,28,4,35,0):datetime(2019,11,28,4,48,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,11,28,12,11,0):datetime(2019,11,28,12,37,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,11,28,12,11,0):datetime(2019,11,28,12,37,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,11,28,12,11,0):datetime(2019,11,28,12,37,0)] = nan
+    
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,12,4,6,0,0):datetime(2019,12,4,11,8,0)] = nan
+    
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,12,5,6,5,0):datetime(2019,12,5,6,7,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,12,10,7,17,0):datetime(2019,12,10,7,43,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,12,10,7,17,0):datetime(2019,12,10,7,43,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,12,10,7,17,0):datetime(2019,12,10,7,43,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2019,12,11,8,4,0):datetime(2019,12,11,8,29,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2019,12,11,8,4,0):datetime(2019,12,11,8,29,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2019,12,11,8,4,0):datetime(2019,12,11,8,29,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,1,15,7,53,0):datetime(2020,1,15,8,18,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,1,15,7,53,0):datetime(2020,1,15,8,18,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,1,15,7,53,0):datetime(2020,1,15,8,18,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,2,13,7,59,0):datetime(2020,2,13,8,27,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,2,13,7,59,0):datetime(2020,2,13,8,27,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,2,13,7,59,0):datetime(2020,2,13,8,27,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,3,11,17,33,0):datetime(2020,3,11,18,1,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,3,11,17,33,0):datetime(2020,3,11,18,1,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,3,11,17,33,0):datetime(2020,3,11,18,1,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,3,12,9,50,0):datetime(2020,3,12,12,2,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,3,12,9,50,0):datetime(2020,3,12,10,26,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,3,12,9,50,0):datetime(2020,3,12,10,26,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,3,23,23,57,0):datetime(2020,3,24,0,23,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,3,23,23,57,0):datetime(2020,3,24,0,23,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,3,23,23,57,0):datetime(2020,3,24,0,23,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,4,2,13,58,0):datetime(2020,4,2,14,26,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,4,2,13,58,0):datetime(2020,4,2,14,26,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,4,2,13,58,0):datetime(2020,4,2,14,26,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,4,4,9,13,0):datetime(2020,4,4,9,38,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,4,4,9,13,0):datetime(2020,4,4,9,38,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,4,4,9,13,0):datetime(2020,4,4,9,38,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,4,7,15,42,0):datetime(2020,4,7,16,10,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,4,7,15,42,0):datetime(2020,4,7,16,10,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,4,7,15,42,0):datetime(2020,4,7,16,10,0)] = nan
+    
+    slow_data['vaisala_RH_2m']   .loc[datetime(2020,4,20,8,43,0):datetime(2020,4,20,8,46,0)] = nan
+    slow_data['vaisala_RH_6m']   .loc[datetime(2020,4,20,8,43,0):datetime(2020,4,20,8,46,0)] = nan
+    slow_data['vaisala_RH_10m']  .loc[datetime(2020,4,20,8,43,0):datetime(2020,4,20,8,46,0)] = nan
+    
     # Vaisala relative corrections
     #   Tower was lowered from 2019,10,19,7,19,0 to 2019,10,24,5,30,0 (n=425459 sec)
     #   The precised heights were within 20 cm above the surface a little more than a meter high (see vasaila_T_height_on_ground)
@@ -436,14 +585,13 @@ def main(): # the main data crunching program
     slow_data['abs_humidity_vaisala_2m'] = a2
     slow_data['pw_vaisala_2m']           = Pw2
     slow_data['MR_vaisala_2m']           = x2
-    
 
     # atm pressure adjusted assuming 1 hPa per 10 m (1[hPA]*ht[m]/10[m]), except for mast, which has a direct meas.
     p6    = slow_data['vaisala_P_2m']-1*6/10
     p10   = slow_data['vaisala_P_2m']-1*10/10    
         # we are missing a lot of the mast pressures so I will fill in with an approximation    
     pmast = slow_data['mast_P'] 
-    pmast.fillna(slow_data['vaisala_P_2m']-1*mast_params['mast_sonic_heights'][mast_index]/10, inplace=True)
+    pmast.fillna(slow_data['vaisala_P_2m']-1*mast_params['mast_sonic_heights'][mast_index]/10)
 
     Td6, h6, a6, x6, Pw6, Pws6, rhi6 = fl.calc_humidity_ptu300(slow_data['vaisala_RH_6m'],\
                                                                slow_data['vaisala_T_6m']+K_offset,
@@ -475,18 +623,8 @@ def main(): # the main data crunching program
     slow_data['abs_humidity_vaisala_mast'] = am
     slow_data['pw_vaisala_mast']           = Pwm
     slow_data['MR_vaisala_mast']           = xm
-
-    # QC GPS and add useful data columns, these were sprinkled throughout Ola's code, like information nuggets
-    slow_data['tower_lat']     = slow_data['gps_lat_deg']+slow_data['gps_lat_min']/60.0 # add decimal values
-    slow_data['tower_lon']     = slow_data['gps_lon_deg']+slow_data['gps_lon_min']/60.0
-    slow_data['tower_heading'] = slow_data['gps_hdg']/100.0  # convert to degrees
-    slow_data['tower_heading'] = slow_data['tower_heading'].where(~np.isinf(slow_data['tower_heading'])) # infinities->nan
-    slow_data['gps_alt']       = slow_data['gps_alt']/1000.0 # convert to meters
-    slow_data['tower_lat'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4) , inplace=True) 
-    slow_data['tower_lon'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
-    slow_data['gps_alt'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
-    slow_data['tower_heading'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
-
+    
+            
     # sr50 dist QC then in m & snow depth in cm, both corrected for temperature, snwdpth_meas is height in cm on oct 27 2019
     slow_data['sr50_dist'].loc[:raise_day] = nan # sr50 data is garbage when the tower is down (it's pointed at the horizon or something)
     slow_data['sr50_dist'].mask( (slow_data['sr50_dist']<sr50d[0])  | (slow_data['sr50_dist']>sr50d[1]) , inplace=True) # ppl
@@ -501,44 +639,81 @@ def main(): # the main data crunching program
     slow_data['fp_B_Wm2'].loc[:fpB_bury_date] = nan # data is garbage before being buried
 
     # IRT QC
-    slow_data['apogee_body_T'].mask( (slow_data['apogee_body_T']<irt_targ[0]) | slow_data['apogee_body_T']>irt_targ[1] , inplace=True) # ppl
-    slow_data['apogee_targ_T'].mask( (slow_data['apogee_targ_T']<irt_targ[0]) | slow_data['apogee_targ_T']>irt_targ[1] , inplace=True) # ppl
+    slow_data['apogee_body_T'].mask( (slow_data['apogee_body_T']<irt_targ[0]) | (slow_data['apogee_body_T']>irt_targ[1]) , inplace=True) # ppl
+    slow_data['apogee_targ_T'].mask( (slow_data['apogee_targ_T']<irt_targ[0]) | (slow_data['apogee_targ_T']>irt_targ[1]) , inplace=True) # ppl
     slow_data['apogee_body_T'].mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['apogee_body_T'])==0) , inplace=True) # reports spurious 0s sometimes
     slow_data['apogee_targ_T'].mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['apogee_targ_T'])==0) , inplace=True) # reports spurious 0s sometimes
     slow_data['apogee_body_T']  = fl.despike(slow_data['apogee_body_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
     slow_data['apogee_targ_T']  = fl.despike(slow_data['apogee_targ_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
 
-    # something Chris is working on
-   # # Calculate bearings and adjust heading
-   #  # Read today's Met City AIS 
-   #  print('...finding bearing, adjusting heading') 
-   #  # Load it
-   #  ais_df = pd.DataFrame()  
-   #  for i in range(-1,(end_time-start_time).days+2,1):
-   #     path  = ais_dir+'floenavi-ais_211003823-'+(start_time+timedelta(i)).strftime('%Y%m%d')+'.dat'       
-   #     if  os.path.isfile(path) and os.stat(path).st_size > 0:  
-   #         df = pd.read_csv(path,sep='\s+',parse_dates={'date': [0,1]}).set_index('date')
-   #         df.columns = ["lat","lon"]
-   #         ais_df = pd.concat([ais_df,df]) 
+    # GPS QC etc.
+    slow_data['tower_lat']     = slow_data['gps_lat_deg']+slow_data['gps_lat_min']/60.0 # add decimal values
+    slow_data['tower_lon']     = slow_data['gps_lon_deg']+slow_data['gps_lon_min']/60.0
+    slow_data['tower_heading'] = slow_data['gps_hdg']/100.0  # convert to degrees
+    slow_data['tower_heading'] = slow_data['tower_heading'].where(~np.isinf(slow_data['tower_heading'])) # infinities->nan
+    slow_data['gps_alt']       = slow_data['gps_alt']/1000.0 # convert to meters
+    slow_data['gps_alt'].mask( (slow_data['gps_alt']<twr_alt_lim[0]) | (slow_data['gps_alt']>twr_alt_lim[1]) , inplace=True) # stat lims
+    slow_data['tower_lat'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4) , inplace=True) 
+    slow_data['tower_lon'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
+    slow_data['gps_alt'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
+    slow_data['tower_heading'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
+    slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise 
+    if 'mast_RECORD' in slow_data: # today >= datetime(2020,4,15,0,0,0) and today < datetime(2020,5,2,0,0,0):
+        slow_data['mast_lat']     = slow_data['mast_gps_lat_deg_Avg']+slow_data['mast_gps_lat_min_Avg']/60.0 # add decimal values
+        slow_data['mast_lon']     = slow_data['mast_gps_lon_deg_Avg']+slow_data['mast_gps_lon_min_Avg']/60.0
+        slow_data['mast_heading'] = slow_data['mast_gps_hdg_Avg']/100.0  # convert to degrees
+        slow_data['mast_gps_alt'] = slow_data['gps_alt']/1000.0 # convert to meters
+        slow_data['mast_heading'] = slow_data['mast_heading'].where(~np.isinf(slow_data['mast_heading'])) # infinities->nan
+        slow_data['mast_gps_alt'].mask( (slow_data['mast_gps_alt']<mst_alt_lim[0]) | (slow_data['mast_gps_alt']>mst_alt_lim[1]) , inplace=True) # stat lims
+        slow_data['mast_lat'].mask( (slow_data['mast_gps_qc']==0) | (slow_data['mast_gps_hdop_Avg']>4) , inplace=True) 
+        slow_data['mast_lon'].mask( (slow_data['mast_gps_qc']==0) | (slow_data['mast_gps_hdop_Avg']>4), inplace=True) 
+        slow_data['mast_gps_alt'].mask( (slow_data['mast_gps_qc']==0) | (slow_data['mast_gps_hdop_Avg']>4), inplace=True) 
+        slow_data['mast_heading'].mask( (slow_data['mast_gps_qc']==0) | (slow_data['mast_gps_hdop_Avg']>4), inplace=True) 
+        slow_data['mast_ice_alt'] = slow_data['mast_gps_alt'] - mst_GPS_height_raised_precise 
 
-    
-   #  if ais_df.empty == False:   
-   #      ais_df.drop_duplicates(inplace=True)
-   #      ais_df=ais_df.resample('1s').interpolate().reindex(slow_data.index)
-   #      lat1 = np.array(ais_df['lat'])
-   #      lon1 = np.array(ais_df['lon'])
-   #      lat2 = np.array(slow_data['tower_lat'])
-   #      lon2 = np.array(slow_data['tower_lon'])
-   #      dd=fl.distance(lat1,lon1,lat2,lon2) # just a sanity check... distance from AIS to tower is 22.9 m
-   #      br=fl.calculate_initial_angle(lat1,lon1,lat2,lon2) 
-   #      ais_df['br']=br
-   #      ais_df['dd']=dd*1000
-   #      slow_data['tower_heading']=ais_df['br']
+    # The heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, 12.8 hours. I've considered several approaches: wavelet frequency rejection,
+    # various band-pass filters, Kalman filter, tower->ais bearing baseline. Median filter works the best. Because the lowest nosie frequency is near 12 hours, a
+    # 24 hour filter is needed. I have implemented a 1 day buffer on the start_time, end_time for this. For missing data we forward pad to reduce edge effects but report
+    # nan in the padded space.
+    print('... band-pass median filter applied to heading') 
+    # 
+    tmph =  slow_data['tower_heading'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
+    tmph.mask(slow_data['tower_heading'].isna(),inplace=True)
+    slow_data['tower_heading'] = tmph
+    tmpa = slow_data['tower_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
+    tmpa.mask(slow_data['tower_ice_alt'].isna(),inplace=True)
+    slow_data['tower_ice_alt'] = tmpa
+    slow_data['tower_heading']   .loc[:datetime(2019,10,24,4,59,49)] = nan # this is a couple hours ater the gps was calibrated and mounted and is when the data looks ok
+    if 'mast_RECORD' in slow_data:
+        tmph = slow_data['mast_heading'].rolling(86400,min_periods=1,center=True).median()
+        tmph.mask(slow_data['mast_heading'].isna(),inplace=True)
+        slow_data['mast_heading'] = tmph
+        slow_data['mast_heading'] = np.mod(slow_data['mast_heading'],360)
+        tmpa = slow_data['mast_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
+        tmpa.mask(slow_data['mast_ice_alt'].isna(),inplace=True)
+        slow_data['mast_ice_alt'] = tmpa
+        
+    slow_data['tower_ice_alt'].loc[:raise_day] = nan # not very useful before the tower is up
+    slow_data['tower_heading'].loc[:raise_day] = nan # ditto
+
+    # Get the bearing on the ship 
+    # Load the ship track and reindex to slow_data, calculate distance [m] and bearing [deg from tower rel to true north, as wind direction]
+    ship_df = pd.read_csv(ais_dir+'MOSAiCTrack.dat',sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
+    ship_df.columns = ['u1','latd','latm','lond','lonm','u2','u3','u4','u5','u6']
+    ship_df['lat']=ship_df['latd']+ship_df['latm']/60
+    ship_df['lat'].mask(ship_df['lat'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data
+    ship_df['lon']=ship_df['lond']+ship_df['lonm']/60
+    ship_df['lon'].mask(ship_df['lon'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data 
+    ship_df=ship_df.reindex(slow_data.index).interpolate()
+    slow_data['ship_distance']=fl.distance(slow_data['tower_lat'],slow_data['tower_lon'],ship_df['lat'],ship_df['lon'])*1000
+    slow_data['ship_bearing']=fl.calculate_initial_angle(slow_data['tower_lat'],slow_data['tower_lon'],ship_df['lat'],ship_df['lon']) 
+    slow_data['ship_distance'].mask( (slow_data['ship_distance']>700), inplace=True)
+    slow_data['ship_bearing'].loc[datetime(2020,3,9,0,0,0):datetime(2020,3,10,0,0,0)].mask( (slow_data['ship_bearing']>326), inplace=True) # something breaks in the trig model briefly. its weird. i'll just screen it out
+    slow_data['ship_distance'].loc[datetime(2020,3,9,0,0,0):datetime(2020,3,10,0,0,0)].mask( (slow_data['ship_distance']>370), inplace=True) # something breaks in the trig model briefly. its weird. i'll just screen it out
 
     # rename columns to match expected level2 names from data_definitions, there's probably a more clever way to do this
     slow_data.rename(inplace=True, columns =\
                      {
-                         'call_time_mainscan' : 'logger_scantime'           ,
                          'vaisala_T_2m'       : 'temp_vaisala_2m'           ,
                          'vaisala_T_6m'       : 'temp_vaisala_6m'           ,
                          'vaisala_T_10m'      : 'temp_vaisala_10m'          ,
@@ -557,15 +732,15 @@ def main(): # the main data crunching program
                          'fp_A_mV'            : 'flux_plate_A_mv'           ,  
                          'fp_B_mV'            : 'flux_plate_B_mv'           ,  
                          'fp_A_Wm2'           : 'flux_plate_A_Wm2'          , 
-                         'fp_B_Wm2'           : 'flux_plate_B_Wm2'          , 
+                         'fp_B_Wm2'           : 'flux_plate_B_Wm2'          ,
     }, errors="raise")
+    
 
     # ###################################################################################################
     # OK, all is done with the logger data, now get the 20hz data and put it into its own netcdf file
     # done in a loop because I only have 32GB of RAM in my laptop and there's no sense doing otherwise
-    day_series = pd.date_range(start_time, end_time)    # we're going to loop over these days
+    day_series = pd.date_range(start_time+timedelta(1), end_time-timedelta(1))    # we're going to loop over these days. timedelta because the input expanded 11 day on either side to facilitatte smoothing gps
     day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
-
     for today in day_series: # loop over the days in the processing range
         tomorrow  = today+day_delta
         Hz10_today        = pd.date_range(today, tomorrow, freq='0.1S')           # all the 0.1 seconds today, for obs
@@ -633,6 +808,7 @@ def main(): # the main data crunching program
         for inst in metek_inst_keys:
             raw_fast_data[inst] = get_fast_netcdf_data(inst, today)
         raw_licor_data = get_fast_netcdf_data('licor', today)
+        raw_licor_data['licor_pr'] = raw_licor_data['licor_pr']*10 # [to hPa]
 
         # ~~~~~~~~~~~~~~~~~~~~~ (2) Quality control ~~~~~~~~~~~~~~~~~~~~~~~~
         print('... quality controlling the fast data now.')
@@ -657,6 +833,22 @@ def main(): # the main data crunching program
                 met_incy = raw_fast_data[inst][inst+'_incy']
                 raw_fast_data[inst][inst+'_incx'].mask(np.abs(met_incx) > incl_range[1], inplace=True)
                 raw_fast_data[inst][inst+'_incy'].mask(np.abs(met_incy) > incl_range[1], inplace=True)
+                
+                
+            # Some time periods have to be removed. In particular, the first week of Dec. It is a mess. 
+            # The sonic was rotated over and over and I don't have any notes. I will also remove the set up in April
+            if 'mast' in inst:
+                # The April setup
+                raw_fast_data[inst][inst+'_T'].loc[datetime(2020,4,13,12,0,0):datetime(2020,4,14,10,0,0)] = nan
+                raw_fast_data[inst][inst+'_x'].loc[datetime(2020,4,13,12,0,0):datetime(2020,4,14,10,0,0)] = nan
+                raw_fast_data[inst][inst+'_y'].loc[datetime(2020,4,13,12,0,0):datetime(2020,4,14,10,0,0)] = nan
+                raw_fast_data[inst][inst+'_z'].loc[datetime(2020,4,13,12,0,0):datetime(2020,4,14,10,0,0)] = nan
+                # The Dec re-setup
+                raw_fast_data[inst][inst+'_T'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                raw_fast_data[inst][inst+'_x'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                raw_fast_data[inst][inst+'_y'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                raw_fast_data[inst][inst+'_z'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                
 
 
             # Diagnostic: break up the diagnostic and search for bad paths. the diagnostic
@@ -676,13 +868,17 @@ def main(): # the main data crunching program
             # To do this fast I will do it by subtracting off the top sig figs like below.
             # The minumum value is 1/9 so I will set the threhsold a little > 0 for slop in precision
             # We could set this higher. Perhaps 1 or 2 bad paths is not so bad? Not sure.
-            if inst != 'metek_mast': #mast, no heat data?
+            if inst != 'metek_mast': 
                 bad_data = (raw_fast_data[inst][inst+'_heatstatus']/1000\
                             -np.floor(raw_fast_data[inst][inst+'_heatstatus']/1000)) >  max_bad_paths[0]
                 raw_fast_data[inst][inst+'_x'].mask(bad_data, inplace=True)
                 raw_fast_data[inst][inst+'_y'].mask(bad_data, inplace=True)
                 raw_fast_data[inst][inst+'_z'].mask(bad_data, inplace=True)
                 raw_fast_data[inst][inst+'_T'].mask(bad_data, inplace=True)
+            elif inst == 'metek_mast':
+                raw_fast_data[inst][inst+'_x'].loc[datetime(2020,4,20,4,0,0):datetime(2020,4,22,0,0,0)] = nan # not sure what happened here, but I'm guessing icing following the melt
+                raw_fast_data[inst][inst+'_y'].loc[datetime(2020,4,20,4,0,0):datetime(2020,4,22,0,0,0)] = nan
+                raw_fast_data[inst][inst+'_z'].loc[datetime(2020,4,20,4,0,0):datetime(2020,4,22,0,0,0)] = nan
 
         #
         # And now Licor ####################################################
@@ -760,9 +956,7 @@ def main(): # the main data crunching program
         licor_10hz = licor_10hz.reindex(index=Hz10_today)
 
         # ~~~~~~~~~~~~~~~~~ (4) Do the Tilt Rotation  ~~~~~~~~~~~~~~~~~~~~~~
-        print("... cartesian tilt rotation. Translating body -> earth coordinates. Caveats!!!")
-        print("... please read in-line comments ! Solution being developed with J. Hutchings.")
-
+        print("... cartesian tilt rotation. Translating body -> earth coordinates.")
         # This really only affects the slow interpretation of the data.
         # When we do the fluxes it will be a double rotation into the streamline that implicitly accounts for deviations between body and earth
         #
@@ -783,53 +977,67 @@ def main(): # the main data crunching program
         #             metek y -> earth u, +North
         #             metek x -> earth v, +West
         #             Have a look also at pg 21-23 of NEW_MANUAL_20190624_uSonic-3_Cage_MP_Manual for metek conventions. Pg 21 seems to have errors in the diagram?
-        #
-        #  !! Azimuth is from a linear interpolation of the gps heading. Two questions:
-        #       (1) Were the meteks mounted such that metek north = gps north or if not, what is the offset? offset presently assumed = 0
-        #       (2) We could calculate the wind direction based on the 1 Hz data, with some code like this:
-        #               slow_data['gps_hdg'].reindex(index=Hz10_today, copy=False).interpolate('linear')
-
-        #           However, there is low-frequency variability in the heading information recevied at the gps. The period is roughly
-        #           1-2 hours and the standard deviation is 1-1.5 deg. This variability is NOT movement of the ice floe! We saw this in
-        #           the GPS when stationary in Boulder and it looks similar at MOSAiC. Jenny H. says it is normal and calls it "noise".
-        #           Probably somehow related to the satellite constellation, though it was uncorrelated with GPS qc vars in Colorado.
-        #           It is not noise in the conventional sense, but appears very systematic, which makes it something we need to take into account.
-        #
-        #           In order to avoid propogating the error into the reported wind directions, we need some sort of low-pass filter having an averaging period that is shorter than significant deviations in the actual heading of the floe but at
-        #           least ~3 hours.
-        #                           For now, I will use the DAILY AVERAGE HEADING!
-        #                           Working with J Hutchings to analyze the times scales of floe rotation vs the time scales of GPS HEHDT errors.
-        #                           Planning to develop of floe-scale hdg by using multiple GPS acroess the floe to beat down the error
-
         for inst in metek_inst_keys:
+            
+            # Tower.
+            # If we are working with the tower sonics, the calculation is straightforward. 
+            # Inclinomters and heading used to rotate from body to earth coordinates
+            # Heading uses a filtered value to reduce noise, which was calculated earlier in this code
             if 'mast' not in inst:
                 ct_u, ct_v, ct_w = fl.tilt_rotation(fast_data_10hz[inst] [inst+'_incy'],
                                                     fast_data_10hz[inst] [inst+'_incx'],
-                                                    np.zeros(len(fast_data_10hz[inst] ))+logger_today['gps_hdg'].mean(),
-                                                    fast_data_10hz[inst] [inst+'_y'],
-                                                    fast_data_10hz[inst] [inst+'_x'],
+                                                    logger_today['tower_heading'].reindex(fast_data_10hz[inst].index).interpolate(),
+                                                    fast_data_10hz[inst] [inst+'_y'], # y -> u on uSonic!
+                                                    fast_data_10hz[inst] [inst+'_x'], # x -> v on uSonic!
                                                     fast_data_10hz[inst] [inst+'_z'])
-                fast_data_10hz[inst][inst+'_y'] = ct_u # y -> u on uSonic!
-                fast_data_10hz[inst][inst+'_x'] = ct_v # x -> v on uSonic!
-                fast_data_10hz[inst][inst+'_z'] = ct_w
+                
+            # Mast.
+            # Three eras: ~ Leg 1, Leg 2 and Leg 3 with some additional complexities in Leg 1.        
+            elif 'mast' in inst:
+                
+                # This is Leg 1 and 2.
+                #   We use information available and interpolate between.
+                if 'mast_RECORD' not in slow_data:   
+                    # interpolate the mast alignment metadata for today
+                    most_recent_gps = mast_hdg_df['gps_hdg'].reindex(fast_data_10hz[inst].index,method='pad')
+                    most_recent_mast = mast_hdg_df['mast_hdg'].reindex(fast_data_10hz[inst].index,method='pad')
+                    mast_align = most_recent_gps - most_recent_mast   
+                    if today >  mast_hdg_df.index[-2]:
+                        meth = 'linear'
+                    else:
+                        meth = 'pad' 
+                           
+                    mast_hdg_series = np.mod(logger_today['tower_heading'].reindex(fast_data_10hz[inst].index).interpolate()-mast_align,360)                    
 
-            else:
-                # !! The mast wind vectors/directions need work.
-                # Byron has  v*-1 after swapping x/y, which is the left-hand to right-hand coordinate swap
-                # which I think is correct, but it isn't working well or consistently
+                    # if we are working on the mast but we don't have a v102 we have to set to missing values, although we can report our estiamte of the heading
+                    logger_today['mast_lat']=np.zeros(len(logger_today['tower_lat']))+def_fill_flt 
+                    logger_today['mast_lon']=np.zeros(len(logger_today['tower_lon']))+def_fill_flt 
+                    logger_today['mast_ice_alt']=np.zeros(len(logger_today['tower_ice_alt']))+def_fill_flt 
+                    logger_today['mast_heading']=mast_hdg_series
+                
+                # This is the Newdle in Leg 3. 
+                #   A "spare" v102 was used so the heading is tracked directly. 
+                #   The mast and tower are not on the same piece of ice, so that tower cannot be used as reference for the mast at all.    
+                else:                     
+                    # set to 68.5 from calcs416.py 
+                    mast_align = 68.5
+                    mast_hdg_series = np.mod(logger_today['mast_heading'].reindex(fast_data_10hz[inst].index).interpolate()-mast_align,360) 
+                    # also, set the heading for the file
+                    logger_today['mast_heading'] = np.mod(logger_today['mast_heading']-mast_align,360)
+                    
                 # No inclinometer up here. For now we are assuming it is plum
                 nmastvals = len(fast_data_10hz[inst])
                 ct_u, ct_v, ct_w = fl.tilt_rotation(np.zeros(nmastvals),
                                                     np.zeros(nmastvals),
-                                                    np.zeros(nmastvals)+logger_today['gps_hdg'].mean(),
-                                                    fast_data_10hz[inst][inst+'_x']*(-1),
-                                                    fast_data_10hz[inst][inst+'_y'],
+                                                    mast_hdg_series,
+                                                    fast_data_10hz[inst][inst+'_x'], # x -> u on USA-1!
+                                                    fast_data_10hz[inst][inst+'_y'], # y -> v on USA-1!
                                                     fast_data_10hz[inst][inst+'_z'])
-                                                    # not sure this ^ is correct: It should be on y
 
-                fast_data_10hz[inst][inst+'_x'] = ct_u # x -> u on USA-1!
-                fast_data_10hz[inst][inst+'_y'] = ct_v # y -> v on USA-1!
-                fast_data_10hz[inst][inst+'_z'] = ct_w
+            # reassign corrected vals
+            fast_data_10hz[inst][inst+'_y'] = ct_u
+            fast_data_10hz[inst][inst+'_x'] = ct_v
+            fast_data_10hz[inst][inst+'_z'] = ct_w
 
             # start referring to xyz as uvw now (maybe we should keep both?)
             fast_data_10hz[inst].rename(columns={inst+'_y' : inst+'_u',
@@ -837,44 +1045,17 @@ def main(): # the main data crunching program
                                                  inst+'_z' : inst+'_w',
                                                  }, errors="raise", inplace=True) 
 
-        # !!
-        # Now we recalculate the 1 min average wind direction and speed from the u and v velocities.
-        # These values differ from the stats calcs (*_ws and *_wd) in two ways:
-        #   (1) The underlying data has been quality controlled
-        #   (2) We have rotated that sonic y,x,z into earth u,v,w
-        #
+        # Now we recalculate the 1 min average wind direction and speed from the u and v velocities in meteorological  convention
         print("... calculating a corrected set of slow wind speed and direction.")
         metek_ws = {}
         metek_wd = {}
         for inst in metek_inst_keys:
             u_min = fast_data_10hz[inst] [inst+'_u'].resample('1T',label='left').apply(fl.take_average)
             v_min = fast_data_10hz[inst] [inst+'_v'].resample('1T',label='left').apply(fl.take_average)
-            if 'mast' not in inst:
-                ws_corr, wd_corr = fl.calculate_metek_ws_wd(u_min.index,
-                                                         u_min,
-                                                         v_min,
-                                                         logger_today['gps_hdg']*0) 
-            else:
-                # correct for mast heading by comparing obs of mast orientation wrt tower, a bit more complicated
-                # From Ola's code, Ola says he's guessed at some of these... ... ...
-                most_recent_ind  = mast_hdg_df.index.get_loc(today, method='ffill') # get most recent manual mast heading obs
-                most_recent_time = mast_hdg_df.index[most_recent_ind]
-                most_recent_gps  = mast_hdg_df['gps_hdg'][most_recent_ind]
-                most_recent_mast = mast_hdg_df['mast_hdg'][most_recent_ind]
-                if most_recent_ind < len(mast_hdg_df.index)-1:
-                    if mast_hdg_df.index[most_recent_ind+1].normalize() == today.normalize(): # heading was observed today
-                        most_recent_gps  = mast_hdg_df['gps_hdg'][most_recent_ind+1]
-                        most_recent_mast = mast_hdg_df['mast_hdg'][most_recent_ind+1]
-
-                # Ola's code: wd_mtk30(igdmtk30(i))=mod(sd(2)+(mast_hdg+(gps_hdg_twr(igdmtk30(i))-gps_hdg_mast_setup)),360);
-                mast_hdg_series = most_recent_mast-most_recent_gps+(logger_today['gps_hdg']*0+logger_today['gps_hdg'].mean())
-                ws_corr, wd_corr = fl.calculate_metek_ws_wd(u_min.index,
-                                                            u_min,
-                                                            v_min,
-                                                            mast_hdg_series) 
-
-            metek_ws[inst] = ws_corr
-            metek_wd[inst] = wd_corr
+            ws = np.sqrt(u_min**2+v_min**2)
+            wd = np.mod((np.arctan2(-v_min,-u_min)*180/np.pi),360)
+            metek_ws[inst] = ws
+            metek_wd[inst] = wd
 
         # ~~~~~~~~~~~~~~~~~~ (5) Recalculate Stats ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # !!  Sorry... This is a little messed up. The original stats are read from the NOAA Services stats
@@ -911,7 +1092,7 @@ def main(): # the main data crunching program
         licor_stats['CO2_licor'][(licor_10hz['licor_co2']*0+1).resample('1T',label='left').sum() < 300] = nan         
         licor_stats['temp_licor']       = licor_10hz['licor_T']       .resample('1T',label='left').mean()
         licor_stats['temp_licor'][(licor_10hz['licor_T']*0+1).resample('1T',label='left').sum() < 300] = nan        
-        licor_stats['pr_licor']         = licor_10hz['licor_pr']      .resample('1T',label='left').mean()*10 # [to hPa]
+        licor_stats['pr_licor']         = licor_10hz['licor_pr']      .resample('1T',label='left').mean()
         licor_stats['pr_licor'][(licor_10hz['licor_pr']*0+1).resample('1T',label='left').sum() < 300] = nan        
         licor_stats['co2_signal_licor'] = licor_10hz['licor_co2_str'] .resample('1T',label='left').mean()
         licor_stats['co2_signal_licor'][(licor_10hz['licor_co2_str']*0+1).resample('1T',label='left').sum() < 300] = nan 
@@ -1047,7 +1228,6 @@ def main(): # the main data crunching program
         # for level2 we are only writing out 1minute+ files so we
         logger_1min = logger_today.resample('1T', label='left').apply(fl.take_average)
         l2_data = pd.concat([logger_1min, stats_data], axis=1)
-
         # write out in threads the files separately to save some time... which would be great... but HDF5
         # borks if you try to do it... ? really annoying and I can't find any reason why
         onemin_q = Queue()
@@ -1057,12 +1237,12 @@ def main(): # the main data crunching program
 
         turb_q = Queue()
         Thread(target=write_turb_netcdf,\
-               args=(turb_data.copy(), today, turb_q)).start()
+                args=(turb_data.copy(), today, turb_q)).start()
         turb_q  .get()
 
         tenmin_q = Queue()
         Thread(target=write_level2_netcdf,\
-               args=(l2_data.copy(), today, "10min", tenmin_q)).start()
+                args=(l2_data.copy(), today, "10min", tenmin_q)).start()
         tenmin_q.get()
 
     printline()
@@ -1302,7 +1482,7 @@ def write_turb_netcdf(turb_data, date, q):
     print("... writing turbulence data for on {}, ~{}% of data is present".format(date, 100-avg_missing))
 
     out_dir  = turb_dir
-    file_str = '/mosflxtowerturb.level2.{}.{}.nc'.format(integ_time_turb_flux, date.strftime('%Y%m%d.%H%M%S'))
+    file_str = '/mosflxtowerturb.level2.{}min.{}.nc'.format(integ_time_turb_flux, date.strftime('%Y%m%d.%H%M%S'))
 
     turb_name  = '{}/{}'.format(out_dir, file_str)
 

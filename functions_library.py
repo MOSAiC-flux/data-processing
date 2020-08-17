@@ -41,21 +41,6 @@ def despike(spikey_panda, thresh, filterlen, medfill):
         spikey_panda = spikes_i
     return spikey_panda
 
-
-# calculate wind speeds from appropriate metek columns, this code assumes that 'metek_data' is a
-# fully indexed entire days worth of '1T' frequency data !! Chris modified this to pass
-# u,v,data_dates directly to generalize for other dataframes, thanks Chris
-def calculate_metek_ws_wd(data_dates, u, v, hdg_data): # tower heading data is 1s, metek data is 1m
-    ws = np.sqrt(u**2+v**2)
-    wd = np.mod(90+np.arctan2(v,-u)*180/np.pi,360)
-
-    for time in data_dates[:]: # there has to be a more clever, non-loop, way of doing this
-        avg_hdg  = np.nanmean(hdg_data[time:time+timedelta(seconds=60)])
-        old_wd   = wd[time]
-        wd[time] = np.mod(wd[time]+avg_hdg, 360)
-
-    return ws, wd
-
 # calculate humidity variables following Vaisala
 def calc_humidity_ptu300(RHw, temp, press, Td):
 
@@ -209,17 +194,11 @@ def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
     ct_theta = np.radians(ct_theta)
     ct_psi   = np.radians(ct_psi)
 
-    ct_u = ct_up*np.cos(ct_theta)*np.cos(ct_psi)\
-           + ct_vp*(np.sin(ct_phi)*np.sin(ct_theta)*np.cos(ct_psi)-np.cos(ct_phi)*np.sin(ct_psi))\
-           + ct_wp*(np.cos(ct_phi)*np.sin(ct_theta)*np.cos(ct_psi)+np.sin(ct_phi)*np.sin(ct_psi))
+    ct_u = ct_up*np.cos(ct_theta)*np.cos(ct_psi) + ct_vp*(np.sin(ct_phi)*np.sin(ct_theta)*np.cos(ct_psi)-np.cos(ct_phi)*np.sin(ct_psi)) + ct_wp*(np.cos(ct_phi)*np.sin(ct_theta)*np.cos(ct_psi)+np.sin(ct_phi)*np.sin(ct_psi))
 
-    ct_v = ct_up*np.cos(ct_theta)*np.sin(ct_psi)\
-           + ct_vp*(np.sin(ct_phi)*np.sin(ct_theta)*np.sin(ct_psi)+np.cos(ct_phi)*np.cos(ct_psi))\
-           + ct_wp*(np.cos(ct_phi)*np.sin(ct_theta)*np.sin(ct_psi)-np.sin(ct_phi)*np.cos(ct_psi))
+    ct_v = ct_up*np.cos(ct_theta)*np.sin(ct_psi) + ct_vp*(np.sin(ct_phi)*np.sin(ct_theta)*np.sin(ct_psi)+np.cos(ct_phi)*np.cos(ct_psi)) + ct_wp*(np.cos(ct_phi)*np.sin(ct_theta)*np.sin(ct_psi)-np.sin(ct_phi)*np.cos(ct_psi))
 
-    ct_w = ct_up*(-np.sin(ct_theta))\
-           + ct_vp*(np.cos(ct_theta)*np.sin(ct_phi))\
-           + ct_wp*(np.cos(ct_theta)*np.cos(ct_phi))
+    ct_w = ct_up*(-np.sin(ct_theta)) + ct_vp*(np.cos(ct_theta)*np.sin(ct_phi)) + ct_wp*(np.cos(ct_theta)*np.cos(ct_phi))
 
     return ct_u, ct_v, ct_w
 
