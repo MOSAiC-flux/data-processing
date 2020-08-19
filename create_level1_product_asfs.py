@@ -49,7 +49,7 @@ code_version = code_version()
 # HOWTO:
 #
 # To run this package with verbose printing over all ofthe data:
-# python3 create_level1_product_asfs.py -v -s 20191005 -e 20201005
+# python3 create_level1_product_asfs.py -v -s 20191005 -e 20201005 -p /psd3data/arctic/MOSAiC/
 #
 # To profile the code and see what's taking so long:
 # python3 -m cProfile -s cumulative ./create_Daily_Tower_NetCDF.py -v -s 20191201 -e 20191201 
@@ -62,7 +62,7 @@ code_version = code_version()
 #
 # look at these files for documentation on netcdf vars and nomenclature
 # as well as additional information on the syntax used to designate certain variables here
-from asfs_data_definitions import define_global_atts
+from asfs_data_definitions import define_global_atts, get_level1_col_headers
 from asfs_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl
@@ -80,6 +80,9 @@ from numpy     import sqrt
 from netCDF4   import Dataset, MFDataset
 
 import warnings; warnings.filterwarnings(action='ignore') # vm python version problems, cleans output....
+
+# just in case... avoids some netcdf nonsense involving the default file locking across mounts
+os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
 
 version_msg = '\n\nPS-122 MOSAiC Flux team ASFS processing code v.'+code_version[0]\
               +', last updates: '+code_version[1]+' by '+code_version[2]+'\n\n'
@@ -102,16 +105,13 @@ def main(): # the main data crunching program
     global verbose       # a useable flag to allow subroutines etc when using -v 
 
     global data_dir, level1_dir
-    data_dir  = './data/'
-    level1_dir = './processed_data/level1/'  # where does level1 data go
 
-    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties
+    flux_stations = ['asfs40']#, 'asfs40', 'asfs50'] # our beauties
     apogee_switch_date = {}
-    apogee_switch_date[flux_stations[0]] = datetime(2019,12,13,11,9,0) # 
-    apogee_switch_date[flux_stations[1]] = datetime(2019,12,13,11,9,0) # 
-    apogee_switch_date[flux_stations[2]] = datetime(2019,11,14,6,11,0) # 
+    apogee_switch_date['asfs30'] = datetime(2019,12,13,11,9,0) # 
+    apogee_switch_date['asfs40'] = datetime(2019,12,13,11,9,0) # 
+    apogee_switch_date['asfs50'] = datetime(2019,11,14,6,11,0) # 
 
-    
     global nan, def_fill_int, def_fill_flt # make using nans look better
     nan = np.NaN
     def_fill_int = -9999
@@ -123,11 +123,15 @@ def main(): # the main data crunching program
     parser.add_argument('-s', '--start_time', metavar='str', help='beginning of processing period, Ymd syntax')
     parser.add_argument('-e', '--end_time', metavar='str', help='end  of processing period, Ymd syntax')
     parser.add_argument('-v', '--verbose', action ='count', help='print verbose log messages')
+    parser.add_argument('-p', '--path', metavar='str', help='base path to data up to, including /data/, include trailing slash')  # pass the base path to make it more mobile
     # add verboseprint function for extra info using verbose flag, ignore these 5 lines if you want
     args         = parser.parse_args()
     verbose      = True if args.verbose else False # use this to run segments of code via v/verbose flag
     v_print      = print if verbose else lambda *a, **k: None     # placeholder
     verboseprint = v_print # use this function to print a line if the -v/--verbose flag is provided
+    
+    data_dir = args.path # /psd3data/arctic/MOSAiC/
+    level1_dir = data_dir #'./processed_data/level1/'  # where does level1 data go
 
     def printline(startline='',endline=''): # make for pretty printing
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -148,12 +152,17 @@ def main(): # the main data crunching program
         end_time = beginning_of_time.today() # any datetime object can provide current time
         end_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
 
-    printline(endline="\n")
-    print('The first day of the experiment is:   %s' % beginning_of_time)
-    print('The first day we process data is:     %s' % start_time)
-    print('The last day we will process data is: %s' % end_time)
-    printline(startline="\n")
 
+    # expand the load by 1 day to facilite gps processing    
+    start_time = start_time-timedelta(1)
+    end_time = end_time+timedelta(1)
+
+    printline(endline="\n")
+    print('The first day of the experiment is:    %s' % beginning_of_time)
+    print('The first day we  process data is:     %s' % str(start_time+timedelta(1)))
+    print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
+    printline()
+    
     # program logic starts here, the logic flow goes like this:
     # #########################################################
     # 
@@ -172,7 +181,6 @@ def main(): # the main data crunching program
     print("Getting data from raw DAQ files from stations: {}!!".format(flux_stations))
     print("   and doing it in threads, hopefully this doesn't burn your lap")
     printline()
-
     # get the "slow" raw data first, heavy lifting is in "get_slow_data()" the slow
     # dataset is "small", so we load it all at once
     # #####################################################################################
@@ -253,7 +261,7 @@ def main(): # the main data crunching program
     # is all done in a loop for each day, and then level1 QC/writing for both slow/fast
     # data is done in that loop.... very annoying but seems the best solution
     # ##############################################################################################
-    day_series = pd.date_range(start_time, end_time)    # data was requested for these days
+    day_series = pd.date_range(start_time+timedelta(1), end_time-timedelta(1)) # data was requested for these days
     day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
 
     printline()
@@ -391,50 +399,53 @@ def main(): # the main data crunching program
     printline()
 
 # pulls in logger text files from sdcard data and returns a dataframe and a list of data attributes (units, etc)
-# q returns the results from a threaded call and is of Queue class
-def get_slow_data(station, start_time, end_time, q): 
-    searchdir = data_dir+station
+# qq returns the results from a threaded call and is of Queue class
+def get_slow_data(station, start_time, end_time, qq): 
+
+    searchdir = data_dir+station+'/0_level_raw/site_visits/'
 
     # look through station subdirectories and only take data file if it's an "SDcard" folder... 
     # returns file path list for all files in all sd card data dirs for this station, i.e. a list of every data file
     card_file_list = get_card_file_list('slow', searchdir) 
     print('... found {} slow files in directory {}'.format(len(card_file_list), searchdir))
-
     frame_list = [] # list of frames from files... to be concatted after loop
     data_atts, data_cols  = define_level1_slow()
 
     # 'cause campbell is.... inconsistent
     na_vals         = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"','']
 
-    licor_columns   = [] # list that will remember the names of licor columns to fill them with nans after pulling in data
     file_i          = -1
     for data_file in card_file_list:
         file_i += 1
         if file_i % 500 == 0 and file_i != 0:  
             verboseprint("... at file {} of {} for slow data in {} ".format(file_i, len(card_file_list), searchdir))
 
-        cols  = list(data_atts.keys()).copy() # stupid python 'pointers'...
-
-        # count the columns in the first line, if less than 89, delete the 8 licor indexes
-        with open(data_file) as f: num_cols = len(f.readline().rsplit(','))
-        if  num_cols == 89: # should be the majority of data files, licor was off, remove licor columns
-            licor_indexes = [int(i) for i, word in enumerate(cols) if word.rfind('licor') >= 0 ]
-            for i in licor_indexes:
-                licor_columns.append(cols[i])
-                del cols[i]
+        # count the columns in the first line and select the col headers out of asfs_data_definitions.py
+        with open(data_file) as ff: 
+            topline = ff.readline().rsplit(',')
+            num_cols = len(topline)
+            if num_cols > 8: # you dont have a header
+                first_time = datetime.strptime(topline[0].strip('"'), '%Y-%m-%d %H:%M:%S')
+            if num_cols == 8: # then the file has a header
+                num_cols = len(ff.readline().rsplit(',')) # so get the right number from the next line
+                first_time = ff.readline().rsplit(',')[3].strip('"')              
+                
+        if num_cols == 99 and station == 'asfs30' and first_time > datetime(2020,4,12,16,22):
+            cver = 1
+        else:
+            cver = 0
+            
+        cols = get_level1_col_headers(num_cols,cver)
 
         frame = pd.read_csv(data_file, parse_dates=[0], sep=',', na_values=na_vals,\
                             index_col=0, engine='c', names=cols)
 
         frame_list.append(frame) 
 
-        if trial and file_i > n_trial_files: # running tests
-            break
-
-    data_frame = pd.concat(frame_list) # is concat computationally efficient?
-
-    # done gathering data, now narrow down to requested window
-    data_frame = data_frame.sort_index()[start_time:end_time]
+    data_frame = pd.concat(frame_list) # is concat computationally efficient?    
+    data_frame = data_frame.sort_index() # sort chronologically    
+    data_frame.drop_duplicates(inplace=True) # get rid of duplicates
+    data_frame = data_frame[start_time:end_time] # done gathering data, now narrow down to requested window
 
     # some sanity checks
     n_dupes = ~data_frame.duplicated().size
@@ -446,10 +457,10 @@ def get_slow_data(station, start_time, end_time, q):
     mins_range = pd.date_range(start_time, end_time, freq='T') # all the minutes today, for obs
     try:
         data_frame = data_frame.reindex(labels=mins_range, copy=False)
-    except Exception as e:
+    except Exception as ee:
         printline()
         print("There was an exception reindexing for {}".format(searchdir))
-        print(' ---> {}'.format(e))
+        print(' ---> {}'.format(ee))
         printline()
         print(data_frame.index[data_frame.index.duplicated()])
         print("...dropping these duplicate indexes... ")
@@ -462,20 +473,19 @@ def get_slow_data(station, start_time, end_time, q):
     # why doesn't the dataframe constructor use the name from cols for the index name??? silly
     data_frame.index.name = data_cols[0]
     
-    # add licor columns with nans so that all files have the same variables:
-    for i,var in enumerate(licor_columns):
-        data_frame[var] = nan
-
+    # now we subtract 1 min from the index so that the times mark the beginning rather than the end of the 1 min avg time, more conventional-like
+    data_frame.index = data_frame.index-pd.Timedelta(1,unit='min')  
+    
     # sort data by time index and return data_frame to queue
-    q.put(data_frame)
+    qq.put(data_frame)
 
 # finds all files for station, returning a list of the timestamps from
 # the first lines of each file and a sorted list of filenames
-def get_fast_file_list(station, q):
+def get_fast_file_list(station, qq):
 
     # look through station subdirectories and only take data file if it's an "SDcard" folder... 
     # returns list of every data file path in sdcard subdirs
-    searchdir          = data_dir+station
+    searchdir          = data_dir+station+'/0_level_raw/site_visits/'
     entire_file_list   = get_card_file_list('fast', searchdir) 
     first_ts_series    = []  # keep the timestamp from first line to concat in the correct order
     unsorted_file_list = []
@@ -520,8 +530,8 @@ def get_fast_file_list(station, q):
     sorted_timestamps = ftss[np.argsort(ftss)]
     sorted_file_list  = ufl[np.argsort(ftss)]
 
-    q.put(sorted_timestamps.tolist())
-    q.put(sorted_file_list.tolist())
+    qq.put(sorted_timestamps.tolist())
+    qq.put(sorted_file_list.tolist())
 
 # gets data for the 20hz metek sonics, complicated because of nuances grabbing fast data
 # via logger this function pulls files into dataframe, sorted based on time of first
@@ -531,7 +541,7 @@ def get_fast_file_list(station, q):
 # ########################################################################################
 # sorry Chris, I hope this function isn't too incomprehensible/ugly. and if it is, then I
 # hope it just_works(tm) and you don't have to touch it.
-def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, q): 
+def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, qq): 
 
     # get data cols/attributes from definitions file
     data_atts, data_cols = define_level1_fast()
@@ -554,7 +564,7 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, q):
 
     if len(inds_to_use) == 0 :
         verboseprint("!!! NO FAST DATA FROM {} FOR DAY {} !!!".format(curr_station, date))
-        q.put(pd.DataFrame(columns=data_cols))
+        qq.put(pd.DataFrame(columns=data_cols))
         return
 
     frame_list  = [] # all the frames created from files from today
@@ -605,32 +615,34 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, q):
     # all done, put the interpolated time column back into complete dataframe and send back to processing
     full_frame["TIMESTAMP"] = np.where(True, return_times, return_times) # np.where is _much_ faster than pandas.. :\
     full_frame.index        = full_frame["TIMESTAMP"]
+    
+    # not quite done. now we subtract 5 sec (length of the scan) from the index so that the times mark the beginning rather than the end
+    full_frame.index = full_frame.index-pd.Timedelta(5,unit='sec')
 
     return_frame = full_frame[date:date+day_delta]
     n_entries    = return_frame.index.size
 
     verboseprint("... {}/1728000 fast entries on {} for {}, representing {}% data coverage"
                  .format(n_entries, date, curr_station, round((n_entries/1728000)*100.,2)))
-    q.put(return_frame)
+    qq.put(return_frame)
 
 # function that searches sitevisit dirs looking for SDcard directory and returns data file paths in a list
 def get_card_file_list(filestr, searchdir): # filestr is the name in the data file you want to get slow/fast/etc
     card_file_list = [] 
     for subdir, dirs, files in os.walk(searchdir):
         for curr_dir in dirs:
-            #if curr_dir.lower() == "20191010_setupcollection/sdcard/": continue
-            if "sdcard" in curr_dir.lower(): # nobody ever types the same way twice...
+            if "sdcard" in curr_dir.lower():
                 card_dir = subdir+'/'+curr_dir
                 card_files_in_dir = []
                 for f in os.listdir(card_dir):
-                    if filestr in f and f.endswith('.dat'):
+                    if filestr in f and f.endswith('.dat') and not f.startswith('._'):
                         card_files_in_dir.append(card_dir+'/'+f)
                 card_file_list.extend(card_files_in_dir) # lets not make a list of lists
     return card_file_list
 
 # do the stuff to write out the level1 files, after finishing this it could probably just be one
 # function that is called separately for fast and slow... : \
-def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_station, date, q):
+def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_station, date, qq):
     l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
 
     # some user feedback into the output
@@ -673,12 +685,12 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     # if there's no data, bale
     if all_missing_fast and all_missing_slow:
         print("!!! no data on day {} for {}, returning from write without writing".format(curr_station, date))
-        q.put(False)
+        qq.put(False)
         return 
 
     print("... writing level1 for {} on {}, ~{}% of slow data is present".format(curr_station, date, 100-avg_missing_slow))
 
-    out_dir       = level1_dir+curr_station+"/"
+    out_dir       = level1_dir+curr_station+"/1_level_ingest_"+curr_station
     file_str_fast = '/fast_preliminary_{}.{}.{}.nc'.format(curr_station,
                                                           l_site_names[curr_station],
                                                           date.strftime('%Y%m%d'))
@@ -831,7 +843,7 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     if fast_data.empty:
         print("... no fast data... deleting file")
         os.remove(lev1_fast_name)
-    q.put(True)
+    qq.put(True)
 
 
 # this runs the function main as the main program... this is a hack that allows functions

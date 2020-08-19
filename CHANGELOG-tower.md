@@ -66,7 +66,10 @@ Added cor_ice_A10 to the functions_library. This is the COARE/SHEBA (Persson/And
 - removed rain rate
 - removed cool skin and hardcoded ice concentration to be 1
 
-
+# Revision 1.0, 8/14/2020 ccox
+This is "version 1" of the quality controlled level 2. Many additions including manual screening, automated screening, naming conventions, wind calculations and metadata, 
+gps processing, ship distance/bearing, and some variable calculations. The turbulent fluxes are still needeing to be set to 10 min and 30 min with additional variablles 
+(covariances) saved and i have removed some wind directions from the mast when the sonic was obviously being rotated in different directions but I don't have notes on this.
 
 
 
