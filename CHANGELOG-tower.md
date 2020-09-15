@@ -71,6 +71,6 @@ This is "version 1" of the quality controlled level 2. Many additions including 
 gps processing, ship distance/bearing, and some variable calculations. The turbulent fluxes are still needeing to be set to 10 min and 30 min with additional variablles 
 (covariances) saved and i have removed some wind directions from the mast when the sonic was obviously being rotated in different directions but I don't have notes on this.
 
-
-
-
+# Revision 1.2. 9/8/2020 ccox (pushed later)
+Updates specifically to tower were reletively few. Some bug fixes. Some Qc. Updates made to functions library. See ASFS changelog for more details. 
+Basically, this is the push for August through mid September by Cox that implemented quality control and "releases" version 1 of level2

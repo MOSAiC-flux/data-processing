@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['1.0', '8/14/2020', 'ccox']
+    cv = ['1.2', '9/8/2020', 'ccox']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -757,7 +757,15 @@ def define_level1_fast():
 
     return lev1_fast_atts, list(lev1_fast_atts.keys()).copy() 
 
-def define_level2_variables():  
+def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
+
+    # these are the installation heights recorded.
+    # it is a nominal height because the surface height changed in time
+    sonic_2m = str(sonic_z[0][0])
+    sonic_6m = str(sonic_z[0][1])
+    sonic_10m = str(sonic_z[0][2])
+    mast_sonic_height = str(mast_sonic_height)
+    licor_z = str(licor_z)  
 
     licor_location = 'first level on met city tower'
     bottom_location_string = 'first level on met city tower'
@@ -775,6 +783,9 @@ def define_level2_variables():
     lev2_atts['mast_lat']                  = {'units'         : 'min'}
     lev2_atts['mast_lon']                  = {'units'         : 'deg'}
     lev2_atts['mast_ice_alt']              = {'units'         : 'm'}
+    lev2_atts['sza_true']                  = {'units'         : 'degrees'}
+    lev2_atts['sza_app']                   = {'units'         : 'degrees'}
+    lev2_atts['azimuth']                   = {'units'         : 'degrees'}
     lev2_atts['ship_bearing']              = {'units'         : 'degrees'}
     lev2_atts['ship_distance']             = {'units'         : 'meters'}
     lev2_atts['sr50_dist']                 = {'units'         : 'meters'}
@@ -823,8 +834,8 @@ def define_level2_variables():
     lev2_atts['temp_variance_metek_6m']    = {'units'         : '(deg C)^2'}
     lev2_atts['temp_variance_metek_10m']   = {'units'         : '(deg C)^2'}
     lev2_atts['temp_variance_metek_mast']  = {'units'         : '(deg C)^2'}
-    lev2_atts['H2O_licor']                 = {'units'         : 'g/kg'}
-    lev2_atts['CO2_licor']                 = {'units'         : 'g/kg'}
+    lev2_atts['H2O_licor']                 = {'units'         : 'mmol/m3'}
+    lev2_atts['CO2_licor']                 = {'units'         : 'mmol/m3'}
     lev2_atts['temp_licor']                = {'units'         : 'deg C'}
     lev2_atts['pr_licor']                  = {'units'         : 'hPa'}
     lev2_atts['u_metek_2m']                = {'units'         : 'm/s'}
@@ -863,186 +874,207 @@ def define_level2_variables():
     
     # add the other important things to the data variable NetCDF attributes
     # #########################################################################################################
-    lev2_atts['tower_lat']                 .update({'long_name'     : 'latitude from gps at the tower',
+    lev2_atts['tower_lat']                  .update({'long_name'    : 'latitude from gps at the tower',
                                                     'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                     'height'        : '1m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_lon']                 .update({'long_name'     :'longitude from gps at the tower',
+    lev2_atts['tower_lon']                  .update({'long_name'    :'longitude from gps at the tower',
                                                     'cf_name'       :'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
-                                                    'height'        : '1m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_heading']             .update({'long_name'     : 'heading from gps at the tower',
+    lev2_atts['tower_heading']              .update({'long_name'    : 'heading from gps at the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
-                                                    'height'        : '1m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_ice_alt']             .update({'long_name'     : 'altitude from gps at the tower corrected to altitude of ice top surface',
+    lev2_atts['tower_ice_alt']              .update({'long_name'    : 'altitude from gps at the tower corrected to altitude of ice top surface',
                                                     'cf_name'       : 'altitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '1m',
+                                                    'height'        : '',
                                                     'location'      : bottom_location_string,})
     
-    lev2_atts['mast_lat']                 .update({'long_name'      : 'latitude from gps at the mast',
+    lev2_atts['mast_lat']                  .update({'long_name'     : 'latitude from gps at the mast',
                                                     'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '0.5m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['mast_lon']                 .update({'long_name'      :'longitude from gps at the mast',
+    lev2_atts['mast_lon']                  .update({'long_name'     :'longitude from gps at the mast',
                                                     'cf_name'       :'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
-                                                    'height'        : '0.5m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['mast_heading']             .update({'long_name'      : 'heading from gps at the mast',
+    lev2_atts['mast_heading']              .update({'long_name'     : 'heading from gps at the mast',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
-                                                    'height'        : '0.5m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
-
+    
     lev2_atts['mast_ice_alt']              .update({'long_name'     : 'altitude from gps at the mast corrected to altitude of ice top surface',
                                                     'cf_name'       : 'altitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '0.5m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})  
+    
+    lev2_atts['sza_true']                  .update({ 'long_name'    : 'true solar zenith angle',
+                                                     'cf_name'      : '',
+                                                     'instrument'   : 'Hemisphere V102',
+                                                     'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
+                                                     'height'       : '2 m',
+                                                    'location'      : bottom_location_string,})
+    
+    lev2_atts['sza_app']                   .update({ 'long_name'    : 'estimated apprarent solar zenith angle due to atmospheric refraction',
+                                                     'cf_name'      : '',
+                                                     'instrument'   : 'Hemisphere V102',
+                                                     'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
+                                                     'height'       : '2 m',
+                                                     'location'     : bottom_location_string,})
+    
+    lev2_atts['azimuth']                   .update({ 'long_name'    : 'apprarent solar azimuth angle',
+                                                     'cf_name'      : '',
+                                                     'instrument'   : 'Hemisphere V102',
+                                                     'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
+                                                     'height'       : '2 m',
+                                                     'location'     : bottom_location_string,})
     
     lev2_atts['ship_bearing']              .update({'long_name'     : 'absolute bearing (rel. to true north) of ship from the position of the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102 & Polarstern Leica GPS',
                                                     'methods'       : '',
-                                                    'height'        : 'N/A',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
     
     lev2_atts['ship_distance']             .update({'long_name'     : 'distance between the ship and the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102 & Polarstern Leica GPS',
                                                     'methods'       : '',
-                                                    'height'        : 'N/A',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})  
 
     lev2_atts['sr50_dist']                 .update({'long_name'     : 'distance to surface from SR50; temperature compensation correction applied',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Campbell Scientific SR50A',
                                                     'methods'       : 'unheated, temperature correction applied',
-                                                    'height'        : '1.75m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_vaisala_2m']           .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_vaisala_6m']           .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['temp_vaisala_10m']          .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_emperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['temp_vaisala_mast']         .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['dewpoint_vaisala_2m']       .update({'long_name'     : 'dewpoint',
                                                     'cf_name'       : 'dew_point_temperature',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['dewpoint_vaisala_6m']       .update({'long_name'     : 'dewpoint',
                                                     'cf_name'       : 'dew_point_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '6m',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['dewpoint_vaisala_10m']       .update({'long_name'     : 'dewpoint',
                                                      'cf_name'       : 'dew_point_temperature',
                                                      'instrument'    : 'Vaisala HMT330',
                                                      'methods'       : 'digitally polled from instument',
-                                                     'height'        : '10m',
+                                                     'height'        : '10 m',
                                                      'location'      : top_location_string,})
 
     lev2_atts['dewpoint_vaisala_mast']     .update({'long_name'     : 'dewpoint',
                                                     'cf_name'       : 'dew_point_temperatre',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '23 or 30m',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['rel_humidity_vaisala_2m']   .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['rel_humidity_vaisala_6m']   .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '6m',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['rel_humidity_vaisala_10m']  .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '10m',
+                                                    'height'        : '1 0m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['rel_humidity_vaisala_mast'] .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : 'variable 23-30m',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['pressure_vaisala_2m']       .update({'long_name'     : 'air pressure at 2m',
                                                     'cf_name'       : 'air_pressure',
                                                     'instrument'    : 'Vaisala PTU 300',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2m',
+                                                    'height'        : '2 m',
                                                     'location'      : mast_location_string,})
 
     lev2_atts['mast_pressure']             .update({'long_name'     : 'air pressure',
                                                     'cf_name'       : 'air_pressure',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : 'variable 23-30m',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['body_T_IRT']                .update({'long_name'     : 'instrument body temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2m',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['surface_T_IRT']             .update({'long_name'     : 'Apogee IRT target 8-14 micron brightness temperature.',
@@ -1063,141 +1095,140 @@ def define_level2_variables():
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hukseflux HFP01',
                                                     'methods'       : 'analog voltage read by CR1000X',
-                                                    'height'        : '',
+                                                    'height'        : 'subsurface, variable',
                                                     'location'      : 'under Apogee and SR50 at tower base',})
 
     lev2_atts['flux_plate_A_Wm2']          .update({'long_name'     : 'conductive flux from plate A',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hukseflux HFP01',
                                                     'methods'       : 'Sensitivity 63.00/1000 [mV/(W/m2)]',
-                                                    'height'        : '',
+                                                    'height'        : 'subsurface, variable',
                                                     'location'      : '10m south of tower at met city',})
 
     lev2_atts['flux_plate_B_Wm2']          .update({'long_name'     : 'conductive flux from plate B',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hukseflux HFP01',
                                                     'methods'       : 'Sensitivity 63.91/1000 [mV/(W/m2)]',
-                                                    'height'        : '',
+                                                    'height'        : 'subsurface, variable',
                                                     'location'      : 'under Apogee and SR50 at tower base',})
-
 
     lev2_atts['snow_depth']                .update({'long_name'     : 'snow depth near tower base',
                                                     'cf_name'       : 'surface_snow_thickness',
                                                     'instrument'    : 'Hukseflux HFP01',
                                                     'methods'       : 'derived snow depth from temperature-corrected SR50 distance values based on initialization 10/27/19. footprint nominally 0.47 m radius.',
-                                                    'height'        : 'N/A',
+                                                    'height'        : '',
                                                     'location'      : 'at base of tower under SR50',})
 
     lev2_atts['MR_vaisala_2m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['MR_vaisala_6m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['MR_vaisala_10m']            .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['MR_vaisala_mast']           .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['RHi_vaisala_2m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['RHi_vaisala_6m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['RHi_vaisala_10m']           .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['RHi_vaisala_mast']          .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['pw_vaisala_2m']             .update({'long_name'     : 'vapor pressure',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['pw_vaisala_6m']             .update({'long_name'     : 'vapor pressure',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['pw_vaisala_10m']            .update({'long_name'     : 'vapor pressure',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['pw_vaisala_mast']           .update({'long_name'     : 'vapor pressure',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['wind_speed_metek_2m']       .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['wind_speed_metek_6m']       .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['wind_speed_metek_10m']      .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['wind_speed_metek_mast']     .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
 
@@ -1205,113 +1236,112 @@ def define_level2_variables():
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['wind_direction_metek_6m']   .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['wind_direction_metek_10m']  .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['wind_direction_metek_mast'] .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
-
 
     lev2_atts['temp_variance_metek_2m']    .update({'long_name'     : 'metek sonic temperature obs variance',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_variance_metek_6m']    .update({'long_name'     : 'metek sonic temperature obs variance',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['temp_variance_metek_10m']   .update({'long_name'     : 'metek sonic temperature obs variance',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['temp_variance_metek_mast']  .update({'long_name'     : 'metek sonic temperature obs variance',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['H2O_licor']                 .update({'long_name'     : 'Licor water vapor mixing ratio',
-                                                    'cf_name'       : 'specific_humidity',
-                                                    'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
-                                                    'height'        : '',
-                                                    'location'      : bottom_location_string,})
-
-    lev2_atts['CO2_licor']                 .update({'long_name'     : 'Licor CO2 mixing ratio',
+    lev2_atts['H2O_licor']                 .update({'long_name'     : 'Licor water vapor molar density',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Licor 7500-DS',
                                                     'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
-                                                    'height'        : '',
+                                                    'height'        : licor_z,
+                                                    'location'      : bottom_location_string,})
+
+    lev2_atts['CO2_licor']                 .update({'long_name'     : 'Licor CO2 gas molar density',
+                                                    'cf_name'       : '',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
+                                                    'height'        : licor_z,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_licor']                .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Licor 7500-DS',
                                                     'methods'       : 'thermistor positioned along strut of open-path optical gas analyzer, source data reported at 20 Hz',
-                                                    'height'        : '',
+                                                    'height'        : licor_z,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['pr_licor']                  .update({'long_name'     : 'Licor pressure',
                                                     'cf_name'       : 'air_pressure',
                                                     'instrument'    : 'Licor 7500-DS',
                                                     'methods'       : 'pressure sensor located in electronics box. source data reported at 20 Hz',
-                                                    'height'        : '1m',
+                                                    'height'        : licor_z,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['u_metek_2m']                .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['u_metek_6m']                .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['u_metek_10m']               .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['u_metek_mast']              .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
 
@@ -1319,28 +1349,28 @@ def define_level2_variables():
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['v_metek_6m']                .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['v_metek_10m']               .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['v_metek_mast']              .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
 
@@ -1348,263 +1378,189 @@ def define_level2_variables():
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['w_metek_6m']                .update({'long_name'     : 'Metek w-component',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['w_metek_10m']               .update({'long_name'     : 'Metek w-component',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['w_metek_mast']              .update({'long_name'     : 'Metek w-component',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['temp_metek_2m']             .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_metek_6m']             .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['temp_metek_10m']            .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['temp_metek_mast']           .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['stddev_u_metek_2m']         .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_v_metek_2m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_w_metek_2m']         .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_T_metek_2m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_u_metek_6m']         .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_v_metek_6m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_w_metek_6m']         .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_T_metek_6m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_u_metek_10m']        .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_v_metek_10m']        .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_w_metek_10m']        .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_T_metek_10m']        .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_u_metek_mast']       .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['stddev_v_metek_mast']       .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['stddev_w_metek_mast']       .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['stddev_T_metek_mast']       .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '',
+                                                    'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['co2_signal_licor']          .update({'long_name'     : 'Licor CO2 signal strength diagnostic',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Licor 7500-DS',
                                                     'methods'       : 'signal strength [0-100%] is a measure of attenuation of the optics (e.g., by salt residue or ice) that applies to both co2 and h2o observations',
-                                                    'height'        : '',
+                                                    'height'        : licor_z,
                                                     'location'      : bottom_location_string,})
-
-
-    # lev2_atts['good_u_2m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek u-component',
-    #                                                'height'        : '',
-    #                                                'location'      : bottom_location_string,})
-    #
-    # lev2_atts['good_v_2m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek v-component',
-    #                                                'height'        : '',
-    #                                                'location'      : bottom_location_string,})
-    #
-    # lev2_atts['good_w_2m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek w-component',
-    #                                                'height'        : '',
-    #                                                'location'      : bottom_location_string,})
-    #
-    # lev2_atts['good_T_2m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek temperatures',
-    #                                                'height'        : '',
-    #                                                'location'      : bottom_location_string,})
-    #
-    # lev2_atts['good_u_6m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek u-component',
-    #                                                'height'        : '',
-    #                                                'location'      : middle_location_string,})
-    #
-    # lev2_atts['good_v_6m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek v-component',
-    #                                                'height'        : '',
-    #                                                'location'      : middle_location_string,})
-    #
-    # lev2_atts['good_w_6m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek w-component',
-    #                                                'height'        : '',
-    #                                                'location'      : middle_location_string,})
-    #
-    # lev2_atts['good_T_6m']                 .update({
-    #                                                'long_name'     : '# of good values for Metek temperatures',
-    #                                                'height'        : '',
-    #                                                'location'      : middle_location_string,})
-    #
-    # lev2_atts['good_u_10m']                .update({
-    #                                                'long_name'     : '# of good values for Metek u-component',
-    #                                                'height'        : '',
-    #                                                'location'      : top_location_string,})
-    #
-    # lev2_atts['good_v_10m']                .update({
-    #                                                'long_name'     : '# of good values for Metek v-component',
-    #                                                'height'        : '',
-    #                                                'location'      : top_location_string,})
-    #
-    # lev2_atts['good_w_10m']                .update({
-    #                                                'long_name'     : '# of good values for Metek w-component',
-    #                                                'height'        : '',
-    #                                                'location'      : top_location_string,})
-    #
-    # lev2_atts['good_T_10m']                .update({
-    #                                                'long_name'     : '# of good values for Metek temperatures',
-    #                                                'height'        : '',
-    #                                                'location'      : top_location_string,})
-    #
-    # lev2_atts['good_u_mast']               .update({
-    #                                                'long_name'     : '# of good values for Metek u-component',
-    #                                                'height'        : '',
-    #                                                'location'      : mast_location_string,})
-    #
-    # lev2_atts['good_v_mast']               .update({
-    #                                                'long_name'     : '# of good values for Metek v-component',
-    #                                                'height'        : '',
-    #                                                'location'      : mast_location_string,})
-    #
-    # lev2_atts['good_w_mast']               .update({
-    #                                                'long_name'     : '# of good values for Metek w-component',
-    #                                                'height'        : '',
-    #                                                'location'      : mast_location_string,})
-    #
-    # lev2_atts['good_T_mast']               .update({
-    #                                                'long_name'     : '# of good values for Metek temperatures',
-    #                                                'height'        : '',
-    #                                                'location'      : mast_location_string,})
-
 
     return lev2_atts, list(lev2_atts.keys()).copy() 
 
-def define_turb_variables():
+def define_turb_variables(sonic_z, mast_sonic_height, licor_z):
 
+    # these are the installation heights recorded.
+    # it is a nominal height because the surface height changed in time
+    sonic_2m = str(sonic_z[0][0])
+    sonic_6m = str(sonic_z[0][1])
+    sonic_10m = str(sonic_z[0][2])
+    mast_sonic_height = str(mast_sonic_height)
+    licor_z = str(licor_z)
+    
     licor_location = 'first level on met city tower'
     bottom_location_string = 'first level on met city tower'
     middle_location_string = 'second level on met city tower'
@@ -1617,42 +1573,26 @@ def define_turb_variables():
     turb_atts['Hs_6m']                     = {'units'         : 'Wm2'}
     turb_atts['Hs_10m']                    = {'units'         : 'Wm2'}
     turb_atts['Hs_mast']                   = {'units'         : 'Wm2'}
-    turb_atts['Hs_hi_2m']                  = {'units'         : 'Wm2'}
-    turb_atts['Hs_hi_6m']                  = {'units'         : 'Wm2'}
-    turb_atts['Hs_hi_10m']                 = {'units'         : 'Wm2'}
-    turb_atts['Hs_hi_mast']                = {'units'         : 'Wm2'}
+    turb_atts['Hl']                        = {'units'         : 'Wm2'}
+    turb_atts['Hl_Webb']                   = {'units'         : 'Wm2'}
+    turb_atts['CO2_flux']                  = {'units'         : 'mg*m^-2*s^-1'}
+    turb_atts['CO2_flux_Webb']             = {'units'         : 'mg*m^-2*s^-1'}
     turb_atts['Cd_2m']                     = {'units'         : 'dimensionless'}
     turb_atts['Cd_6m']                     = {'units'         : 'dimensionless'}
     turb_atts['Cd_10m']                    = {'units'         : 'dimensionless'}
     turb_atts['Cd_mast']                   = {'units'         : 'dimensionless'}
-    turb_atts['Cd_hi_2m']                  = {'units'         : 'dimensionless'}
-    turb_atts['Cd_hi_6m']                  = {'units'         : 'dimensionless'}
-    turb_atts['Cd_hi_10m']                 = {'units'         : 'dimensionless'}
-    turb_atts['Cd_hi_mast']                = {'units'         : 'dimensionless'}
     turb_atts['ustar_2m']                  = {'units'         : 'm/s'}
     turb_atts['ustar_6m']                  = {'units'         : 'm/s'}
     turb_atts['ustar_10m']                 = {'units'         : 'm/s'}
     turb_atts['ustar_mast']                = {'units'         : 'm/s'}
-    turb_atts['ustar_hi_2m']               = {'units'         : 'm/s'}
-    turb_atts['ustar_hi_6m']               = {'units'         : 'm/s'}
-    turb_atts['ustar_hi_10m']              = {'units'         : 'm/s'}
-    turb_atts['ustar_hi_mast']             = {'units'         : 'm/s'}
     turb_atts['Tstar_2m']                  = {'units'         : 'degC'}
     turb_atts['Tstar_6m']                  = {'units'         : 'degC'}
     turb_atts['Tstar_10m']                 = {'units'         : 'degC'}
     turb_atts['Tstar_mast']                = {'units'         : 'degC'}
-    turb_atts['Tstar_hi_2m']               = {'units'         : 'degC'}
-    turb_atts['Tstar_hi_6m']               = {'units'         : 'degC'}
-    turb_atts['Tstar_hi_10m']              = {'units'         : 'degC'}
-    turb_atts['Tstar_hi_mast']             = {'units'         : 'degC'}
     turb_atts['zeta_level_n_2m']           = {'units'         : 'dimensionless'}
     turb_atts['zeta_level_n_6m']           = {'units'         : 'dimensionless'}
     turb_atts['zeta_level_n_10m']          = {'units'         : 'dimensionless'}
     turb_atts['zeta_level_n_mast']         = {'units'         : 'dimensionless'}
-    turb_atts['zeta_level_n_hi_2m']        = {'units'         : 'dimensionless'}
-    turb_atts['zeta_level_n_hi_6m']        = {'units'         : 'dimensionless'}
-    turb_atts['zeta_level_n_hi_10m']       = {'units'         : 'dimensionless'}
-    turb_atts['zeta_level_n_hi_mast']      = {'units'         : 'dimensionless'}
     turb_atts['wu_csp_2m']                 = {'units'         : 'm^2/s^2'}
     turb_atts['wu_csp_6m']                 = {'units'         : 'm^2/s^2'}
     turb_atts['wu_csp_10m']                = {'units'         : 'm^2/s^2'}
@@ -1665,18 +1605,24 @@ def define_turb_variables():
     turb_atts['uv_csp_6m']                 = {'units'         : 'm^2/s^2'}
     turb_atts['uv_csp_10m']                = {'units'         : 'm^2/s^2'}
     turb_atts['uv_csp_mast']               = {'units'         : 'm^2/s^2'}
-    turb_atts['wT_csp_2m']                 = {'units'         : 'degC m/s'}
-    turb_atts['wT_csp_6m']                 = {'units'         : 'degC m/s'}
-    turb_atts['wT_csp_10m']                = {'units'         : 'degC m/s'}
-    turb_atts['wT_csp_mast']               = {'units'         : 'degC m/s'}
-    turb_atts['uT_csp_2m']                 = {'units'         : 'degC m/s'}
-    turb_atts['uT_csp_6m']                 = {'units'         : 'degC m/s'}
-    turb_atts['uT_csp_10m']                = {'units'         : 'degC m/s'}
-    turb_atts['uT_csp_mast']               = {'units'         : 'degC m/s'}
-    turb_atts['vT_csp_2m']                 = {'units'         : 'degC m/s'}
-    turb_atts['vT_csp_6m']                 = {'units'         : 'degC m/s'}
-    turb_atts['vT_csp_10m']                = {'units'         : 'degC m/s'}
-    turb_atts['vT_csp_mast']               = {'units'         : 'degC m/s'}
+    turb_atts['wT_csp_2m']                 = {'units'         : 'degC*m/s'}
+    turb_atts['wT_csp_6m']                 = {'units'         : 'degC*m/s'}
+    turb_atts['wT_csp_10m']                = {'units'         : 'degC*m/s'}
+    turb_atts['wT_csp_mast']               = {'units'         : 'degC*m/s'}
+    turb_atts['uT_csp_2m']                 = {'units'         : 'degC*m/s'}
+    turb_atts['uT_csp_6m']                 = {'units'         : 'degC*m/s'}
+    turb_atts['uT_csp_10m']                = {'units'         : 'degC*m/s'}
+    turb_atts['uT_csp_mast']               = {'units'         : 'degC*m/s'}
+    turb_atts['vT_csp_2m']                 = {'units'         : 'degC*m/s'}
+    turb_atts['vT_csp_6m']                 = {'units'         : 'degC*m/s'}
+    turb_atts['vT_csp_10m']                = {'units'         : 'degC*m/s'}
+    turb_atts['vT_csp_mast']               = {'units'         : 'degC*m/s'}  
+    turb_atts['wq_csp']                    = {'units'         : 'm/s*kg/m3'}
+    turb_atts['uq_csp']                    = {'units'         : 'm/s*kg/m3'}
+    turb_atts['vq_csp']                    = {'units'         : 'm/s*kg/m3'}
+    turb_atts['wc_csp']                    = {'units'         : 'm*s^-1*mg*m^-2*s^-1'}
+    turb_atts['uc_csp']                    = {'units'         : 'm*s^-1*mg*m^-2*s^-1'}
+    turb_atts['vc_csp']                    = {'units'         : 'm*s^-1*mg*m^-2*s^-1'}
     turb_atts['phi_u_2m']                 = {'units'          : 'dimensionless'}
     turb_atts['phi_u_6m']                 = {'units'          : 'dimensionless'}
     turb_atts['phi_u_10m']                = {'units'          : 'dimensionless'}
@@ -1697,26 +1643,6 @@ def define_turb_variables():
     turb_atts['phi_uT_6m']                = {'units'          : 'dimensionless'}
     turb_atts['phi_uT_10m']               = {'units'          : 'dimensionless'}
     turb_atts['phi_uT_mast']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_u_hi_2m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_u_hi_6m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_u_hi_10m']             = {'units'          : 'dimensionless'}
-    turb_atts['phi_u_hi_mast']            = {'units'          : 'dimensionless'}
-    turb_atts['phi_v_hi_2m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_v_hi_6m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_v_hi_10m']             = {'units'          : 'dimensionless'}
-    turb_atts['phi_v_hi_mast']            = {'units'          : 'dimensionless'}
-    turb_atts['phi_w_hi_2m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_w_hi_6m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_w_hi_10m']             = {'units'          : 'dimensionless'}
-    turb_atts['phi_w_hi_mast']            = {'units'          : 'dimensionless'}
-    turb_atts['phi_T_hi_2m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_T_hi_6m']              = {'units'          : 'dimensionless'}
-    turb_atts['phi_T_hi_10m']             = {'units'          : 'dimensionless'}
-    turb_atts['phi_T_hi_mast']            = {'units'          : 'dimensionless'}
-    turb_atts['phi_uT_hi_2m']             = {'units'          : 'dimensionless'}
-    turb_atts['phi_uT_hi_6m']             = {'units'          : 'dimensionless'}
-    turb_atts['phi_uT_hi_10m']            = {'units'          : 'dimensionless'}
-    turb_atts['phi_uT_hi_mast']           = {'units'          : 'dimensionless'}
     turb_atts['epsilon_u_2m']             = {'units'          : 'm^2/s^3'}
     turb_atts['epsilon_u_6m']             = {'units'          : 'm^2/s^3'}
     turb_atts['epsilon_u_10m']            = {'units'          : 'm^2/s^3'}
@@ -1736,11 +1662,25 @@ def define_turb_variables():
     turb_atts['Phi_epsilon_2m']           = {'units'          : 'dimensionless'}
     turb_atts['Phi_epsilon_6m']           = {'units'          : 'dimensionless'}
     turb_atts['Phi_epsilon_10m']          = {'units'          : 'dimensionless'}
-    turb_atts['Phi_epsilon_mast']         = {'units'          : 'dimensionless'}
-    turb_atts['Phi_epsilon_hi_2m']        = {'units'          : 'dimensionless'}
-    turb_atts['Phi_epsilon_hi_6m']        = {'units'          : 'dimensionless'}
-    turb_atts['Phi_epsilon_hi_10m']       = {'units'          : 'dimensionless'}
-    turb_atts['Phi_epsilon_hi_mast']      = {'units'          : 'dimensionless'}
+    turb_atts['Phi_epsilon_mast']         = {'units'          : 'dimensionless'}  
+    turb_atts['nSu_2m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSu_6m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSu_10m']                  = {'units'          : 'Power/Hz'}
+    turb_atts['nSu_mast']                 = {'units'          : 'Power/Hz'}
+    turb_atts['nSv_2m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSv_6m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSv_10m']                  = {'units'          : 'Power/Hz'}
+    turb_atts['nSv_mast']                 = {'units'          : 'Power/Hz'}
+    turb_atts['nSw_2m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSw_6m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSw_10m']                  = {'units'          : 'Power/Hz'}
+    turb_atts['nSw_mast']                 = {'units'          : 'Power/Hz'}
+    turb_atts['nSt_2m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSt_6m']                   = {'units'          : 'Power/Hz'}
+    turb_atts['nSt_10m']                  = {'units'          : 'Power/Hz'}
+    turb_atts['nSt_mast']                 = {'units'          : 'Power/Hz'}
+    turb_atts['nSq']                      = {'units'          : 'Power/Hz'}
+    turb_atts['nSc']                      = {'units'          : 'Power/Hz'}    
     turb_atts['Nt_2m']                    = {'units'          : 'degC^2/s'}
     turb_atts['Nt_6m']                    = {'units'          : 'degC^2/s'}
     turb_atts['Nt_10m']                   = {'units'          : 'degC^2/s'}
@@ -1749,10 +1689,6 @@ def define_turb_variables():
     turb_atts['Phi_Nt_6m']                = {'units'          : 'dimensionless'}
     turb_atts['Phi_Nt_10m']               = {'units'          : 'dimensionless'}
     turb_atts['Phi_Nt_mast']              = {'units'          : 'dimensionless'}
-    turb_atts['Phi_Nt_hi_2m']             = {'units'          : 'dimensionless'}
-    turb_atts['Phi_Nt_hi_6m']             = {'units'          : 'dimensionless'}
-    turb_atts['Phi_Nt_hi_10m']            = {'units'          : 'dimensionless'}
-    turb_atts['Phi_Nt_hi_mast']           = {'units'          : 'dimensionless'}
     turb_atts['Phix_2m']                  = {'units'          : 'deg'}
     turb_atts['Phix_6m']                  = {'units'          : 'deg'}
     turb_atts['Phix_10m']                 = {'units'          : 'deg'}
@@ -1769,6 +1705,8 @@ def define_turb_variables():
     turb_atts['DeltaT_6m']                = {'units'          : 'degC'}
     turb_atts['DeltaT_10m']               = {'units'          : 'degC'}
     turb_atts['DeltaT_mast']              = {'units'          : 'degC'}
+    turb_atts['Deltaq']                   = {'units'          : 'mg/m3'}
+    turb_atts['Deltac']                   = {'units'          : 'unitless'}
     turb_atts['Kurt_u_2m']                = {'units'          : 'unitless'}
     turb_atts['Kurt_u_6m']                = {'units'          : 'unitless'}
     turb_atts['Kurt_u_10m']               = {'units'          : 'unitless'}
@@ -1785,6 +1723,8 @@ def define_turb_variables():
     turb_atts['Kurt_T_6m']                = {'units'          : 'unitless'}
     turb_atts['Kurt_T_10m']               = {'units'          : 'unitless'}
     turb_atts['Kurt_T_mast']              = {'units'          : 'unitless'}
+    turb_atts['Kurt_q']                   = {'units'          : 'unitless'}
+    turb_atts['Kurt_c']                   = {'units'          : 'unitless'}
     turb_atts['Kurt_uw_2m']               = {'units'          : 'unitless'}
     turb_atts['Kurt_uw_6m']               = {'units'          : 'unitless'}
     turb_atts['Kurt_uw_10m']              = {'units'          : 'unitless'}
@@ -1797,10 +1737,14 @@ def define_turb_variables():
     turb_atts['Kurt_wT_6m']               = {'units'          : 'unitless'}
     turb_atts['Kurt_wT_10m']              = {'units'          : 'unitless'}
     turb_atts['Kurt_wT_mast']             = {'units'          : 'unitless'}
+    turb_atts['Kurt_wq']                  = {'units'          : 'unitless'}
+    turb_atts['Kurt_wc']                  = {'units'          : 'unitless'}
     turb_atts['Kurt_uT_2m']               = {'units'          : 'unitless'}
     turb_atts['Kurt_uT_6m']               = {'units'          : 'unitless'}
     turb_atts['Kurt_uT_10m']              = {'units'          : 'unitless'}
     turb_atts['Kurt_uT_mast']             = {'units'          : 'unitless'}
+    turb_atts['Kurt_uq']                  = {'units'          : 'unitless'}
+    turb_atts['Kurt_uc']                  = {'units'          : 'unitless'}
     turb_atts['Skew_u_2m']                = {'units'          : 'unitless'}
     turb_atts['Skew_u_6m']                = {'units'          : 'unitless'}
     turb_atts['Skew_u_10m']               = {'units'          : 'unitless'}
@@ -1817,6 +1761,8 @@ def define_turb_variables():
     turb_atts['Skew_T_6m']                = {'units'          : 'unitless'}
     turb_atts['Skew_T_10m']               = {'units'          : 'unitless'}
     turb_atts['Skew_T_mast']              = {'units'          : 'unitless'}
+    turb_atts['Skew_q']                   = {'units'          : 'unitless'}
+    turb_atts['Skew_c']                   = {'units'          : 'unitless'}
     turb_atts['Skew_uw_2m']               = {'units'          : 'unitless'}
     turb_atts['Skew_uw_6m']               = {'units'          : 'unitless'}
     turb_atts['Skew_uw_10m']              = {'units'          : 'unitless'}
@@ -1829,12 +1775,66 @@ def define_turb_variables():
     turb_atts['Skew_wT_6m']               = {'units'          : 'unitless'}
     turb_atts['Skew_wT_10m']              = {'units'          : 'unitless'}
     turb_atts['Skew_wT_mast']             = {'units'          : 'unitless'}
+    turb_atts['Skew_wq']                  = {'units'          : 'unitless'}
+    turb_atts['Skew_wc']                  = {'units'          : 'unitless'}
     turb_atts['Skew_uT_2m']               = {'units'          : 'unitless'}
     turb_atts['Skew_uT_6m']               = {'units'          : 'unitless'}
     turb_atts['Skew_uT_10m']              = {'units'          : 'unitless'}
     turb_atts['Skew_uT_mast']             = {'units'          : 'unitless'}  
+    turb_atts['Skew_uq']                  = {'units'          : 'unitless'}
+    turb_atts['Skew_uc']                  = {'units'          : 'unitless'}
+    turb_atts['fs']                       = {'units'          : 'Hz'}
+    turb_atts['sus_2m']                   = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sus_6m']                   = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sus_10m']                  = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sus_mast']                 = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['svs_2m']                   = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['svs_6m']                   = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['svs_10m']                  = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['svs_mast']                 = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sws_2m']                   = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sws_6m']                   = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sws_10m']                  = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sws_mast']                 = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['sTs_2m']                   = {'units'          : 'degC^2/Hz'}
+    turb_atts['sTs_6m']                   = {'units'          : 'degC^2/Hz'}
+    turb_atts['sTs_10m']                  = {'units'          : 'degC^2/Hz'}
+    turb_atts['sTs_mast']                 = {'units'          : 'degC^2/Hz'}
+    turb_atts['sqs']                      = {'units'          : '(kg/m3)/hz'}
+    turb_atts['scs']                      = {'units'          : '(mg m^-2 s^-1)^2/Hz'}
+    turb_atts['cwus_2m']                  = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cwus_6m']                  = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cwus_10m']                 = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cwus_mast']                = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cwvs_2m']                  = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cwvs_6m']                  = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cwvs_10m']                 = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cwvs_mast']                = {'units'          : '(m/s)^2/Hz'}
+    turb_atts['cuvs_2m']                  = {'units'          : '(m/s)^2/Hz'}  
+    turb_atts['cuvs_6m']                  = {'units'          : '(m/s)^2/Hz'} 
+    turb_atts['cuvs_10m']                 = {'units'          : '(m/s)^2/Hz'} 
+    turb_atts['cuvs_mast']                = {'units'          : '(m/s)^2/Hz'} 
+    turb_atts['cwTs_2m']                  = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cwTs_6m']                  = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cwTs_10m']                 = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cwTs_mast']                = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cuTs_2m']                  = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cuTs_6m']                  = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cuTs_10m']                 = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cuTs_mast']                = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cvTs_2m']                  = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cvTs_6m']                  = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cvTs_10m']                 = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cvTs_mast']                = {'units'          : '(m/s*degC)/Hz'}
+    turb_atts['cwqs']                     = {'units'          : '(m/s*kg/m3)/Hz'}
+    turb_atts['cuqs']                     = {'units'          : '(m/s*kg/m3)/Hz'}
+    turb_atts['cvqs']                     = {'units'          : '(m/s*kg/m3)/Hz'}  
+    turb_atts['cwcs']                     = {'units'          : '(m/s*mg*m^-2*s^-1)/Hz'}
+    turb_atts['cucs']                     = {'units'          : '(m/s*mg*m^-2*s^-1)/Hz'}
+    turb_atts['cvcs']                     = {'units'          : '(m/s*mg*m^-2*s^-1)/Hz'}  
     turb_atts['bulk_Hs_10m']              = {'units'          : 'Wm2'}
     turb_atts['bulk_Hl_10m']              = {'units'          : 'Wm2'}
+    turb_atts['bulk_Hl_Webb_10m']         = {'units'          : 'Wm2'}  
     turb_atts['bulk_tau']                 = {'units'          : 'Pa'}
     turb_atts['bulk_z0']                  = {'units'          : 'm'}
     turb_atts['bulk_z0t']                 = {'units'          : 'm'}
@@ -1843,9 +1843,8 @@ def define_turb_variables():
     turb_atts['bulk_ustar']               = {'units'          : 'm/s'}
     turb_atts['bulk_tstar']               = {'units'          : 'K'}
     turb_atts['bulk_qstar']               = {'units'          : 'kg/kg'}
-    turb_atts['bulk_dter']                = {'units'          : ''}
-    turb_atts['bulk_dqer']                = {'units'          : ''}
-    turb_atts['bulk_Hl_Webb_10m']         = {'units'          : 'Wm2'}    
+    turb_atts['bulk_dter']                = {'units'          : 'degC'}
+    turb_atts['bulk_dqer']                = {'units'          : 'kg/kg'}  
     turb_atts['bulk_Cd_10m']              = {'units'          : 'unitless'}
     turb_atts['bulk_Ch_10m']              = {'units'          : 'unitless'}                                  
     turb_atts['bulk_Ce_10m']              = {'units'          : 'unitless'}
@@ -1867,1270 +1866,1475 @@ def define_turb_variables():
                                                'cf_name'       : 'upward_sensible_heat_flux_in_air',
                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Hs_6m']                .update({'long_name'     : 'sensible heat flux',
                                                'cf_name'       : 'upward_sensible_heat_flux_in_air',
                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Hs_10m']               .update({'long_name'     : 'sensible heat flux',
                                                'cf_name'       : 'upward_sensible_heat_flux_in_air',
                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Hs_mast']              .update({'long_name'     : 'sensible heat flux',
                                                'cf_name'       : 'upward_sensible_heat_flux_in_air',
                                                'instrument'    : 'Metek USA-1 sonic anemometer',
                                                'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
-
-    turb_atts['Hs_hi_2m']             .update({'long_name'     : 'sensible heat flux calculated by eddy covariance, using sonic temperature, based on the high-frequency part of the cospectrum',
-                                               'cf_name'       : 'upward_sensible_heat_flux_in_air',
-                                               'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the high-frequency part of th wT-covariance spectrum',
-                                               'height'        : '',
+    
+    turb_atts['Hl']                   .update({'long_name'     : 'latent heat flux',
+                                               'cf_name'       : 'upward_latent_heat_flux_in_air',
+                                               'instrument'    : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
+                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                               'height'        : licor_z,
                                                'location'      : bottom_location_string,})
 
-    turb_atts['Hs_hi_6m']             .update({'long_name'     : 'sensible heat flux calculated by eddy covariance, using sonic temperature, based on the high-frequency part of the cospectrum',
-                                               'cf_name'       : 'upward_sensible_heat_flux_in_air',
-                                               'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the high-frequency part of th wT-covariance spectrum',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['Hs_hi_10m']            .update({'long_name'     : 'sensible heat flux calculated by eddy covariance, using sonic temperature, based on the high-frequency part of the cospectrum',
-                                               'cf_name'       : 'upward_sensible_heat_flux_in_air',
-                                               'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the high-frequency part of th wT-covariance spectrum',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-    turb_atts['Hs_hi_mast']           .update({'long_name'     : 'sensible heat flux calculated by eddy covariance, using sonic temperature, based on the high-frequency part of the cospectrum',
-                                               'cf_name'       : 'upward_sensible_heat_flux_in_air',
-                                               'instrument'    : 'Metek USA-1 sonic anemometer',
-                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the high-frequency part of th wT-covariance spectrum',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
+    turb_atts['Hl_Webb']              .update({'long_name'     : 'Webb density correction for the latent heat flux',
+                                               'cf_name'       : 'upward_latent_heat_flux_in_air',
+                                               'instrument'    : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
+                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['CO2_flux']             .update({'long_name'     : 'co2 mass flux',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
+                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+       
+    turb_atts['CO2_flux_Webb']        .update({'long_name'     : 'Webb density correction for the co2 mass flux',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
+                                               'methods'       : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+        
     turb_atts['Cd_2m']                .update({'long_name'     : 'Drag coefficient based on the momentum flux, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Cd_6m']                .update({'long_name'     : 'Drag coefficient based on the momentum flux, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Cd_10m']               .update({'long_name'     : 'Drag coefficient based on the momentum flux, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Cd_mast']              .update({'long_name'     : 'Drag coefficient based on the momentum flux, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['Cd_hi_2m']             .update({'long_name'     : 'Drag coefficient based on the high-frequency part of the momentum flux, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['Cd_hi_6m']             .update({'long_name'     : 'Drag coefficient based on the high-frequency part of the momentum flux, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['Cd_hi_10m']            .update({'long_name'     : 'Drag coefficient based on the high-frequency part of the momentum flux, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['Cd_hi_mast']           .update({'long_name'     : 'Drag coefficient based on the high-frequency part of the momentum flux, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['ustar_2m']             .update({'long_name'     : 'friction velocity (based only on the downstream, uw, stress components)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['ustar_6m']             .update({'long_name'     : 'friction velocity (based only on the downstream, uw, stress components)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['ustar_10m']            .update({'long_name'     : 'friction velocity (based only on the downstream, uw, stress components)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['ustar_mast']           .update({'long_name'     : 'friction velocity (based only on the downstream, uw, stress components)',
                                                'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['ustar_hi_2m']          .update({'long_name'     : 'friction velocity (based only on the high-frequency part of downstream, uw, stress components)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['ustar_hi_6m']          .update({'long_name'     : 'friction velocity (based only on the high-frequency part of downstream, uw, stress components)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['ustar_hi_10m']         .update({'long_name'     : 'friction velocity (based only on the high-frequency part of downstream, uw, stress components)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['ustar_hi_mast']        .update({'long_name'     : 'friction velocity (based only on the high-frequency part of downstream, uw, stress components)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Tstar_2m']             .update({'long_name'     : 'temperature scale',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Tstar_6m']             .update({'long_name'     : 'temperature scale',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Tstar_10m']            .update({'long_name'     : 'temperature scale',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Tstar_mast']           .update({'long_name'     : 'temperature scale',
                                                'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['Tstar_hi_2m']          .update({'long_name'     : 'temperature scale (based only on the high-frequency part of the turbulent fluxes)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['Tstar_hi_6m']          .update({'long_name'     : 'temperature scale (based only on the high-frequency part of the turbulent fluxes)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['Tstar_hi_10m']         .update({'long_name'     : 'ftemperature scale (based only on the high-frequency part of the turbulent fluxes)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['Tstar_hi_mast']        .update({'long_name'     : 'temperature scale (based only on the high-frequency part of the turbulent fluxes)',
-                                               'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['zeta_level_n_2m']      .update({'long_name'     : 'Monin-Obukhov stability parameter, z/L, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['zeta_level_n_6m']      .update({'long_name'     : 'Monin-Obukhov stability parameter, z/L, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['zeta_level_n_10m']     .update({'long_name'     : 'Monin-Obukhov stability parameter, z/L, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['zeta_level_n_mast']    .update({'long_name'     : 'Monin-Obukhov stability parameter, z/L, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['zeta_level_n_hi_2m']   .update({'long_name'     : 'Monin-Obukhov stability parameter based on the high-frequency part of the turbulent fluxes, z/L_hi, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['zeta_level_n_hi_6m']   .update({'long_name'     : 'Monin-Obukhov stability parameter based on the high-frequency part of the turbulent fluxes, z/L_hi, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['zeta_level_n_hi_10m']  .update({'long_name'     : 'Monin-Obukhov stability parameter based on the high-frequency part of the turbulent fluxes, z/L_hi, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['zeta_level_n_hi_mast'] .update({'long_name'     : 'Monin-Obukhov stability parameter based on the high-frequency part of the turbulent fluxes, z/L_hi, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['wu_csp_2m']            .update({'long_name'     : 'wu-covariance based on the wu-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['wu_csp_6m']            .update({'long_name'     : 'wu-covariance based on the wu-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['wu_csp_10m']           .update({'long_name'     : 'wu-covariance based on the wu-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['wu_csp_mast']          .update({'long_name'     : 'wu-covariance based on the wu-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['wv_csp_2m']            .update({'long_name'     : 'wv-covariance based on the wv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['wv_csp_6m']            .update({'long_name'     : 'wv-covariance based on the wv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['wv_csp_10m']           .update({'long_name'     : 'wv-covariance based on the wv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['wv_csp_mast']          .update({'long_name'     : 'wv-covariance based on the wv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['uv_csp_2m']            .update({'long_name'     : 'uv-covariance based on the uv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['uv_csp_6m']            .update({'long_name'     : 'uv-covariance based on the uv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['uv_csp_10m']           .update({'long_name'     : 'uv-covariance based on the uv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['uv_csp_mast']          .update({'long_name'     : 'uv-covariance based on the uv-cospectra integration',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['wT_csp_2m']            .update({'long_name'     : 'wT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['wT_csp_6m']            .update({'long_name'     : 'wT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['wT_csp_10m']           .update({'long_name'     : 'wT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['wT_csp_mast']          .update({'long_name'     : 'wT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+
+    turb_atts['wq_csp']               .update({'long_name'     : 'wq-covariance, vertical flux of q',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['wc_csp']               .update({'long_name'     : 'wc-covariance, vertical flux of co2',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['uT_csp_2m']            .update({'long_name'     : 'uT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['uT_csp_6m']            .update({'long_name'     : 'uT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['uT_csp_10m']           .update({'long_name'     : 'uT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['uT_csp_mast']          .update({'long_name'     : 'uT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['uq_csp']               .update({'long_name'     : 'uq-covariance, vertical flux of q',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['uc_csp']               .update({'long_name'     : 'uc-covariance, vertical flux of c02',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['vT_csp_2m']            .update({'long_name'     : 'vT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['vT_csp_6m']            .update({'long_name'     : 'vT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['vT_csp_10m']           .update({'long_name'     : 'vT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['vT_csp_mast']          .update({'long_name'     : 'vT-covariance, vertical flux of the sonic temperature',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['vq_csp']               .update({'long_name'     : 'vq-covariance, vertical flux q',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['vc_csp']               .update({'long_name'     : 'vc-covariance, vertical flux c',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['phi_u_2m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['phi_u_6m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['phi_u_10m']            .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['phi_u_mast']           .update({'long_name'     : 'MO universal function for the standard deviations, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['phi_v_2m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['phi_v_6m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['phi_v_10m']            .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['phi_v_mast']           .update({'long_name'     : 'MO universal function for the standard deviations, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['phi_w_2m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['phi_w_6m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['phi_w_10m']            .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['phi_w_mast']           .update({'long_name'     : 'MO universal function for the standard deviations, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['phi_T_2m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['phi_T_6m']             .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['phi_T_10m']            .update({'long_name'     : 'MO universal function for the standard deviations, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['phi_T_mast']           .update({'long_name'     : 'MO universal function for the standard deviations, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['phi_uT_2m']            .update({'long_name'     : 'MO universal function for the horizontal heat flux, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['phi_uT_6m']            .update({'long_name'     : 'MO universal function for the horizontal heat flux, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['phi_uT_10m']           .update({'long_name'     : 'MO universal function for the horizontal heat flux, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['phi_uT_mast']          .update({'long_name'     : 'MO universal function for the horizontal heat flux, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['phi_u_hi_2m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['phi_u_hi_6m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['phi_u_hi_10m']         .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['phi_u_hi_mast']        .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['phi_v_hi_2m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['phi_v_hi_6m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['phi_v_hi_10m']         .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['phi_v_hi_mast']        .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['phi_w_hi_2m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['phi_w_hi_6m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['phi_w_hi_10m']         .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['phi_w_hi_mast']        .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['phi_T_hi_2m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['phi_T_hi_6m']          .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['phi_T_hi_10m']         .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['phi_T_hi_mast']        .update({'long_name'     : 'MO universal function for the standard deviations based on the high-frequency part of the turbulent fluxes, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['phi_uT_hi_2m']         .update({'long_name'     : 'MO universal function for the horizontal heat flux based on the high-frequency part of the turbulent fluxesx, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['phi_uT_hi_6m']         .update({'long_name'     : 'MO universal function for the horizontal heat flux based on the high-frequency part of the turbulent fluxes, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['phi_uT_hi_10m']        .update({'long_name'     : 'MO universal function for the horizontal heat flux based on the high-frequency part of the turbulent fluxes, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['phi_uT_hi_mast']       .update({'long_name'     : 'MO universal function for the horizontal heat flux based on the high-frequency part of the turbulent fluxes, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['epsilon_u_2m']         .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['epsilon_u_6m']         .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['epsilon_u_10m']        .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['epsilon_u_mast']       .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['epsilon_v_2m']         .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['epsilon_v_6m']         .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['epsilon_v_10m']        .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['epsilon_v_mast']       .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['epsilon_w_2m']         .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['epsilon_w_6m']         .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['epsilon_w_10m']        .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['epsilon_w_mast']       .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['epsilon_2m']           .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['epsilon_6m']           .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['epsilon_10m']          .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['epsilon_mast']         .update({'long_name'     : 'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Phi_epsilon_2m']       .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Phi_epsilon_6m']       .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Phi_epsilon_10m']      .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Phi_epsilon_mast']     .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
-
-    turb_atts['Phi_epsilon_hi_2m']    .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon based on the high-frequency part of the momentum flux, calculated from 2 m',
+   
+    turb_atts['nSu_2m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of u',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
-
-    turb_atts['Phi_epsilon_hi_6m']    .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon based on the high-frequency part of the momentum flux, calculated from 6 m',
+    
+    turb_atts['nSu_6m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of u',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
-
-    turb_atts['Phi_epsilon_hi_10m']   .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon based on the high-frequency part of the momentum flux, calculated from 10 m',
+    
+    turb_atts['nSu_10m']              .update({'long_name'     : 'Median spectral slope in the inertial subrange of u',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
-
-    turb_atts['Phi_epsilon_hi_mast']  .update({'long_name'     : 'Monin-Obukhov universal function Phi_epsilon based on the median epsilon based on the high-frequency part of the momentum flux, calculated from the mast',
+    
+    turb_atts['nSu_mast']             .update({'long_name'     : 'Median spectral slope in the inertial subrange of u',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
+    turb_atts['nSv_2m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of v',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['nSv_6m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of v',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,})
+    
+    turb_atts['nSv_10m']              .update({'long_name'     : 'Median spectral slope in the inertial subrange of v',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,})
+    
+    turb_atts['nSv_mast']             .update({'long_name'     : 'Median spectral slope in the inertial subrange of v',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,})
+
+    turb_atts['nSw_2m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of w',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['nSw_6m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of w',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,})
+    
+    turb_atts['nSw_10m']              .update({'long_name'     : 'Median spectral slope in the inertial subrange of w',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,})
+    
+    turb_atts['nSw_mast']             .update({'long_name'     : 'Median spectral slope in the inertial subrange of w',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,})
+    
+    turb_atts['nSt_2m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of sonic temperature',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['nSt_6m']               .update({'long_name'     : 'Median spectral slope in the inertial subrange of sonic temperature',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,})
+    
+    turb_atts['nSt_10m']              .update({'long_name'     : 'Median spectral slope in the inertial subrange of sonic temperature',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,})
+    
+    turb_atts['nSt_mast']             .update({'long_name'     : 'Median spectral slope in the inertial subrange of sonic temperature',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,})
+
+    turb_atts['nSq']                  .update({'long_name'     : 'Median spectral slope in the inertial subrange of q',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,})
+    
+    turb_atts['nSc']                  .update({'long_name'     : 'Median spectral slope in the inertial subrange of co2',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,})
+    
     turb_atts['Nt_2m']                .update({'long_name'     : 'The dissipation (destruction) rate for half the temperature variance',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Nt_6m']                .update({'long_name'     : 'The dissipation (destruction) rate for half the temperature variance',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Nt_10m']               .update({'long_name'     : 'The dissipation (destruction) rate for half the temperature variance',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Nt_mast']              .update({'long_name'     : 'The dissipation (destruction) rate for half the temperature variance',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Phi_Nt_2m']            .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt, calculated from 2 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Phi_Nt_6m']            .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt, calculated from 6 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Phi_Nt_10m']           .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt, calculated from 10 m',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Phi_Nt_mast']          .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt, calculated from the mast',
                                                'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : mast_location_string,})
-
-    turb_atts['Phi_Nt_hi_2m']         .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt based on the high-frequency part of the turbulent fluxes, calculated from 2 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : bottom_location_string,})
-
-    turb_atts['Phi_Nt_hi_6m']         .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt based on the high-frequency part of the turbulent fluxes, calculated from 6 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : middle_location_string,})
-
-    turb_atts['Phi_Nt_hi_10m']        .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt based on the high-frequency part of the turbulent fluxes, calculated from 10 m',
-                                               'cf_name'       : '',
-                                               'height'        : '',
-                                               'location'      : top_location_string,})
-
-    turb_atts['Phi_Nt_hi_mast']       .update({'long_name'     : 'Monin-Obukhov universal function Phi_Nt based on the high-frequency part of the turbulent fluxes, calculated from the mast',
-                                               'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Phix_2m']              .update({'long_name'     : 'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Phix_6m']              .update({'long_name'     : 'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Phix_10m']             .update({'long_name'     : 'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Phix_mast']            .update({'long_name'     : 'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['DeltaU_2m']            .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['DeltaU_6m']            .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['DeltaU_10m']           .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['DeltaU_mast']          .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['DeltaV_2m']            .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['DeltaV_6m']            .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['DeltaV_10m']           .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['DeltaV_mast']          .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['DeltaT_2m']            .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['DeltaT_6m']            .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['DeltaT_10m']           .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['DeltaT_mast']          .update({'long_name'     : 'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['Deltaq']               .update({'long_name'     : 'Stationarity diagnostic: Steadiness of q (trend)',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['Deltac']               .update({'long_name'     : 'Stationarity diagnostic: Steadiness of co2 (trend)',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['Kurt_u_2m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_u_6m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_u_10m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_u_mast']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Kurt_v_2m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_v_6m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_v_10m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_v_mast']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Kurt_w_2m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_w_6m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_w_10m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_w_mast']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Kurt_T_2m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_T_6m']            .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_T_10m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_T_mast']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['Kurt_q']               .update({'long_name'     : 'Kurtosis',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['Kurt_c']               .update({'long_name'     : 'Kurtosis',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['Kurt_uw_2m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_uw_6m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_uw_10m']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_uw_mast']         .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Kurt_vw_2m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_vw_6m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_vw_10m']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_vw_mast']         .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Kurt_wT_2m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_wT_6m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_wT_10m']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_wT_mast']         .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['Kurt_wq']              .update({'long_name'     : 'Kurtosis',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+        
+    turb_atts['Kurt_wc']              .update({'long_name'     : 'Kurtosis',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['Kurt_uT_2m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Kurt_uT_6m']           .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Kurt_uT_10m']          .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Kurt_uT_mast']         .update({'long_name'     : 'Kurtosis',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['Kurt_uq']              .update({'long_name'     : 'Kurtosis',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['Kurt_uc']              .update({'long_name'     : 'Kurtosis',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['Skew_u_2m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_u_6m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_u_10m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_u_mast']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Skew_v_2m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_v_6m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_v_10m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_v_mast']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Skew_w_2m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_w_6m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_w_10m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_w_mast']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Skew_T_2m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_T_6m']            .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_T_10m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_T_mast']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
+    turb_atts['Skew_q']               .update({'long_name'     : 'Skewness',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['Skew_c']               .update({'long_name'     : 'Skewness',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
     turb_atts['Skew_uw_2m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_uw_6m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_uw_10m']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_uw_mast']         .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Skew_vw_2m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_vw_6m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_vw_10m']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_vw_mast']         .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
 
     turb_atts['Skew_wT_2m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_wT_6m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_wT_10m']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_wT_mast']         .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['Skew_wq']              .update({'long_name'     : 'Skewness',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
+    
+    turb_atts['Skew_wc']              .update({'long_name'     : 'Skewness',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : bottom_location_string,})
 
     turb_atts['Skew_uT_2m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_2m,
                                                'location'      : bottom_location_string,})
 
     turb_atts['Skew_uT_6m']           .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_6m,
                                                'location'      : middle_location_string,})
 
     turb_atts['Skew_uT_10m']          .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : sonic_10m,
                                                'location'      : top_location_string,})
 
     turb_atts['Skew_uT_mast']         .update({'long_name'     : 'Skewness',
                                                'cf_name'       : '',
-                                               'height'        : '',
+                                               'height'        : mast_sonic_height,
                                                'location'      : mast_location_string,})
+    
+    turb_atts['fs']                   .update({'long_name'     : 'frequency',
+                                               'cf_name'       : '',
+                                               'height'        : 'n/a',
+                                               'location'      : bottom_location_string,})
+ 
+    turb_atts['sus_2m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,})
+
+    turb_atts['sus_6m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,})    
+    
+    turb_atts['sus_10m']              .update({'long_name'     : 'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+
+    turb_atts['sus_mast']             .update({'long_name'     : 'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,})         
+ 
+    turb_atts['svs_2m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,})
+
+    turb_atts['svs_6m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,})    
+    
+    turb_atts['svs_10m']              .update({'long_name'     : 'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+
+    turb_atts['svs_mast']             .update({'long_name'     : 'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,})  
+    
+    turb_atts['sws_2m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,})
+
+    turb_atts['sws_6m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,})    
+    
+    turb_atts['sws_10m']              .update({'long_name'     : 'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+
+    turb_atts['sws_mast']             .update({'long_name'     : 'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,})  
+
+    turb_atts['sTs_2m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,})
+
+    turb_atts['sTs_6m']               .update({'long_name'     : 'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,})    
+    
+    turb_atts['sTs_10m']              .update({'long_name'     : 'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+
+    turb_atts['sTs_mast']             .update({'long_name'     : 'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,})  
+
+    turb_atts['sqs']                  .update({'long_name'     : 'smoothed power spectral density (Welch) of q on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,})
+    
+    turb_atts['scs']                  .update({'long_name'     : 'smoothed power spectral density (Welch) of co2 on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,})
+    
+    turb_atts['cwus_2m']              .update({'long_name'     : 'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,}) 
+    
+    turb_atts['cwus_6m']              .update({'long_name'     : 'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,}) 
+    
+    turb_atts['cwus_10m']             .update({'long_name'     : 'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+    
+    turb_atts['cwus_mast']            .update({'long_name'     : 'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,}) 
+
+    turb_atts['cwvs_2m']              .update({'long_name'     : 'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,}) 
+    
+    turb_atts['cwvs_6m']              .update({'long_name'     : 'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,}) 
+    
+    turb_atts['cwvs_10m']             .update({'long_name'     : 'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+    
+    turb_atts['cwvs_mast']            .update({'long_name'     : 'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,}) 
+    
+    turb_atts['cuvs_2m']              .update({'long_name'     : 'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,}) 
+    
+    turb_atts['cuvs_6m']              .update({'long_name'     : 'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,}) 
+    
+    turb_atts['cuvs_10m']             .update({'long_name'     : 'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+    
+    turb_atts['cuvs_mast']            .update({'long_name'     : 'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,}) 
+
+    turb_atts['cwTs_2m']              .update({'long_name'     : 'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,}) 
+    
+    turb_atts['cwTs_6m']              .update({'long_name'     : 'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,}) 
+    
+    turb_atts['cwTs_10m']             .update({'long_name'     : 'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+    
+    turb_atts['cwTs_mast']            .update({'long_name'     : 'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,}) 
+
+    turb_atts['cuTs_2m']              .update({'long_name'     : 'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,}) 
+    
+    turb_atts['cuTs_6m']              .update({'long_name'     : 'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,}) 
+    
+    turb_atts['cuTs_10m']             .update({'long_name'     : 'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+    
+    turb_atts['cuTs_mast']            .update({'long_name'     : 'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,}) 
+
+    turb_atts['cvTs_2m']              .update({'long_name'     : 'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_2m,
+                                               'location'      : bottom_location_string,}) 
+    
+    turb_atts['cvTs_6m']              .update({'long_name'     : 'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_6m,
+                                               'location'      : middle_location_string,}) 
+    
+    turb_atts['cvTs_10m']             .update({'long_name'     : 'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : sonic_10m,
+                                               'location'      : top_location_string,}) 
+    
+    turb_atts['cvTs_mast']            .update({'long_name'     : 'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : mast_sonic_height,
+                                               'location'      : mast_location_string,}) 
+    
+    turb_atts['cwqs']                 .update({'long_name'     : 'smoothed co-spectral density between w wind vector and q on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,}) 
+    
+    turb_atts['cuqs']                 .update({'long_name'     : 'smoothed co-spectral density between u wind vector and q on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,}) 
+    
+    turb_atts['cvqs']                 .update({'long_name'     : 'smoothed co-spectral density between v wind vector and q on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,})     
+    
+    turb_atts['cwcs']                 .update({'long_name'     : 'smoothed co-spectral density between w wind vector and co2 on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,}) 
+    
+    turb_atts['cucs']                 .update({'long_name'     : 'smoothed co-spectral density between u wind vector and co2 on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,}) 
+    
+    turb_atts['cvcs']                 .update({'long_name'     : 'smoothed co-spectral density between v wind vector and co2 on frequency, fs',
+                                               'cf_name'       : '',
+                                               'height'        : licor_z,
+                                               'location'      : licor_location,})   
 
     turb_atts['bulk_Hs_10m']          .update({'long_name'     : 'sensible heat flux',
                                                'cf_name'       : 'upward_sensible_heat_flux_in_air',
                                                'instrument'    : 'various',
                                                'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                               'height'        : '10m',
+                                               'height'        : '10 m',
                                                'location'      : top_location_string,})
     
     turb_atts['bulk_Hl_10m']          .update({'long_name'     : 'latent heat flux',
                                                'cf_name'       : 'upward_latent_heat_flux_in_air',
                                                'instrument'    : 'various',
                                                'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                               'height'        : '10m',
+                                               'height'        : '10 m',
                                                'location'      : top_location_string,})
     
-    turb_atts['bulk_tau']            .update({'long_name'      : 'stress',
+    turb_atts['bulk_Hl_Webb_10m']     .update({'long_name'     : 'lWebb density correction for the latent heat flux',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm, Webb et al. (1980) https://doi.org/10.1002/qj.49710644707',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})   
+    
+    turb_atts['bulk_tau']            .update({'long_name'      : 'wind stress',
                                                'cf_name'       : '',
                                                'instrument'    : 'various',
                                                'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                               'height'        : '10m',
+                                               'height'        : '10 m',
                                                'location'      : top_location_string,})
     
     turb_atts['bulk_z0']             .update({'long_name'      : 'roughness length',
                                                'cf_name'       : '',
                                                'instrument'    : 'various',
                                                'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                               'height'        : 'n/a',
+                                               'height'        : '10 m',
                                                'location'      : top_location_string,})
 
     turb_atts['bulk_z0t']            .update({'long_name'      : 'roughness length, temperature',
                                                'cf_name'       : '',
                                                'instrument'    : 'various',
                                                'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                               'height'        : 'n/a',
+                                               'height'        : '10 m',
                                                'location'      : top_location_string,})
 
     turb_atts['bulk_z0q']            .update({'long_name'      : 'roughness length, humidity',
                                                'cf_name'       : '',
                                                'instrument'    : 'various',
                                                'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                               'height'        : 'n/a',
+                                               'height'        : '10 m',
                                                'location'      : top_location_string,})
     
-    turb_atts['bulk_L']             .update({'long_name'      : 'Obukhov length',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : 'n/a',
-                                              'location'      : top_location_string,})       
+    turb_atts['bulk_L']              .update({'long_name'      : 'Obukhov length',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})       
         
-    turb_atts['bulk_ustar']        .update({'long_name'       : 'friction velocity (sqrt(momentum flux)), ustar',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : 'n/a',
-                                              'location'      : top_location_string,})   
+    turb_atts['bulk_ustar']         .update({'long_name'       : 'friction velocity (sqrt(momentum flux)), ustar',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})   
 
-    turb_atts['bulk_tstar']        .update({'long_name'       : 'temperature scale, tstar',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : 'n/a',
-                                              'location'      : top_location_string,})   
+    turb_atts['bulk_tstar']         .update({'long_name'       : 'temperature scale, tstar',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})   
 
-    turb_atts['bulk_qstar']        .update({'long_name'       : 'specific humidity scale, qstar ',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : 'n/a',
-                                              'location'      : top_location_string,})       
+    turb_atts['bulk_qstar']         .update({'long_name'       : 'specific humidity scale, qstar ',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})       
     
-    turb_atts['bulk_dter']         .update({'long_name'       : 'diagnostic',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : 'n/a',
-                                              'location'      : top_location_string,})            
+    turb_atts['bulk_dter']          .update({'long_name'       : 'cool skin temperature difference',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})            
 
-    turb_atts['bulk_dqer']         .update({'long_name'       : 'diagnostic',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : 'n/a',
-                                              'location'      : top_location_string,})         
+    turb_atts['bulk_dqer']          .update({'long_name'       : 'cool skin q difference',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})         
 
-    turb_atts['bulk_Hl_Webb_10m']  .update({'long_name'       : 'latent heat flux, Webb density correction applied',
-                                              'cf_name'       : 'upward_latent_heat_flux_in_air',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm, Webb et al. (1980) https://doi.org/10.1002/qj.49710644707',
-                                              'height'        : 'n/a',
-                                              'location'      : top_location_string,})   
+    turb_atts['bulk_Cd_10m']        .update({'long_name'       : 'transfer coefficient for stress',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})   
 
-    turb_atts['bulk_Cd_10m']       .update({'long_name'       : 'transfer coefficient for stress',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '10m',
-                                              'location'      : top_location_string,})   
+    turb_atts['bulk_Ch_10m']        .update({'long_name'       : 'transfer coefficient for Hs',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})
 
+    turb_atts['bulk_Ce_10m']        .update({'long_name'       : 'transfer coefficient for Hl',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})   
 
-    turb_atts['bulk_Ch_10m']       .update({'long_name'       : 'transfer coefficient for Hs',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '10m',
-                                              'location'      : top_location_string,})
+    turb_atts['bulk_Cdn_10m']       .update({'long_name'       : '10 m neutral transfer coefficient for stress',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})       
 
-    turb_atts['bulk_Ce_10m']       .update({'long_name'       : 'transfer coefficient for Hl',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '10m',
-                                              'location'      : top_location_string,})   
+    turb_atts['bulk_Chn_10m']       .update({'long_name'       : '10 m neutral transfer coefficient for Hs',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})       
 
-    turb_atts['bulk_Cdn_10m']      .update({'long_name'       : '10 m neutral transfer coefficient for stress',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '10m',
-                                              'location'      : top_location_string,})       
+    turb_atts['bulk_Cen_10m']       .update({'long_name'       : '10 m neutral transfer coefficient for Hl',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})       
 
-    turb_atts['bulk_Chn_10m']      .update({'long_name'       : '10 m neutral transfer coefficient for Hs',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '10m',
-                                              'location'      : top_location_string,})       
-
-    turb_atts['bulk_Cen_10m']      .update({'long_name'       : '10 m neutral transfer coefficient for Hl',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '10m',
-                                              'location'      : top_location_string,})       
-
-    turb_atts['bulk_Rr']           .update({'long_name'       : 'Reynolds number',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '',
-                                              'location'      : top_location_string,})      
+    turb_atts['bulk_Rr']            .update({'long_name'       : 'roughness Reynolds number for velocity',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})      
     
-    turb_atts['bulk_Rt']           .update({'long_name'       : '',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '',
-                                              'location'      : top_location_string,})   
+    turb_atts['bulk_Rt']            .update({'long_name'       : 'roughness Reynolds number for temperature',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})   
 
-    turb_atts['bulk_Rq']           .update({'long_name'       : '',
-                                              'cf_name'       : '',
-                                              'instrument'    : 'various',
-                                              'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                              'height'        : '',
-                                              'location'      : top_location_string,})   
+    turb_atts['bulk_Rq']            .update({'long_name'       : 'roughness Reylnolds numbe for humidityr',
+                                               'cf_name'       : '',
+                                               'instrument'    : 'various',
+                                               'methods'       : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
+                                               'height'        : '10 m',
+                                               'location'      : top_location_string,})   
 
     return turb_atts, list(turb_atts.keys()).copy() 

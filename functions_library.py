@@ -36,7 +36,7 @@ def despike(spikey_panda, thresh, filterlen, medfill):
     if medfill == 'yes': # fill with median
         spikey_panda[spikes_i] = tmp
     elif medfill == 'no': # fill with nan
-        spikey_panda[spikes_i] = nan
+        spikey_panda[spikes_i] = np.nan
     else: # just return bad indices
         spikey_panda = spikes_i
     return spikey_panda
@@ -387,8 +387,8 @@ def despik(uraw):
     return uu
 
 # maybe this goes in a different file?
-def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
-
+def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, mr, verbose=False):
+   
     # define the verbose print option
     v_print      = print if verbose else lambda *a, **k: None
     verboseprint = v_print
@@ -400,72 +400,145 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     sfreq     = 1/samp_freq
     nx        = samp_freq*(1800-1)
 
+    if np.isnan(mr): mr = 0 # if we don't have a value, just assume dry air. it's a formality anyhow.
+    if np.isnan(temp): temp = metek['T'].mean()
+    if np.isnan(pr): pr = 1013 # Andrey's nominal value
+        
+    #++++++++++++++++++++++++ Important constants and equations ++++++++++++++++++++++++++++++++
+    # !!! temperature in deg C
+    tdk   = 273.15                                                      # C->K
+    Rd    = 287.1                                                       # [J/(kg K)] universal gas constant
+    Rv    = 461                                                         # [J/(kg K)] gas constant, water vapor
+    pp_wv = mr / (mr + 0.622) * pr*100                                  # [Pa] partial prssure from water vapor             
+    rho_d = ((pr*100)-pp_wv)/(Rd*(temp+tdk))                            # [kg/m3] density of dry air
+    rho_v = pp_wv/(Rv*(temp+tdk))                                       # [kg/m3] desity of water vapor 
+    rho   = rho_d + rho_v                                               # [kg/m3] total density of the mosit air #rho = pr*100/(Rgas*(temp+tdk)*(1+0.61e-3*mr)) 
+    sigma = rho_v/rho_d                                                 # [unitless] rho_v/rho_dry                                  
+    cp    = 1005.6+0.017211*temp+0.000392*temp**2                       # [J/(kg K)] isobaric specific heat of air (median), (from Ed Andreas)
+    Le    = (2.501-.00237*temp)*1e6                                     # [J/kg] latent heat of vaporization
+    visa  = 1.326e-5*(1+6.542e-3*temp+8.301e-6*temp**2-4.84e-9*temp**3) # [m^2/s] molecular viscosity from TOGA CORE bulk algorithm
+    kt    = (0.02411*(1+0.003309*temp-1.441e-6*temp**2))/(rho*cp)       # [m^2/s] coefficient of molecular thermal diffusivity (from Ed Andreas)
+    M_h2o = 18.01528/1000                                               # [kg/mol] molar mass, water 
+    M_co2 = 44.01/1000                                                  # [kg/mol] molar mass, co2
+
+    
     # this should subset to 30 min and loop. get to it later.
     U   = metek['u']
     V   = metek['v']
     W   = metek['w']
     T   = metek['T']
+    
+    # get the gases into the right units
+    if 'g/m3' in h2ounit:
+        Q = licor['licor_h2o']/1000 # kg/m3
+    elif 'mmol/m3' in h2ounit:
+        Q = licor['licor_h2o']/1000 * M_h2o # mmol/m3 -> mol/m^3 -> kg/m3
+        
+    if 'mg/m3' in co2unit:
+         C = licor['licor_co2']      # mg/m3
+    elif 'mmol/m3' in co2unit:
+         C = (licor['licor_co2']/1000 * M_co2)*1e6 # mmol/m3 -> mol/m_3 -> kg/m3 -> mg/m3
+    
+    #H = H * Rgas*(T+tdk)/(pr*100) # gas density to mixing ratio
+    Q = Q / (Q + rho) # to specfic humidity
     npt = len(U)
-
+    
     # Goodness, there are going to be a lot of things to save. Lets package it up.
     turbulence_data = pd.DataFrame(columns=[\
     'Hs', # sensible heat flux (W/m2) - Based on the sonic temperature!!!
-    'Hs_hi',   # sensible heat flux (sonic temperature!) based on the high-frequency part of the cospectrum(W/m2)
+    'Hl', # Latent heat flux
+    'Hl_Webb', # latent heat flux (W/m2), Webb correction applied
+    'CO2_flux', # co2 flux in mg m-2 s-1
+    'CO2_flux_Webb', # co2 flux (W/m2) in mg m-2 s-1, Webb correction applied
     'Cd', # Drag coefficient, Cd
-    'Cd_hi', # Drag coefficient based on the high-frequency part of the momentum flux, Cd_hi:
     'ustar',  # the friction velocity based only on the downstream, uw,  stress components (m/s)
-    'ustar_hi', # friction velocity based on the high-frequency part of downstream, uw_hi,  stress components (m/s)
     'Tstar', # the temperature scale
-    'Tstar_hi', # the temperature scale based on the high-frequency part of the turbulent fluxes
     'zeta_level_n', # Monin-Obukhov stability parameter, z/L
-    'zeta_level_n_hi', # Monin-Obukhov stability parameter based on the high-frequency part of the turbulent fluxes, z/L_hi
     'wu_csp', # wu-covariance based on the wu-cospectra integration
     'wv_csp', # wv-covariance based on the wv-cospectra integration
     'uv_csp', # uv-covariance based on the uv-cospectra integration
     'wT_csp', # wt-covariance, vertical flux of the sonic temperature  [deg m/s]
     'uT_csp', # ut-covariance, horizontal flux of the sonic temperature (along-wind component) [deg m/s]
     'vT_csp', # vt-covariance, horizontal flux of the sonic temperature (cross-wind component) [deg m/s]
+    'wq_csp', # wt-covariance, vertical flux of vapor  [kg/m3 m/s]
+    'uq_csp', # ut-covariance, horizontal flux of vapor (along-wind component) [kg/m3 m/s]
+    'vq_csp', # vt-covariance, horizontal flux of co2 (cross-wind component) [kg/m3 m/s]
+    'wc_csp', # wt-covariance, vertical flux of co2  [mg m-2 s-1 m/s]
+    'uc_csp', # ut-covariance, horizontal flux of co2 (along-wind component) [mg m-2 s-1 deg m/s]
+    'vc_csp', # vt-covariance, horizontal flux of vapor (cross-wind component) [mg m-2 s-1 m/s]
     'phi_u',  # MO universal functions for the standard deviations
     'phi_v',  # MO universal functions for the standard deviations
     'phi_w',  # MO universal functions for the standard deviations
     'phi_T',  # MO universal functions for the standard deviations
     'phi_uT', # MO universal function for the horizontal heat flux
-    'phi_u_hi', # MO universal functions for the standard deviations based on the high-frequency part of the turbulent fluxes
-    'phi_v_hi', # MO universal functions for the standard deviations based on the high-frequency part of the turbulent fluxes
-    'phi_w_hi', # MO universal functions for the standard deviations based on the high-frequency part of the turbulent fluxes
-    'phi_T_hi', # MO universal functions for the standard deviations based on the high-frequency part of the turbulent fluxes
-    'phi_uT_hi', # MO universal function for the horizontal heat flux based on the high-frequency part of the turbulent fluxes
     'epsilon_u',  # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the longitudinal velocity component in the inertial subrange [m^2/s^3]:
     'epsilon_v', # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the lateral velocity component in the inertial subrange [m^2/s^3]:
     'epsilon_w', # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the vertical velocity component in the inertial subrange [m^2/s^3]:
     'epsilon',  # Dissipation rate of the turbulent kinetic energy = median of the values derived from Su, Sv, & Sw [m^2/s^3]:
     'Phi_epsilon',  # Monin-Obukhov universal function Phi_epsilon based on the median epsilon:
-    'Phi_epsilon_hi', # Monin-Obukhov universal function Phi_epsilon based on the median epsilon based on the high-frequency part of the momentum flux:
+    'nSu', # inertial subrange slope
+    'nSv', # inertial subrange slope
+    'nSw', # inertial subrange slope
+    'nSt', # inertial subrange slope
+    'nSq', # inertial subrange slope
+    'nSc', # inertial subrange slope
     'Nt', # The dissipation (destruction) rate for half the temperature variance [deg^2/s]
     'Phi_Nt', # Monin-Obukhov universal function Phi_Nt
-    'Phi_Nt_hi', # Monin-Obukhov universal function Phi_Nt based on the high-frequency part of the turbulent fluxes
     'Phix',     # QC: Angle of attack
     'DeltaU',   # QC: Non-Stationarity
     'DeltaV',   # QC: Non-Stationarity
-    'DeltaT',   # QC: Non-Stationarity
+    'DeltaT',   # QC: Non-Stationarity  
+    'Deltaq',   # QC: Non-Stationarity 
+    'Deltac',   # QC: Non-Stationarity 
     'Kurt_u',   # QC: Kurtosis
     'Kurt_v',   # QC: Kurtosis
     'Kurt_w',   # QC: Kurtosis
     'Kurt_T',   # QC: Kurtosis
+    'Kurt_q',   # QC: Kurtosis
+    'Kurt_c',   # QC: Kurtosis
     'Kurt_uw',  # QC: Kurtosis
     'Kurt_vw',  # QC: Kurtosis
     'Kurt_wT',  # QC: Kurtosis
     'Kurt_uT',  # QC: Kurtosis
+    'Kurt_wq',  # QC: Kurtosis
+    'Kurt_uq',  # QC: Kurtosis
+    'Kurt_wc',  # QC: Kurtosis
+    'Kurt_uc',  # QC: Kurtosis
     'Skew_u',   # QC: Skewness
     'Skew_v',   # QC: Skewness
     'Skew_w',   # QC: Skewness
     'Skew_T',   # QC: Skewness
+    'Skew_q',   # QC: Skewness
+    'Skew_c',   # QC: Skewness
     'Skew_uw',  # QC: Skewness
     'Skew_vw',  # QC: Skewness
     'Skew_wT',  # QC: Skewness
-    'Skew_uT']) # QC: Skewness
+    'Skew_uT',  # QC: Skewness 
+    'Skew_wq',  # QC: Skewness
+    'Skew_uq',  # QC: Skewness 
+    'Skew_wc',  # QC: Skewness
+    'Skew_uc',  # QC: Skewness 
+    'sus',      # Variance spectrum
+    'svs',      # Variacne spectrum
+    'sws',      # Variance spectrum
+    'sTs',      # Variance spectrum
+    'sqs',      # Variance spectrum
+    'scs',      # Variance spectrum
+    'cwus',     # Cospectrum
+    'cwvs',     # Cospectrum
+    'cwTs',     # Cospectrum
+    'cuTs',     # Cospectrum
+    'cvTs',     # Cospectrum
+    'cwqs',     # Cospectrum
+    'cuqs',     # Cospectrum
+    'cvqs',     # Cospectrum
+    'cwcs',     # Cospectrum
+    'cucs',     # Cospectrum
+    'cvcs',     # Cospectrum
+    'cuvs',     # Cospectrum
+    'fs'])      # Frequency vector
     
-    # Sanity check: Reject the half hour series if it is too short, less than 2^13 = 8192 points = 13.6 min @ 10 Hz
+    # Sanity check: Reject series if it is too short, less than 2^13 = 8192 points = 13.6 min @ 10 Hz
     if npt < 8192:
         verboseprint('  No valid data for sonic at height (np<8192) '+np.str(z_level_n))
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
@@ -473,7 +546,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
         turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
         #print(turbulence_data)
         turbulence_data.columns = turbulence_data.keys
-        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}]) 
+        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])  
         return turbulence_data
 
     # Reject the series of more than 50% of u- or v- or w-wind speed component are nan
@@ -482,11 +555,18 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
         turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
         turbulence_data.columns = turbulence_data.keys
-        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])
+        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])       
         return turbulence_data
         verboseprint('  No valid data for sonic at height (>50% missing)  '+np.str(z_level_n))
-
-
+        
+    # Specical case for Licor. If the licor has inssufficient data, we still want to run the code for Hs so we will
+    # set licor to -9999 so that nan-sensitive operations can complete then return it to nan at the end of the code
+    licor_missing = 0 # assume licor data is suffcient
+    if sum(Q.isna()) > npt/2:
+        Q[:] = -9999.
+        C[:] = -9999.        
+        licor_missing = 1
+        
     #verboseprint('  Calculating sonic at height '+np.str(z_level_n)+' m and heading '+np.str(np.round(sonic_dir,decimals=1))+' deg...')
 
     # Replace missing values (NaN) or inf using mean values:
@@ -495,17 +575,23 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     V[np.isinf(V)] = nan
     W[np.isinf(W)] = nan
     T[np.isinf(T)] = nan
+    Q[np.isinf(Q)] = nan
+    C[np.isnan(C)] = nan
 
     U = U.fillna(U.mean())
     V = V.fillna(V.mean())
     W = W.fillna(W.mean())
     T = T.fillna(T.mean())
+    Q = Q.fillna(Q.mean())
+    C = C.fillna(C.mean())
 
     # Computes means for entire time block (1 hr or less)
     um = U.mean()
     vm = V.mean()
     wm = W.mean()
     Tm = T.mean()
+    Qm = Q.mean()
+    Cm = C.mean()
 
     # there was one day for asfs30 (10/06/2019) where this was true and so wsp divisions were undefined
     if um == 0 and vm ==0 and wm ==0: #half hour of _zero_ wind? has to be bad data
@@ -535,15 +621,6 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     rot[2,1] = -1*np.sin(phi)*np.sin(thet)
     rot[2,2] = np.cos(phi)
 
-    # the original matlab code is written in a loop like so, but this can be
-    # very slow so I've vectorized it below. The differences in the approach
-    # agree to exactly
-    # for i in range(npt):
-    #     x=np.array([U[i],V[i],W[i]])
-    #     xr=np.dot(rot,np.transpose(x))
-    #     U[i]=xr[0]
-    #     V[i]=xr[1]
-    #     W[i]=xr[2]
     x=np.array([U,V,W])
     xr=np.dot(rot,x)
     U = xr[0,:]
@@ -581,6 +658,8 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     vs = V[0:nf]
     ws = W[0:nf]
     Ts = T[0:nf]
+    qs = Q[0:nf]
+    cs = C[0:nf]
     wdirs = wdirr[0:nf]
          
     # Means for FFT segment (Note that they differ from hourly means, see above):
@@ -588,6 +667,8 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     vsm = vs.mean()
     wsm = ws.mean()
     Tsm = Ts.mean()
+    qsm = qs.mean()
+    csm = cs.mean()
     wdirsm = wdirs.mean()
 
     # >>> Perform Fast Fourier Transform (FFT) to compute power spectra and cospectra:
@@ -597,16 +678,25 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     F,sv = signal.welch(vs-vsm,10,signal.windows.hamming(nf),detrend='linear')
     F,sw = signal.welch(ws-wsm,10,signal.windows.hamming(nf),detrend='linear')
     F,sT = signal.welch(Ts-Tsm,10,signal.windows.hamming(nf),detrend='linear')
+    F,sq = signal.welch(qs-qsm,10,signal.windows.hamming(nf),detrend='linear')
+    F,sc = signal.welch(cs-csm,10,signal.windows.hamming(nf),detrend='linear')
            
     F,swu = signal.csd(ws-wsm,us-usm,10,signal.windows.hamming(nf),detrend='linear')   # (csd = Cross Spectral Density)
     F,swv = signal.csd(ws-wsm,vs-vsm,10,signal.windows.hamming(nf),detrend='linear')
     F,swT = signal.csd(ws-wsm,Ts-Tsm,10,signal.windows.hamming(nf),detrend='linear')
+    F,swq = signal.csd(ws-wsm,qs-qsm,10,signal.windows.hamming(nf),detrend='linear')
+    F,swc = signal.csd(ws-wsm,cs-csm,10,signal.windows.hamming(nf),detrend='linear')
             
     # In addition to Chris' original code, computation of CuT, CvT, and Cuv are added by AG
     # Cospectra CuT & CvT are associated with the horizontal heat flux
     F,suT = signal.csd(us-usm,Ts-Tsm,10,signal.windows.hamming(nf),detrend='linear')
     F,svT = signal.csd(vs-vsm,Ts-Tsm,10,signal.windows.hamming(nf),detrend='linear')
     F,suv = signal.csd(us-usm,vs-vsm,10,signal.windows.hamming(nf),detrend='linear')
+    F,suq = signal.csd(us-usm,qs-qsm,10,signal.windows.hamming(nf),detrend='linear')
+    F,svq = signal.csd(vs-vsm,qs-qsm,10,signal.windows.hamming(nf),detrend='linear')
+    F,suc = signal.csd(us-usm,cs-csm,10,signal.windows.hamming(nf),detrend='linear')
+    F,svc = signal.csd(vs-vsm,cs-csm,10,signal.windows.hamming(nf),detrend='linear')
+    
 
     # Also spectrum of wind speed direction is added (AG)
     F,swdir = signal.welch(wdirs-wdirsm,10,signal.windows.hamming(nf),detrend='linear')
@@ -614,7 +704,6 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
 
 
     # Spectra smoothing
-
     nfd2 = nf/2
     c1   = 0.1
     jx   = 0
@@ -626,11 +715,19 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     svs    = np.zeros(int(nfd2), dtype=complex)
     sws    = np.zeros(int(nfd2), dtype=complex)
     sTs    = np.zeros(int(nfd2), dtype=complex)
+    sqs    = np.zeros(int(nfd2), dtype=complex)
+    scs    = np.zeros(int(nfd2), dtype=complex)
     cwus   = np.zeros(int(nfd2), dtype=complex)
     cwvs   = np.zeros(int(nfd2), dtype=complex)
     cwTs   = np.zeros(int(nfd2), dtype=complex)
     cuTs   = np.zeros(int(nfd2), dtype=complex)
     cvTs   = np.zeros(int(nfd2), dtype=complex)
+    cwqs   = np.zeros(int(nfd2), dtype=complex)
+    cuqs   = np.zeros(int(nfd2), dtype=complex)
+    cvqs   = np.zeros(int(nfd2), dtype=complex)
+    cwcs   = np.zeros(int(nfd2), dtype=complex)
+    cucs   = np.zeros(int(nfd2), dtype=complex)
+    cvcs   = np.zeros(int(nfd2), dtype=complex)
     cuvs   = np.zeros(int(nfd2), dtype=complex)
     swdirs = np.zeros(int(nfd2), dtype=complex)
     fs     = np.zeros(int(nfd2), dtype=complex)
@@ -643,11 +740,19 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
         acv    = 0
         acw    = 0
         acT    = 0
+        acq    = 0
+        acc    = 0
         acwu   = 0
         acwv   = 0
         acwT   = 0
         acuT   = 0
         acvT   = 0
+        acwq   = 0
+        acuq   = 0
+        acvq   = 0
+        acwc   = 0
+        acuc   = 0
+        acvc   = 0
         acuv   = 0
         acwdir = 0
         ac2    = 0
@@ -659,11 +764,19 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
             acv    = acv+sv[jx]
             acw    = acw+sw[jx]
             acT    = acT+sT[jx]
+            acq    = acq+sq[jx]
+            acc    = acc+sc[jx]
             acwu   = acwu+swu[jx]
             acwv   = acwv+swv[jx]
             acwT   = acwT+swT[jx]
             acuT   = acuT+suT[jx]
             acvT   = acvT+svT[jx]
+            acwq   = acwq+swq[jx]
+            acuq   = acuq+suq[jx]
+            acvq   = acvq+svq[jx]
+            acwc   = acwc+swc[jx]
+            acuc   = acuc+suc[jx]
+            acvc   = acvc+svc[jx]
             acuv   = acuv+suv[jx]
             acwdir = acwdir+swdir[jx]
             ac2    = ac2+F[jx]
@@ -673,11 +786,19 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
         svs[inx] = acv/k   
         sws[inx] = acw/k   
         sTs[inx] = acT/k   
+        sqs[inx] = acq/k 
+        scs[inx] = acc/k 
         cwus[inx] = acwu/k 
         cwvs[inx] = acwv/k
         cwTs[inx] = acwT/k
         cuTs[inx] = acuT/k
         cvTs[inx] = acvT/k
+        cwqs[inx] = acwq/k
+        cuqs[inx] = acuq/k
+        cvqs[inx] = acvq/k
+        cwcs[inx] = acwc/k
+        cucs[inx] = acuc/k
+        cvcs[inx] = acvc/k
         cuvs[inx] = acuv/k
         swdirs[inx]=acwdir/k
         fs[inx]=ac2/k
@@ -689,11 +810,19 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     svs = svs[0:inx]
     sws = sws[0:inx]
     sTs = sTs[0:inx]
+    sqs = sqs[0:inx]
+    scs = scs[0:inx]
     cwus = cwus[0:inx]
     cwvs = cwvs[0:inx]
     cwTs = cwTs[0:inx]
     cuTs = cuTs[0:inx]
     cvTs = cvTs[0:inx]
+    cwqs = cwqs[0:inx]
+    cuqs = cuqs[0:inx]
+    cvqs = cvqs[0:inx]
+    cwcs = cwcs[0:inx]
+    cucs = cucs[0:inx]
+    cvcs = cvcs[0:inx]
     cuvs = cuvs[0:inx]
     swdirs = swdirs[0:inx]
     fs = fs[0:inx]
@@ -704,28 +833,23 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     svs    = np.real(svs)
     sws    = np.real(sws)
     sTs    = np.real(sTs)
+    sqs    = np.real(sqs)
+    scs    = np.real(scs)
     cwus   = np.real(cwus)
     cwvs   = np.real(cwvs)
     cwTs   = np.real(cwTs)
     cuTs   = np.real(cuTs)
     cvTs   = np.real(cvTs)
+    cwqs   = np.real(cwqs)
+    cuqs   = np.real(cuqs)
+    cvqs   = np.real(cvqs)
+    cwcs   = np.real(cwcs)
+    cucs   = np.real(cucs)
+    cvcs   = np.real(cvcs)
     cuvs   = np.real(cuvs)
     swdirs = np.real(swdirs)
     fs     = np.real(fs)
     dfs    = np.real(dfs)
-
-    #++++++++++++++++++++++++ Important constants and equations ++++++++++++++++++++++++++++++++
-    # !!! Tsm - temperature in deg C
-    tdk   = 273.15                                 # absolute zero
-    Rgas  = 287.1                                  # universal gas constant, J/(kg K)
-    sigma = 5.67e-8                                # Stefan-Boltzman constant, W/(m^2 K^4)
-    pr    = 1013                                   # air pressure (mb) when no pressure measurements
-    qo    = 0                                      # air humidity when no humidity measurements
-    rho   = pr*100/(Rgas*(Tsm+tdk)*(1+0.61e-3*qo)) # density of air derived from ideal gas equation, kg/m^3
-    cp    = 1005.6+0.017211*Tsm+0.000392*Tsm*Tsm   # isobaric specific heat of air (median), J/(kg K), (from Ed Andreas)
-    Le    = (2.501-.00237*Tsm)*1e6                 # latent heat of vaporization, J/kg
-    visa  = 1.326e-5*(1+6.542e-3*Tsm+8.301e-6*Tsm*Tsm-4.84e-9*Tsm*Tsm*Tsm) # m^2/s, molecular viscosity from TOGA CORE bulk algorithm
-    kt = (0.02411*(1+0.003309*Tsm-1.441e-6*Tsm*Tsm))/(rho*cp) # m^2/s, koefficient of molecular thermal diffusivity (from Ed Andreas)
 
     #+++++++++++++++++++++++++++++ Wind speed and direction ++++++++++++++++++++++++++++++++++++
     wsp = (um**2 + vm**2 + wm**2)**0.5       # hour averaged wind speed (m/s)
@@ -734,16 +858,6 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     # Convert wind direction range to [0 360] segment:
     if (wdir < 0):
         wdir = wdir + 360
-
-    # All directions for wind and stress here are calculated using the meteorological convention ('from').
-    # All directions are relatively true (Geographic) North, not magnetic North!
-
-    # For true wind direction add a true orientation of a sonic anemometer:
-    truewdir = wdir + sonic_dir                 # 1-hr averaged true wind direction (deg)
-    # Here orientation of the sonic anemoneter (sonic_9m_dir = 180 + 17 deg) is provided by Irina Repina
-    # Convert wind direction range to [0 360] segment:
-    if (truewdir > 360):
-        truewdir = truewdir - 360
 
     #++++++++++++++++++++++++++++ Fluxes Based on the Cospectra +++++++++++++++++++++++++++++++
     # >>> Compute covariances ("fluxes") based on the appropriate cospectra integration (the
@@ -755,11 +869,19 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     cwTx = np.sum(cwTs*dfs)
     cuTx = np.sum(cuTs*dfs)
     cvTx = np.sum(cvTs*dfs)
+    cwqx = np.sum(cwqs*dfs)
+    cuqx = np.sum(cuqs*dfs)
+    cvqx = np.sum(cvqs*dfs)
+    cwcx = np.sum(cwcs*dfs)
+    cucx = np.sum(cucs*dfs)
+    cvcx = np.sum(cvcs*dfs)
     # >>> Compute standard deviations based on the appropriate spectra integration:
     sigu_spc = (np.sum(sus*dfs))**0.5       # based on the Su-spectra integration
     sigv_spc = (np.sum(svs*dfs))**0.5       # based on the Sv-spectra integration
     sigw_spc = (np.sum(sws*dfs))**0.5       # based on the Sw-spectra integration
     sigT_spc = (np.sum(sTs*dfs))**0.5       # based on the St-spectra integration
+    sigq_spc = (np.sum(sqs*dfs))**0.5       # based on the St-spectra integration
+    sigc_spc = (np.sum(scs*dfs))**0.5       # based on the St-spectra integration
     sigwdir_spc = (np.sum(swdirs*dfs))**0.5 # based on the Sdir-spectra integration
     ssm = (usm*usm+vsm*vsm)**0.5
 
@@ -773,8 +895,8 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     uv_csp = cuvx   # uv-covariance based on the uv-cospectra integration
     ustar = -np.sign(wu_csp)*(np.abs(wu_csp))**0.5 # the friction velocity based only on the downstream, uw,  stress components (m/s)
     # ustar = - sign(wu_csp)*((abs(wu_csp))^2 + (abs(wv_csp))^2)^(1/4);  # ustar is based on both stress components (m/s)
-
-    # >>> Sensible heat flux:
+  
+    # >>> Fluxes:
     # Note that a sonic anemometer/thermometer measures the so-called 'sonic' temperature which is close to the virtual temperature
     # Thus <w't'> here is a buoyancy flux
     # Moisture correction is necessary to obtain the correct sensible heat flux (e.g., Kaimal and Finnigan, 1994)
@@ -782,11 +904,24 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     wT_csp = cwTx   # wt-covariance, vertical flux of the sonic temperature  [deg m/s]
     uT_csp = cuTx   # ut-covariance, horizontal flux of the sonic temperature (along-wind component) [deg m/s]
     vT_csp = cvTx   # vt-covariance, horizontal flux of the sonic temperature (cross-wind component) [deg m/s]
-    Hs = wT_csp*rho*cp    # sensible heat flux (W/m2) - Based on the sonic temperature!!!
-    Tstar = -wT_csp/np.abs(ustar) # the temperature scale
+    wq_csp = cwqx
+    uq_csp = cuqx
+    vq_csp = cvqx
+    wc_csp = cwcx
+    uc_csp = cucx
+    vc_csp = cvcx
 
+    Hs            = wT_csp*rho*cp                                              # sensible heat flux (W/m2) - Based on the sonic temperature!!!
+    Hl            = wq_csp*Le*rho                                              # latent heat flux (W/m2)
+    Hl_Webb       = Le*qsm*(1.61*wq_csp/rho_d+(1+1.61*sigma)*wT_csp/(temp+tdk)) # Webb (1980) eq. 24, right-side term
+    CO2_flux      = wc_csp                                                     # co2 mass flux (mg m^-2 s^-1)
+    CO2_flux_Webb = csm*(1.61*wq_csp/rho_d+(1+1.61*sigma)*wT_csp/(temp+tdk)) # Webb (1980) eq. 24, right-side term
+    Tstar         = -wT_csp/np.abs(ustar) # the temperature scale
+    
+    
+    
     # The loop below is added for cases when number of points < 32768 (54.61333 min) or < 16384 (27.30667 min)
-    # It defines frequencies for fluxes in the high-frequency subrange and defines the inertial subrange
+    # It defines frequencies for the inertial subrange
     # !! -1 to get to 0 based (python) but preserving the original values for reference.
     if npt < 8192:  # 2^12 = 4096 points  (or = 4096/10 sec  =  6.82667 min for samp_freq = 10 Hz)
        fsl = 4-1
@@ -851,36 +986,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
        fsi10 = 63-1
        fsi11 = 64-1
        fsi12 = 65-1
-
-    # >>> Compute covariances ("fluxes") in the high-frequency part of the appropriate cospectra
-    # To separate the small-scale turbulence from mesoscale motions (mostly in SBL), a low-frequency
-    # cut-off was applied on the spectra/cospectra as a lower limit of integration.
-    # low-freq cut-off fsn = fs(13) = 0.0064 Hz (the 13-th spectral value) for 2^15 = 32768 data points = 54.61333 min,
-    # low-freq cut-off fsn = fs(9)  = 0.0064 Hz (the  9-th spectral value) for 2^14 = 16384 data points = 27.30667 min,
-    # low-freq cut-off fsn = fs(6)  = 0.0061 Hz (the  6-th spectral value) for 2^13 =  8192 data points = 13.65333 min
-    # These cut-off values are consistent with the low-frequency cut-off at 0.0061 Hz for
-    # SHEBA data (Grachev et al. 2013, BLM, 147(1), 51-82, doi 10.1007/s10546-012-9771-0)
-    # The upper limit of integration is 5 Hz (the Nyquist frequency)
-    wu_csp_hi = np.sum(cwus[fsl:fsn]*dfs[fsl:fsn])
-    wv_csp_hi = np.sum(cwvs[fsl:fsn]*dfs[fsl:fsn])
-    uv_csp_hi = np.sum(cuvs[fsl:fsn]*dfs[fsl:fsn])
-    wT_csp_hi = np.sum(cwTs[fsl:fsn]*dfs[fsl:fsn])
-    uT_csp_hi = np.sum(cuTs[fsl:fsn]*dfs[fsl:fsn])
-    vT_csp_hi = np.sum(cvTs[fsl:fsn]*dfs[fsl:fsn])
-    ustar_hi = -np.sign(wu_csp_hi)*(np.abs(wu_csp_hi))**0.5 # friction velocity based on the high-frequency part of downstream, uw_hi,  stress components (m/s)
-    Tstar_hi = -wT_csp_hi/np.abs(ustar_hi) # the temperature scale based on the high-frequency part of the turbulent fluxes
-    Hs_hi = wT_csp_hi*rho*cp    # sensible heat flux (sonic temperature!) based on the high-frequency part of the cospectrum(W/m2)
-
-    # >>> Compute standard deviations in the high-frequency part of the appropriate spectra
-    #
-    # real conversions here needed because parent variables defined as complex under spectra smoothing section
-    #
-    sigu_spc_hi    = (np.sum(sus[fsl:fsn]*dfs[fsl:fsn]))**0.5
-    sigv_spc_hi    = (np.sum(svs[fsl:fsn]*dfs[fsl:fsn]))**0.5
-    sigw_spc_hi    = (np.sum(sws[fsl:fsn]*dfs[fsl:fsn]))**0.5
-    sigT_spc_hi    = (np.sum(sTs[fsl:fsn]*dfs[fsl:fsn]))**0.5
-    sigwdir_spc_hi = (np.sum(swdirs[fsl:fsn]*dfs[fsl:fsn]))**0.5
-
+  
     # >>> Some Monin-Obukhov (MO) parameters based on the local turbulent measurements:
     # Monin-Obukhov stability parameter, z/L:
     zeta_level_n = - ((0.4*9.81)/(Tsm+tdk))*(z_level_n*wT_csp/(ustar**3))
@@ -893,21 +999,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     phi_T = sigT_spc/np.abs(Tstar)
     # MO universal function for the horizontal heat flux:
     phi_uT = uT_csp/wT_csp
-
-    # >>> Some Monin-Obukhov (MO) parameters based on the local turbulent measurements (same as above but based on the high-frequency part of the turbulent fluxes):
-    # Monin-Obukhov stability parameter based on the high-frequency part of the turbulent fluxes, z/L_hi:
-    zeta_level_n_hi = - ((0.4*9.81)/(Tsm+tdk))*(z_level_n*wT_csp_hi/(ustar_hi**3))
-    # Drag coefficient , Cd_hi:
-    Cd_hi = - wu_csp_hi/(wsp**2)
-    # MO universal functions for the standard deviations based on the high-frequency part of the turbulent fluxes:
-    phi_u_hi = sigu_spc_hi/ustar_hi
-    phi_v_hi = sigv_spc_hi/ustar_hi
-    phi_w_hi = sigw_spc_hi/ustar_hi
-    phi_T_hi = sigT_spc_hi/np.abs(Tstar_hi)
-
-    # MO universal function for the horizontal heat flux based on the high-frequency part of the turbulent fluxes:
-    phi_uT_hi = uT_csp_hi/wT_csp_hi
-
+    
     #+++++++++++++++++++ Compute structure parameters in the inertial subrange +++++++++++++++++
     #+++++++++++++++++++++++++++++ 5/3 Kolmogorov power law +++++++++++++++++++++++++++++++++++
 
@@ -934,11 +1026,11 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     # See details in the textbook by J.C. Kaimal & J.J. Finnigan "Atmospheric Boundary Layer Flows" (1994)
 
     gfac = 4*(2*np.pi/wsp)**0.667
-    cu2 = gfac*np.median(sus[fsi01:fsi12]*fs[fsi01:fsi12]**1.667)              # Cu^2, U structure parameter [x^2/m^2/3 = m^1.33/s^2]
-    cv2 = gfac*np.median(svs[fsi01:fsi12]*fs[fsi01:fsi12]**1.667)              # Cv^2, V structure parameter [x^2/m^2/3 = m^1.33/s^2]
-    cw2 = gfac*np.median(sws[fsi01:fsi12]*fs[fsi01:fsi12]**1.667)              # Cw^2, W structure parameter [x^2/m^2/3 = m^1.33/s^2]
-    cT2 = gfac*np.median((sTs[fsi01:fsi12]-np.min(sTs))*fs[fsi01:fsi12]**1.667)   # Ct^2, T structure parameter [x^2/m^2/3 = deg^2/m^2/3]; (term -min(sTs) reduces some noise - proposed by Chris F.)
-    # cT2 = gfac*numpy.median((sTs[fsi01:fsi12])*fs[fsi01:fsi12]**1.667)            # Ct^2, T structure parameter [x^2/m^2/3 = deg^2/m^2/3]
+    cu2 = gfac*np.median(sus[fsi01:fsi12]*fs[fsi01:fsi12]**1.667)               # Cu^2, U structure parameter [x^2/m^2/3 = m^1.33/s^2]
+    cv2 = gfac*np.median(svs[fsi01:fsi12]*fs[fsi01:fsi12]**1.667)               # Cv^2, V structure parameter [x^2/m^2/3 = m^1.33/s^2]
+    cw2 = gfac*np.median(sws[fsi01:fsi12]*fs[fsi01:fsi12]**1.667)               # Cw^2, W structure parameter [x^2/m^2/3 = m^1.33/s^2]
+    cT2 = gfac*np.median((sTs[fsi01:fsi12]-np.min(sTs))*fs[fsi01:fsi12]**1.667) # Ct^2, T structure parameter [x^2/m^2/3 = deg^2/m^2/3]; (term -min(sTs) reduces some noise - proposed by Chris F.)
+    # cT2 = gfac*numpy.median((sTs[fsi01:fsi12])*fs[fsi01:fsi12]**1.667)          # Ct^2, T structure parameter [x^2/m^2/3 = deg^2/m^2/3]
 
 
     #+++++++++++++++++ Compute dissipation rate of the turbulent kinetic energy ++++++++++++++++
@@ -965,9 +1057,7 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     epsilon = np.median([epsilon_u,epsilon_v,epsilon_w])
     # Monin-Obukhov universal function Phi_epsilon based on the median epsilon:
     Phi_epsilon = (0.4*z_level_n*epsilon)/(ustar**3)
-    # Monin-Obukhov universal function Phi_epsilon based on the median epsilon based on the high-frequency part of the momentum flux:
-    Phi_epsilon_hi = (0.4*z_level_n*epsilon)/(ustar_hi**3)
-
+    
     #+++++ Compute the dissipation (destruction) rate for half the temperature variance +++++++
     #++++++++++++++++++ 5/3 Obukhov-Corrsin power law for the passive scalar ++++++++++++++++++
 
@@ -979,8 +1069,6 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     Nt = (cT2*(epsilon**(1/3)))/(4*betaK)
     # Monin-Obukhov universal function Phi_Nt:
     Phi_Nt = (0.4*z_level_n*Nt)/(ustar*Tstar**2)
-    # Monin-Obukhov universal function Phi_Nt based on the high-frequency part of the turbulent fluxes:
-    Phi_Nt_hi = (0.4*z_level_n*Nt)/(ustar_hi*Tstar_hi**2)
 
     #++++++++++++++++++++++ Compute spectral slopes in the inertial subrange +++++++++++++++++++
 
@@ -1016,7 +1104,6 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     # Median spectral slope in the inertial subrange:
     nSw = np.median([nSw_1,nSw_2,nSw_3,nSw_4,nSw_5,nSw_6])
 
-
     # Compute a spectral slope in the inertial subrange for St.
     # Individual slopes:
     nSt_1 = np.log(sTs[fsi07]/sTs[fsi01])/np.log(fs[fsi07]/fs[fsi01])
@@ -1027,8 +1114,29 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     nSt_6 = np.log(sTs[fsi12]/sTs[fsi06])/np.log(fs[fsi12]/fs[fsi06])
     # Median spectral slope in the inertial subrange:
     nSt = np.median([nSt_1,nSt_2,nSt_3,nSt_4,nSt_5,nSt_6])
-
-
+    
+    # Compute a spectral slope in the inertial subrange for St.
+    # Individual slopes:
+    nSq_1 = np.log(sqs[fsi07]/sqs[fsi01])/np.log(fs[fsi07]/fs[fsi01])
+    nSq_2 = np.log(sqs[fsi08]/sqs[fsi02])/np.log(fs[fsi08]/fs[fsi02])
+    nSq_3 = np.log(sqs[fsi09]/sqs[fsi03])/np.log(fs[fsi09]/fs[fsi03])
+    nSq_4 = np.log(sqs[fsi10]/sqs[fsi04])/np.log(fs[fsi10]/fs[fsi04])
+    nSq_5 = np.log(sqs[fsi11]/sqs[fsi05])/np.log(fs[fsi11]/fs[fsi05])
+    nSq_6 = np.log(sqs[fsi12]/sqs[fsi06])/np.log(fs[fsi12]/fs[fsi06])
+    # Median spectral slope in the inertial subrange:
+    nSq = np.median([nSq_1,nSq_2,nSq_3,nSq_4,nSq_5,nSq_6])
+    
+    # Compute a spectral slope in the inertial subrange for St.
+    # Individual slopes:
+    nSc_1 = np.log(scs[fsi07]/sqs[fsi01])/np.log(fs[fsi07]/fs[fsi01])
+    nSc_2 = np.log(scs[fsi08]/sqs[fsi02])/np.log(fs[fsi08]/fs[fsi02])
+    nSc_3 = np.log(scs[fsi09]/sqs[fsi03])/np.log(fs[fsi09]/fs[fsi03])
+    nSc_4 = np.log(scs[fsi10]/sqs[fsi04])/np.log(fs[fsi10]/fs[fsi04])
+    nSc_5 = np.log(scs[fsi11]/sqs[fsi05])/np.log(fs[fsi11]/fs[fsi05])
+    nSc_6 = np.log(scs[fsi12]/sqs[fsi06])/np.log(fs[fsi12]/fs[fsi06])
+    # Median spectral slope in the inertial subrange:
+    nSc = np.median([nSc_1,nSc_2,nSc_3,nSc_4,nSc_5,nSc_6])
+    
     # Compute a spectral slope in the inertial subrange for Swdirs (wind direction spectrum).
     # Individual slopes:
     nSwdir_1 = np.log(swdirs[fsi07]/swdirs[fsi01])/np.log(fs[fsi07]/fs[fsi01])
@@ -1056,18 +1164,24 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     vs_dtr = signal.detrend(vs)
     ws_dtr = signal.detrend(ws)
     Ts_dtr = signal.detrend(Ts)
+    qs_dtr = signal.detrend(qs)
+    cs_dtr = signal.detrend(cs)
 
     # Trend lines:
     us_trend = us - us_dtr
     vs_trend = vs - vs_dtr
     ws_trend = ws - ws_dtr
     Ts_trend = Ts - Ts_dtr
+    qs_trend = qs - qs_dtr
+    cs_trend = cs - cs_dtr
 
     # Mean of the detrended data (should be very close to zero)
     us_dtr_m = us_dtr.mean()
     vs_dtr_m = vs_dtr.mean()
     ws_dtr_m = ws_dtr.mean()
     Ts_dtr_m = Ts_dtr.mean()
+    qs_dtr_m = qs_dtr.mean()
+    cs_dtr_m = cs_dtr.mean()
 
     # >>> Covariances and Variances of the detrending data:
     cov_wu   = np.cov(ws_dtr,us_dtr)
@@ -1076,20 +1190,36 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     cov_wT   = np.cov(ws_dtr,Ts_dtr)
     cov_uT   = np.cov(us_dtr,Ts_dtr)
     cov_vT   = np.cov(vs_dtr,Ts_dtr)
+    cov_wq   = np.cov(ws_dtr,qs_dtr)
+    cov_uq   = np.cov(us_dtr,qs_dtr)
+    cov_vq   = np.cov(vs_dtr,qs_dtr)
+    cov_wc   = np.cov(ws_dtr,cs_dtr)
+    cov_uc   = np.cov(us_dtr,cs_dtr)
+    cov_vc   = np.cov(vs_dtr,cs_dtr)
     wu_cov   = cov_wu[0,1]
     wv_cov   = cov_wv[0,1]
     uv_cov   = cov_uv[0,1]
     wT_cov   = cov_wT[0,1]
     uT_cov   = cov_uT[0,1]
     vT_cov   = cov_vT[0,1]
+    wq_cov   = cov_wq[0,1]
+    uq_cov   = cov_uq[0,1]
+    vq_cov   = cov_vq[0,1]
+    wc_cov   = cov_wc[0,1]
+    uc_cov   = cov_uc[0,1]
+    vc_cov   = cov_vc[0,1]
     sigu_cov = cov_wu[1,1]    # Standard deviation of the u-wind component
     sigv_cov = cov_wv[1,1]    # Standard deviation of the v-wind component
     sigw_cov = cov_wu[0,0]    # Standard deviation of the w-wind component
     sigT_cov = cov_wT[1,1]    # Standard deviation of the the air temperature (sonic temperature)
+    sigq_cov = cov_wq[1,1]    # 
+    sigc_cov = cov_wc[1,1]    # 
     sigu_std = np.std(us_dtr) # Standard deviation of the u-wind component
     sigv_std = np.std(vs_dtr) # Standard deviation of the v-wind component
     sigw_std = np.std(ws_dtr) # Standard deviation of the w-wind component
     sigT_std = np.std(Ts_dtr) # Standard deviation of the the air temperature (sonic temperature)
+    sigq_std = np.std(qs_dtr) # 
+    sigc_std = np.std(cs_dtr) # 
 
     # >>> Second-order moments (directly or by definition)
     # Linear detrending but no block-averaging of the data!
@@ -1105,10 +1235,20 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     vT_dtr   = (np.sum(vs_dtr*Ts_dtr))/nf
     wT_dtr   = (np.sum(ws_dtr*Ts_dtr))/nf
     TT_dtr   = (np.sum(Ts_dtr*Ts_dtr))/nf
+    uq_dtr   = (np.sum(us_dtr*qs_dtr))/nf
+    vq_dtr   = (np.sum(vs_dtr*qs_dtr))/nf
+    wq_dtr   = (np.sum(ws_dtr*qs_dtr))/nf
+    qq_dtr   = (np.sum(qs_dtr*qs_dtr))/nf
+    uc_dtr   = (np.sum(us_dtr*cs_dtr))/nf
+    vc_dtr   = (np.sum(vs_dtr*cs_dtr))/nf
+    wc_dtr   = (np.sum(ws_dtr*cs_dtr))/nf
+    cc_dtr   = (np.sum(cs_dtr*cs_dtr))/nf
     sigu_dtr = (uu_dtr)**0.5 # Standard deviation of the u-wind component
     sigv_dtr = (vv_dtr)**0.5 # Standard deviation of the v-wind component
     sigw_dtr = (ww_dtr)**0.5 # Standard deviation of the w-wind component
     sigT_dtr = (TT_dtr)**0.5 # Standard deviation of the the air temperature (sonic temperature)
+    sigq_dtr = (qq_dtr)**0.5 # Standard deviation of the the air temperature (sonic temperature)
+    sigc_dtr = (cc_dtr)**0.5 # Standard deviation of the the air temperature (sonic temperature)
 
     # Note that sigu_cov = sigu_std = sigu_dtr (the same for 'v', 'w', and 'T') - different methods of computation
 
@@ -1119,10 +1259,18 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     sig_uT_dtr = np.std(us_dtr*Ts_dtr)
     sig_vT_dtr = np.std(vs_dtr*Ts_dtr)
     sig_wT_dtr = np.std(ws_dtr*Ts_dtr)
+    sig_uq_dtr = np.std(us_dtr*qs_dtr)
+    sig_vq_dtr = np.std(vs_dtr*qs_dtr)
+    sig_wq_dtr = np.std(ws_dtr*qs_dtr)
+    sig_uc_dtr = np.std(us_dtr*cs_dtr)
+    sig_vc_dtr = np.std(vs_dtr*cs_dtr)
+    sig_wc_dtr = np.std(ws_dtr*cs_dtr)
     sig_uu_dtr = np.std(us_dtr*us_dtr)
     sig_vv_dtr = np.std(vs_dtr*vs_dtr)
     sig_ww_dtr = np.std(ws_dtr*ws_dtr)
     sig_TT_dtr = np.std(Ts_dtr*Ts_dtr)
+    sig_qq_dtr = np.std(qs_dtr*qs_dtr)
+    sig_cc_dtr = np.std(cs_dtr*cs_dtr)
 
     # >>> Second-order moments (directly or by definition)
     # Same as above, but no detrending and no block-averaging of the data!
@@ -1137,19 +1285,33 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     vT_direct   = (np.sum((vs-vsm)*(Ts-Tsm)))/nf
     wT_direct   = (np.sum((ws-wsm)*(Ts-Tsm)))/nf
     TT_direct   = (np.sum((Ts-Tsm)*(Ts-Tsm)))/nf
+    uq_direct   = (np.sum((us-usm)*(qs-qsm)))/nf
+    vq_direct   = (np.sum((vs-vsm)*(qs-qsm)))/nf
+    wq_direct   = (np.sum((ws-wsm)*(qs-qsm)))/nf
+    qq_direct   = (np.sum((qs-qsm)*(qs-qsm)))/nf
+    uc_direct   = (np.sum((us-usm)*(qs-qsm)))/nf
+    vc_direct   = (np.sum((vs-vsm)*(cs-csm)))/nf
+    wc_direct   = (np.sum((ws-wsm)*(cs-csm)))/nf
+    cc_direct   = (np.sum((cs-csm)*(cs-csm)))/nf
     sigu_direct = (uu_direct)**0.5
     sigv_direct = (vv_direct)**0.5
     sigw_direct = (ww_direct)**0.5
     sigT_direct = (TT_direct)**0.5
+    sigq_direct = (qq_direct)**0.5
+    sigc_direct = (cc_direct)**0.5
 
     # Ratio of the fluxes (standard deviations) derived from covariances to the appropriate values derived from cospectra (spectra):
     wu_ratio   = wu_cov/wu_csp
     wv_ratio   = wv_cov/wv_csp
     wT_ratio   = wT_cov/wT_csp
+    wq_ratio   = wq_cov/wq_csp
+    wc_ratio   = wc_cov/wc_csp
     sigu_ratio = sigu_cov/sigu_spc
     sigv_ratio = sigv_cov/sigv_spc
     sigw_ratio = sigw_cov/sigw_spc
     sigT_ratio = sigT_cov/sigT_spc
+    sigq_ratio = sigq_cov/sigq_spc
+    sigc_ratio = sigc_cov/sigc_spc
 
     # See details of the linear detrending in:
     # Gash, J. H. C. and A. D. Culf. 1996. Applying linear de-trend to eddy correlation data in real time. Boundary-Layer Meteorology, 79: 301-306.
@@ -1179,6 +1341,28 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     vTT_dtr = (np.sum(vs_dtr*Ts_dtr*Ts_dtr))/nf
     wTT_dtr = (np.sum(ws_dtr*Ts_dtr*Ts_dtr))/nf
     TTT_dtr = (np.sum(Ts_dtr*Ts_dtr*Ts_dtr))/nf
+    
+    uuq_dtr = (np.sum(us_dtr*us_dtr*qs_dtr))/nf
+    uvq_dtr = (np.sum(us_dtr*vs_dtr*qs_dtr))/nf
+    uwq_dtr = (np.sum(us_dtr*ws_dtr*qs_dtr))/nf
+    vvq_dtr = (np.sum(vs_dtr*vs_dtr*qs_dtr))/nf
+    vwq_dtr = (np.sum(vs_dtr*ws_dtr*qs_dtr))/nf
+    wwq_dtr = (np.sum(ws_dtr*ws_dtr*qs_dtr))/nf
+    uqq_dtr = (np.sum(us_dtr*Ts_dtr*qs_dtr))/nf
+    vqq_dtr = (np.sum(vs_dtr*Ts_dtr*qs_dtr))/nf
+    wqq_dtr = (np.sum(ws_dtr*Ts_dtr*qs_dtr))/nf
+    qqq_dtr = (np.sum(qs_dtr*Ts_dtr*qs_dtr))/nf
+    
+    uuc_dtr = (np.sum(us_dtr*us_dtr*cs_dtr))/nf
+    uvc_dtr = (np.sum(us_dtr*vs_dtr*cs_dtr))/nf
+    uwc_dtr = (np.sum(us_dtr*ws_dtr*cs_dtr))/nf
+    vvc_dtr = (np.sum(vs_dtr*vs_dtr*cs_dtr))/nf
+    vwc_dtr = (np.sum(vs_dtr*ws_dtr*cs_dtr))/nf
+    wwc_dtr = (np.sum(ws_dtr*ws_dtr*cs_dtr))/nf
+    ucc_dtr = (np.sum(us_dtr*Ts_dtr*cs_dtr))/nf
+    vcc_dtr = (np.sum(vs_dtr*Ts_dtr*cs_dtr))/nf
+    wcc_dtr = (np.sum(ws_dtr*Ts_dtr*cs_dtr))/nf
+    ccc_dtr = (np.sum(cs_dtr*Ts_dtr*cs_dtr))/nf
 
     #+++++++++++++++++++++++++++++++ Skewness & Kurtosis +++++++++++++++++++++++++++++++++++++++
     # >>> Skewness is a measure of symmetry, or more precisely, the lack of symmetry.  The
@@ -1191,16 +1375,24 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     Skew_v = sp.stats.skew(vs_dtr)
     Skew_w = sp.stats.skew(ws_dtr)
     Skew_T = sp.stats.skew(Ts_dtr)
+    Skew_q = sp.stats.skew(qs_dtr)
+    Skew_c = sp.stats.skew(cs_dtr)
     Skew_uw = sp.stats.skew(us_dtr*ws_dtr)
     Skew_vw = sp.stats.skew(vs_dtr*ws_dtr)
     Skew_wT = sp.stats.skew(ws_dtr*Ts_dtr)
     Skew_uT = sp.stats.skew(us_dtr*Ts_dtr)
+    Skew_wq = sp.stats.skew(ws_dtr*qs_dtr)
+    Skew_uq = sp.stats.skew(us_dtr*qs_dtr)
+    Skew_wc = sp.stats.skew(ws_dtr*cs_dtr)
+    Skew_uc = sp.stats.skew(us_dtr*cs_dtr)
 
     # Direct definition of skewness (note that this is the same as 'skewness' MatLab command above):
     Skew_u0=uuu_dtr/sigu_dtr**3
     Skew_v0=vvv_dtr/sigv_dtr**3
     Skew_w0=www_dtr/sigw_dtr**3
     Skew_T0=TTT_dtr/sigT_dtr**3
+    Skew_q0=qqq_dtr/sigq_dtr**3
+    Skew_c0=ccc_dtr/sigc_dtr**3
     # Use this definition in the case if MatLab Statistics Toolbox is not available
 
     # >>> Kurtosis is a measure of whether the data are peaked or flat relative to a normal distribution.
@@ -1212,21 +1404,31 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     Kurt_v  = sp.stats.kurtosis(vs_dtr)
     Kurt_w  = sp.stats.kurtosis(ws_dtr)
     Kurt_T  = sp.stats.kurtosis(Ts_dtr)
+    Kurt_q  = sp.stats.kurtosis(qs_dtr)
+    Kurt_c  = sp.stats.kurtosis(qs_dtr)
     Kurt_uw = sp.stats.kurtosis(us_dtr*ws_dtr)
     Kurt_vw = sp.stats.kurtosis(vs_dtr*ws_dtr)
     Kurt_wT = sp.stats.kurtosis(ws_dtr*Ts_dtr)
     Kurt_uT = sp.stats.kurtosis(us_dtr*Ts_dtr)
+    Kurt_wq = sp.stats.kurtosis(ws_dtr*qs_dtr)
+    Kurt_uq = sp.stats.kurtosis(us_dtr*qs_dtr)
+    Kurt_wc = sp.stats.kurtosis(ws_dtr*cs_dtr)
+    Kurt_uc = sp.stats.kurtosis(us_dtr*cs_dtr)
 
     # Some forth-order moments (for kurtosis calculations):
     uuuu_dtr = (np.sum(us_dtr*us_dtr*us_dtr*us_dtr))/nf
     vvvv_dtr = (np.sum(vs_dtr*vs_dtr*vs_dtr*vs_dtr))/nf
     wwww_dtr = (np.sum(ws_dtr*ws_dtr*ws_dtr*ws_dtr))/nf
     TTTT_dtr = (np.sum(Ts_dtr*Ts_dtr*Ts_dtr*Ts_dtr))/nf
+    qqqq_dtr = (np.sum(qs_dtr*qs_dtr*qs_dtr*qs_dtr))/nf
+    cccc_dtr = (np.sum(cs_dtr*cs_dtr*cs_dtr*cs_dtr))/nf
     # Direct definition of kurtosis (note that this is the same as 'kurtosis' MatLab command above):
     Kurt_u0 = uuuu_dtr/sigu_dtr**4
     Kurt_v0 = vvvv_dtr/sigv_dtr**4
     Kurt_w0 = wwww_dtr/sigw_dtr**4
     Kurt_T0 = TTTT_dtr/sigT_dtr**4
+    Kurt_q0 = qqqq_dtr/sigq_dtr**4
+    Kurt_c0 = cccc_dtr/sigc_dtr**4
 
     # Different examples of skewness/kurtosis and PDFs in CBL and SBL can be found in:
     # Chu et al (1996) WRR v32(6) 1681-1688; Graf et al (2010) BLM v134(3) 459-486; Mahrt et al (2012) JPO v42(7) 1134-1142
@@ -1254,6 +1456,8 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     DeltaU = us_trend[nf-1] - us_trend[0]
     DeltaV = vs_trend[nf-1] - vs_trend[0]
     DeltaT = Ts_trend[nf-1] - Ts_trend[0]
+    Deltaq = qs_trend[nf-1] - qs_trend[0]
+    Deltac = cs_trend[nf-1] - cs_trend[0]
     # For example, |DeltaU| > 2 m/s, |DeltaV| > 2 m/s, |DeltaT| > 2 deg C can be used as QC thresholds
 
     # Recall that spectral slopes and rotated mean wind components, vrm & wrm, can also be used as QC
@@ -1274,23 +1478,57 @@ def grachev_fluxcapacitor(z_level_n, sonic_dir, metek, licor, clasp, verbose=Fal
     # Principles and Workflow Examples for Scientific and Industrial Applications. LI-COR, Lincoln, USA,
     # Hard and Softbound, 211 pp.
 
+    # if we are missing licor data, make those nan
+    if licor_missing == 1:
+        wq_csp = nan
+        uq_csp = nan
+        vq_csp = nan
+        Hl     = nan
+        Hl_Webb = nan
+        CO2_flux = nan
+        CO2_flux_Webb = nan
+        nSq = nan
+        nSc = nan
+        sqs    = sqs*nan
+        cwqs   = cwqs*nan
+        cuqs   = cuqs*nan
+        cvqs   = cvqs*nan
+        Deltaq = Deltaq*nan
+        Kurt_q  = Kurt_q*nan
+        Kurt_wq = Kurt_wq
+        Kurt_uq = Kurt_uq
+        Skew_q  = Skew_q*nan
+        Skew_wq = Skew_wq*nan
+        Skew_uq = Skew_uq*nan
+        scs    = sqs*nan
+        cwcs   = cwqs*nan
+        cucs   = cuqs*nan
+        cvcs   = cvqs*nan
+        Deltac = Deltaq*nan
+        Kurt_c  = Kurt_q*nan
+        Kurt_wc = Kurt_wq
+        Kurt_uc = Kurt_uq
+        Skew_c  = Skew_q*nan
+        Skew_wc = Skew_wq*nan
+        Skew_uc = Skew_uq*nan
+
     #
     # End of calculations. Now output something
     #
+    turbulence_data = turbulence_data.append([{ \
+        'wu_csp': wu_csp,'wv_csp': wv_csp,'uv_csp': uv_csp,'ustar': ustar,'wT_csp': wT_csp,'uT_csp': uT_csp,'vT_csp': vT_csp,'wq_csp': wq_csp,'uq_csp': uq_csp,'vq_csp': vq_csp,'wc_csp': wc_csp,'uc_csp': uc_csp,'vc_csp': vc_csp, \
+        'Hs': Hs,'Hl':Hl,'Hl_Webb':Hl_Webb,'CO2_flux':CO2_flux,'CO2_flux_Webb':CO2_flux_Webb,'Tstar': Tstar,'zeta_level_n': zeta_level_n,'Cd': Cd, \
+        'phi_u': phi_u,'phi_v': phi_v,'phi_w': phi_w,'phi_T': phi_T,'phi_uT': phi_uT, \
+        'nSu':nSu, 'nSv':nSv, 'nSw':nSw, 'nSt':nSt, 'nSq':nSq, 'nSc': nSc, \
+        'epsilon_u': epsilon_u,'epsilon_v': epsilon_v,'epsilon_w': epsilon_w,'epsilon': epsilon,'Phi_epsilon': Phi_epsilon, \
+        'Nt': Nt, \
+        'Phi_Nt': Phi_Nt,'Phix': Phix, \
+        'DeltaU': DeltaU,'DeltaV': DeltaV,'DeltaT': DeltaT,'Deltaq': Deltaq,'Deltac': Deltac, \
+        'Kurt_u': Kurt_u,'Kurt_v': Kurt_v,'Kurt_w': Kurt_w,'Kurt_T': Kurt_T,'Kurt_q': Kurt_q,'Kurt_c': Kurt_c, 'Kurt_uw': Kurt_uw,'Kurt_vw': Kurt_vw,'Kurt_wT': Kurt_wT,'Kurt_uT': Kurt_uT,'Kurt_wq': Kurt_wq,'Kurt_uq': Kurt_uq, 'Kurt_wc': Kurt_wc,'Kurt_uc': Kurt_uc, \
+        'Skew_u': Skew_u,'Skew_v': Skew_v,'Skew_w': Skew_w,'Skew_T': Skew_T,'Skew_q': Skew_q,'Skew_c': Skew_c,'Skew_uw': Skew_uw,'Skew_vw': Skew_vw,'Skew_wT': Skew_wT,'Skew_uT': Skew_uT,'Skew_wq': Skew_wq,'Skew_uq': Skew_uq, 'Skew_wc': Skew_wc,'Skew_uc': Skew_uc, \
+        'sus': pd.Series(sus),'svs':pd.Series(svs),'sws':pd.Series(sws),'sTs':pd.Series(sTs),'sqs':pd.Series(sqs),'scs':pd.Series(scs),'cwus':pd.Series(cwus),'cwvs':pd.Series(cwvs),'cwTs':pd.Series(cwTs),'cuTs':pd.Series(cuTs),'cvTs':pd.Series(cvTs),'cwqs':pd.Series(cwqs),'cuqs':pd.Series(cuqs),'cvqs':pd.Series(cvqs),'cwcs':pd.Series(cwcs),'cucs':pd.Series(cucs),'cvcs':pd.Series(cvcs),'cuvs':pd.Series(cuvs),'fs':pd.Series(fs)}]) # sometimes ypthon can infer, other times no so much. if we dont declare Series here we become trapped in the Python/Pandas purgatory of "objects" which leads too certain death      
 
-    turbulence_data = turbulence_data.append([{'wu_csp': wu_csp,'wv_csp': wv_csp,'uv_csp': uv_csp,'ustar': ustar,\
-        'wT_csp': wT_csp,'uT_csp': uT_csp,'vT_csp': vT_csp,'Hs': Hs,'Tstar': Tstar,'ustar_hi': ustar_hi,\
-        'Tstar_hi': Tstar_hi,'Hs_hi': Hs_hi,'zeta_level_n': zeta_level_n,'Cd': Cd,'phi_u': phi_u,'phi_v': phi_v,\
-        'phi_w': phi_w,'phi_T': phi_T,'phi_uT': phi_uT,'zeta_level_n_hi': zeta_level_n_hi,'Cd_hi': Cd_hi,\
-        'phi_u_hi': phi_u_hi,'phi_v_hi': phi_v_hi,'phi_w_hi': phi_w_hi,'phi_T_hi': phi_T_hi,'phi_uT_hi': phi_uT_hi,\
-        'epsilon_u': epsilon_u,'epsilon_v': epsilon_v,'epsilon_w': epsilon_w,'epsilon': epsilon,'Phi_epsilon': Phi_epsilon,\
-        'Phi_epsilon_hi': Phi_epsilon_hi,'Nt': Nt,'Phi_Nt': Phi_Nt,'Phi_Nt_hi': Phi_Nt_hi,'Phix': Phix,\
-        'DeltaU': DeltaU,'DeltaV': DeltaV,'DeltaT': DeltaT,'Kurt_u': Kurt_u,'Kurt_v': Kurt_v,'Kurt_w': Kurt_w,\
-        'Kurt_T': Kurt_T,'Kurt_uw': Kurt_uw,'Kurt_vw': Kurt_vw,'Kurt_wT': Kurt_wT,'Kurt_uT': Kurt_uT,\
-        'Skew_u': Skew_u,'Skew_v': Skew_v,'Skew_w': Skew_w,'Skew_T': Skew_T,'Skew_uw': Skew_uw,'Skew_vw': Skew_vw,\
-        'Skew_wT': Skew_wT,'Skew_uT': Skew_uT}])
-
-    # we need to give the columns unique names for the netcdf build later...
+    # # we need to give the columns unique names for the netcdf build later...
     # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
     # this needs to be done in code to make this more modular
 
@@ -1380,7 +1618,7 @@ def cor_ice_A10(bulk_input):
     u=bulk_input[0]         # wind speed                         (m/s)
     ts=bulk_input[1]        # bulk water/ice surface tempetature (degC)
     t=bulk_input[2]         # air temperature                    (degC) 
-    Q=bulk_input[3]         # air moisture mixing ratio          (fraction)
+    Q=bulk_input[3]         # air moisture mixing ratio          (kg/kg)
     zi=bulk_input[4]        # inversion height                   (m)
     P=bulk_input[5]         # surface pressure                   (mb)
     zu=bulk_input[6]        # height of anemometer               (m)
@@ -1402,7 +1640,7 @@ def cor_ice_A10(bulk_input):
     Rgas=287.1
     Le=(2.501-.00237*ts)*1e6
     cpa=1004.67 
-    rhoa=P*100/(Rgas*(t+tdk)*(1+0.61*Q)) # density of air
+    rhoa=P*100/(Rgas*(t+tdk)*(1+1.61*Q)) # density of air
     visa=1.325e-5*(1+6.542e-3*t+8.301e-6*t*t-4.8e-9*t*t*t) # kinematic viscosity
     
     
@@ -1497,7 +1735,7 @@ def cor_ice_A10(bulk_input):
     CC=von*Ct/Cd # z/L vs Rib linear coefficient
     Ribcu=-zu/zi/.004/Beta**3 # Saturation Rib
     Ribu=-grav*zu/ta*((dt-dter)+.61*ta*dq)/ut**2
-    nits=7 # Number of iterations
+    nits=7 # Number of iterations.
     
     if Ribu<0:
     	zetu=CC*Ribu/(1+Ribu/Ribcu) # Unstable, G&F
@@ -1507,7 +1745,7 @@ def cor_ice_A10(bulk_input):
     L10=zu/zetu # MO length
     
     if zetu>150:
-    	nits=3 # cutoff iteration if too stable
+     	nits=3 # cutoff iteration if too stable
     
     # Figure guess stability dependent scaling params 
     usr=ut*von/(math.log(zu/zo10)-psim_sheba(zu/L10))
@@ -1551,17 +1789,17 @@ def cor_ice_A10(bulk_input):
             ug=0.2
             
                 
-        #########    
-        # added by Cox...
-        # this allows zo to be calculated in the loop, which I think it needs to be
-        # zot as well, but not allowing it to go to 0 and brek things.
-        tau=rhoa*usr*usr*du/ut # stress
-        Cd=tau/rhoa/du**2
-        Ch=-usr*tsr/du/(dt-dter)
-        zogs=zu*math.exp( -(von*Cd**-0.5 + psim_sheba(zq/L)) ) # Andreas (2004) eq. 3A
-        zot=zu* math.exp( -(von*Cd**-0.5*Ch**-1 + psih_sheba(zq/L)) ) # Andreas (2004) eq. 3B
-        if zot < 1e-4: zot = 1e-4
-        ##########
+        # #########    
+        # # added by Cox...
+        # # this allows zo to be calculated in the loop, which I think it needs to be
+        # # zot as well, but not allowing it to go to 0 and brek things.
+        # tau=rhoa*usr*usr*du/ut # stress
+        # Cd=tau/rhoa/du**2
+        # Ch=-usr*tsr/du/(dt-dter)
+        # zogs=zu*math.exp( -(von*Cd**-0.5 + psim_sheba(zq/L)) ) # Andreas (2004) eq. 3A
+        # zot=zu* math.exp( -(von*Cd**-0.5*Ch**-1 + psih_sheba(zq/L)) ) # Andreas (2004) eq. 3B
+        # if zot < 1e-4: zot = 1e-4
+        # ##########
         
         
         ut=math.sqrt(du*du+ug*ug)
@@ -1578,10 +1816,11 @@ def cor_ice_A10(bulk_input):
     tau=rhoa*usr*usr*du/ut # stress
 
     ##############################################################################
+
+    # Webb et al. correction following Fairall et al 1996 Eqs. 21 and 22
+    wbar=1.61*(hlb/rhoa/Le)+(1+1.61*Q)*(hsb/rhoa/cpa)/ta
+    hl_webb=rhoa*Le*wbar*Q
     
-    # Webb et al. correction
-    wbar=1.61*hlb/rhoa/Le+(1+1.61*Q)*hsb/rhoa/cpa/ta
-    hl_webb=wbar*Q*Le
     # compute transfer coeffs relative to du @meas. ht
     Cd=tau/rhoa/du**2
     Ch=-usr*tsr/du/(dt-dter)
@@ -1594,3 +1833,82 @@ def cor_ice_A10(bulk_input):
     bulk_return=[hsb,hlb,tau,zo,zot,zoq,L,usr,tsr,qsr,dter,dqer,hl_webb,Cd,Ch,Ce,Cdn_10,Chn_10,Cen_10,rr,rt,rq]
     
     return bulk_return
+
+
+
+# QCRAD
+def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
+
+    # Screen for outliers in the radiation data using select tests from
+    # Long and Shi (2008) https://doi.org/10.2174/1874282300802010023
+    #
+    # The following tests are performed:
+    #   Shortwave
+    #       - PPL
+    #       - Climatological Configurable (global) Limits (SWD, SWU)
+    #       - Rayleigh Limit (SWD)
+    #       - Albedo (failure removes both; not structly QCRAD and not very strict. Just a sanity check)
+    #   Longwave
+    #       - PPL
+    #       - Climatological Configurable Tair vs LW (LWD, LWU)
+    #       - Climatological Configurable LWD vs LWU (LWD
+
+    # Constants and Setup
+    mu0 = np.cos(np.deg2rad(df['sza_true']))
+    mu0.loc[mu0 < 0] = 0
+    au = 1
+    Sa  = 1368/au**2
+    sb  = 5.67*1e-8
+        
+    #
+    # Shortwave
+    #
+    
+    # (1) PPL
+    df['radiation_SWd'].mask( (df['radiation_SWd']<sw_range[0]) | (df['radiation_SWd']>sw_range[1]) , inplace=True)
+    df['radiation_SWu'].mask( (df['radiation_SWu']<sw_range[0]) | (df['radiation_SWu']>sw_range[1]) , inplace=True)
+
+    # (2) Rayleigh Limit
+    RL = 209.3*mu0 - 708.3*mu0**2 + 1128.7*mu0**3 - 911.2*mu0**4 + 287.85*mu0**5 + 0.046725*mu0*df['press_vaisala'].mean()
+    df['radiation_SWd'].mask( df['radiation_SWd'] < RL, inplace=True)
+    
+    # (3) CCL
+    ccswdH2 = Sa*D1*mu0**1.2 + 55
+    ccswuH2 = Sa*D5*mu0**1.2 + 55
+    df['radiation_SWd'].mask( df['radiation_SWd'] > ccswdH2, inplace=True)
+    df['radiation_SWu'].mask( df['radiation_SWu'] > ccswuH2, inplace=True)
+     
+    # (4) Albedo
+    albs_abs = np.abs(df['radiation_SWu']/df['radiation_SWd'])
+    df['radiation_SWd'].mask( albs_abs > A0, inplace=True) 
+    df['radiation_SWu'].mask( albs_abs > A0, inplace=True) 
+
+
+    #
+    # Longwave
+    #
+     
+    # (1) PPL
+    df['radiation_LWd'].mask( (df['radiation_LWd']<lw_range[0]) | (df['radiation_LWd']>lw_range[1]) , inplace=True)
+    df['radiation_LWu'].mask( (df['radiation_LWu']<lw_range[0]) | (df['radiation_LWu']>lw_range[1]) , inplace=True) 
+     
+    # (2) Tair
+    Tair = (df['temp_vaisala']+273.15).interpolate()
+    tair_lwd_lo = D11 * sb*(Tair)**4 
+    tair_lwd_hi = sb*Tair**4 + D12
+    tair_lwu_lo = sb*(Tair-D13)**4
+    tair_lwu_hi = sb*(Tair+D14)**4
+    df['radiation_LWd'].mask( (df['radiation_LWd']<tair_lwd_lo) | (df['radiation_LWd']>tair_lwd_hi) , inplace=True)
+    df['radiation_LWu'].mask( (df['radiation_LWu']<tair_lwu_lo) | (df['radiation_LWu']>tair_lwu_hi) , inplace=True)
+    
+    # (3) LWU <-> LWD 
+    lwd_lwu_lo = df['radiation_LWu'] - D15
+    lwd_lwu_hi = df['radiation_LWu'] + D16
+    df['radiation_LWd'].mask( (df['radiation_LWd']<lwd_lwu_lo) | (df['radiation_LWd']>lwd_lwu_hi) , inplace=True)
+    
+    
+    # return screened values
+    return df
+ 
+
+

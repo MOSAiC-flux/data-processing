@@ -42,6 +42,17 @@ from tower_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
 
+# Ephemeris
+# SPA is NREL's (Ibrahim Reda's) emphemeris calculator that all those BSRN/ARM radiometer geeks use ;) 
+# pvlib is NREL's photovoltaic library
+from pvlib import spa 
+    # .. [1] I. Reda and A. Andreas, Solar position algorithm for solar radiation
+    #    applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.
+
+    # .. [2] I. Reda and A. Andreas, Corrigendum to Solar position algorithm for
+    #    solar radiation applications. Solar Energy, vol. 81, no. 6, p. 838,
+    #    2007.
+
 import os, inspect, argparse, time, gc
 import numpy  as np
 import pandas as pd
@@ -71,9 +82,9 @@ print('-------------------------------------------------------------------------
 def main(): # the main data crunching program
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
-    global beginning_of_time, integ_time_turb_flux
+    global beginning_of_time, integ_time_turb_flux, win_len
     beginning_of_time    = datetime(2019,10,15,0,0) # the first day of MOSAiC tower data
-    integ_time_turb_flux = 30 # [minutes] the integration time for the turbulent flux calculation
+    integ_time_turb_flux = [10,30] # [minutes] the integration time for the turbulent flux calculation
 
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
@@ -84,7 +95,6 @@ def main(): # the main data crunching program
     def_fill_flt = -9999.0
 
     # constants for calculations
-    Rd       = 287     # gas constant for dry air
     K_offset = 273.15  # convert C to K
     h2o_mass = 18      # are the obvious things...
     co2_mass = 44      # ... ever obvious?
@@ -107,7 +117,7 @@ def main(): # the main data crunching program
     verboseprint = v_print
     
     # paths
-    global data_dir, level1_dir, level2_dir, turb_dir # make data available
+    global data_dir, level1_dir, level2_dir, turb_dir, sonic_z, mast_sonic_height, licor_z # make data available
     data_dir   = args.path 
     level1_dir = data_dir+'MOSAiC/tower/1_level_ingest/'  # where does level1 data go
     level2_dir = data_dir+'MOSAiC/tower/2_level_product/' # where does level2 data go
@@ -150,7 +160,7 @@ def main(): # the main data crunching program
     rh_thresh         = (40   ,130)  # relative humidity (#)
     p_thresh          = (850  ,1100) # air pressure
     ws_thresh         = (0    ,27)   # wind speed from sonics (m/s)
-    lic_co2sig_thresh = (94   ,100)  # rough estimate of minimum CO2 signal value corresponding to optically-clean window
+    lic_co2sig_thresh = (94   ,105)  # rough estimate of minimum CO2 signal value corresponding to optically-clean window
     lic_h2o           = (0    ,500)  # Licor h2o [mol/m3]
     lic_co2           = (0    ,25)   # Licor co2 [mmol/m3]
     max_bad_paths     = (0.01 ,1)    # METEK: maximum [fraction] of bad paths allowed. (0.01 = 1%), but is
@@ -158,7 +168,8 @@ def main(): # the main data crunching program
     incl_range        = (-90  ,90)   # The inclinometer on the metek
     twr_alt_lim       = (-3.5,10.2)  # tower +/- 3sigma on the altitude data
     mst_alt_lim       = (-4.5,7.6)   # mast +/- 3sigma on the altitude data
-
+    cd_lim            = (-2.3e-3,1.5e-2) # drag coefficinet sanity check. really it can't be < 0, but a small negative threshold allows for empiracally defined (from EC) 3 sigma noise distributed about 0.
+    
     # various calibration params
     # ##########################
     # initial distance measurement for sr50 to snow (187.9cm) corrected
@@ -645,6 +656,8 @@ def main(): # the main data crunching program
     slow_data['apogee_targ_T'].mask( (slow_data['vaisala_T_2m']<-1) & (abs(slow_data['apogee_targ_T'])==0) , inplace=True) # reports spurious 0s sometimes
     slow_data['apogee_body_T']  = fl.despike(slow_data['apogee_body_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
     slow_data['apogee_targ_T']  = fl.despike(slow_data['apogee_targ_T'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
+    slow_data['apogee_targ_T']  .loc[:datetime(2019,10,15,7,54)] = nan
+    slow_data['apogee_body_T']  .loc[:datetime(2019,10,15,7,54)] = nan
 
     # GPS QC etc.
     slow_data['tower_lat']     = slow_data['gps_lat_deg']+slow_data['gps_lat_min']/60.0 # add decimal values
@@ -658,7 +671,8 @@ def main(): # the main data crunching program
     slow_data['gps_alt'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
     slow_data['tower_heading'].mask( (slow_data['gps_qc']==0) | (slow_data['gps_hdop']>4), inplace=True) 
     slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise 
-    if 'mast_RECORD' in slow_data: # today >= datetime(2020,4,15,0,0,0) and today < datetime(2020,5,2,0,0,0):
+    
+    if 'mast_RECORD' in slow_data:
         slow_data['mast_lat']     = slow_data['mast_gps_lat_deg_Avg']+slow_data['mast_gps_lat_min_Avg']/60.0 # add decimal values
         slow_data['mast_lon']     = slow_data['mast_gps_lon_deg_Avg']+slow_data['mast_gps_lon_min_Avg']/60.0
         slow_data['mast_heading'] = slow_data['mast_gps_hdg_Avg']/100.0  # convert to degrees
@@ -711,6 +725,29 @@ def main(): # the main data crunching program
     slow_data['ship_bearing'].loc[datetime(2020,3,9,0,0,0):datetime(2020,3,10,0,0,0)].mask( (slow_data['ship_bearing']>326), inplace=True) # something breaks in the trig model briefly. its weird. i'll just screen it out
     slow_data['ship_distance'].loc[datetime(2020,3,9,0,0,0):datetime(2020,3,10,0,0,0)].mask( (slow_data['ship_distance']>370), inplace=True) # something breaks in the trig model briefly. its weird. i'll just screen it out
 
+    # Ephemeris
+    # set it up
+    utime_in = np.array(slow_data.index.astype(np.int64)/10**9)                                              # unix time. sec since 1/1/70
+    lat_in   = slow_data['tower_lat']                                                                        # latitude
+    lon_in   = slow_data['tower_lon']                                                                        # latitude
+    elv_in   = np.zeros(slow_data.index.size)+2                                                              # the elvation shall be 2 m...the details are negligible
+    pr_in    = slow_data['vaisala_P_2m'].fillna(slow_data['vaisala_P_2m'].median())                          # mb 
+    t_in     = slow_data['vaisala_T_2m'].fillna(slow_data['vaisala_T_2m'].median())                          # degC
+    
+    atm_ref  = ( 1.02 * 1/np.tan(np.deg2rad(0+(10.3/(0+5.11)))) ) * pr_in/1010 * (283/(273.15+t_in))/60      # est of atm ref at sunrise/set following U. S. Naval Observatory's Vector Astrometry Software @ wikipedia https://en.wikipedia.org/wiki/Atmospheric_refraction. This really just sets a flag for when to apply the refraction adjustment. 
+    delt_in  = spa.calculate_deltat(slow_data.index.year, slow_data.index.month)                             # seconds. delta_t between terrestrial and UT1 time
+    # do the thing
+    app_zenith, zenith, app_elevation, elevation, azimuth, eot = spa.solar_position(utime_in,lat_in,lon_in,elv_in,pr_in,t_in,delt_in,atm_ref)
+    # write it out
+    slow_data['sza_true'] = zenith
+    slow_data['sza_app']  = app_zenith 
+    slow_data['azimuth']  = azimuth 
+
+    # in matlab, there were rare instabilities in the Reda and Andreas algorithm that resulted in spikes (a few per year). no idea if this is a problem in the python version, but lets make sure
+    slow_data['sza_true'] = fl.despike(slow_data['sza_true'],2,5,'no')
+    slow_data['sza_app'] = fl.despike(slow_data['sza_app'],2,5,'no')
+    slow_data['azimuth'] = fl.despike(slow_data['azimuth'],2,5,'no')
+
     # rename columns to match expected level2 names from data_definitions, there's probably a more clever way to do this
     slow_data.rename(inplace=True, columns =\
                      {
@@ -739,11 +776,12 @@ def main(): # the main data crunching program
     # ###################################################################################################
     # OK, all is done with the logger data, now get the 20hz data and put it into its own netcdf file
     # done in a loop because I only have 32GB of RAM in my laptop and there's no sense doing otherwise
+
     day_series = pd.date_range(start_time+timedelta(1), end_time-timedelta(1))    # we're going to loop over these days. timedelta because the input expanded 11 day on either side to facilitatte smoothing gps
     day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     for today in day_series: # loop over the days in the processing range
         tomorrow  = today+day_delta
-        Hz10_today        = pd.date_range(today, tomorrow, freq='0.1S')           # all the 0.1 seconds today, for obs
+        Hz10_today        = pd.date_range(today-pd.Timedelta(1,'hour'), tomorrow+pd.Timedelta(1,'hour'), freq='0.1S') # all the 0.1 seconds today, for obs. we buffer by 1 hr for easy of po2 in turbulent fluxes below
         seconds_today     = pd.date_range(today, tomorrow, freq='S')              # all the seconds today, for obs
         minutes_today     = pd.date_range(today, tomorrow, freq='T')              # all the minutes today, for obs
         ten_minutes_today = pd.date_range(today, tomorrow, freq='10T')            # all the 10 minutes today, for obs
@@ -882,8 +920,7 @@ def main(): # the main data crunching program
 
         #
         # And now Licor ####################################################
-        # Physically-possible limits, python is not happy with conventions in ambiguity of "or"
-        # im accustomed to in matlab so i split it into two lines
+        # Physically-possible limits
         T       = raw_licor_data['licor_T']
         pr      = raw_licor_data['licor_pr']
         h2o     = raw_licor_data['licor_h2o']
@@ -896,9 +933,9 @@ def main(): # the main data crunching program
         raw_licor_data['licor_co2'].mask( (co2<lic_co2[0]) | (co2>lic_co2[1]), inplace=True)
 
         # CO2 signal strength is a measure of window cleanliness applicable to CO2 and H2O vars
-        raw_licor_data['licor_co2'].mask( (co2_str<lic_co2sig_thresh[0]) | (co2_str>lic_co2sig_thresh[1]),  inplace=True)
-        raw_licor_data['licor_h2o'].mask( (co2_str<lic_co2sig_thresh[0]) | (co2_str>lic_co2sig_thresh[1]),  inplace=True)
-
+        raw_licor_data['licor_co2'].mask( (co2_str<lic_co2sig_thresh[0]),  inplace=True)
+        raw_licor_data['licor_h2o'].mask( (co2_str<lic_co2sig_thresh[0]),  inplace=True)
+        
         # The diagnostics are boolean and were decoded in level1
         pll           = raw_licor_data['licor_pll']
         detector_temp = raw_licor_data['licor_dt']
@@ -977,6 +1014,7 @@ def main(): # the main data crunching program
         #             metek y -> earth u, +North
         #             metek x -> earth v, +West
         #             Have a look also at pg 21-23 of NEW_MANUAL_20190624_uSonic-3_Cage_MP_Manual for metek conventions. Pg 21 seems to have errors in the diagram?
+
         for inst in metek_inst_keys:
             
             # Tower.
@@ -986,7 +1024,7 @@ def main(): # the main data crunching program
             if 'mast' not in inst:
                 ct_u, ct_v, ct_w = fl.tilt_rotation(fast_data_10hz[inst] [inst+'_incy'],
                                                     fast_data_10hz[inst] [inst+'_incx'],
-                                                    logger_today['tower_heading'].reindex(fast_data_10hz[inst].index).interpolate(),
+                                                    logger_today['tower_heading'].reindex(index=fast_data_10hz[inst].index).interpolate(),
                                                     fast_data_10hz[inst] [inst+'_y'], # y -> u on uSonic!
                                                     fast_data_10hz[inst] [inst+'_x'], # x -> v on uSonic!
                                                     fast_data_10hz[inst] [inst+'_z'])
@@ -997,23 +1035,23 @@ def main(): # the main data crunching program
                 
                 # This is Leg 1 and 2.
                 #   We use information available and interpolate between.
-                if 'mast_RECORD' not in slow_data:   
+                if today < datetime(2020,4,14,0,0):   
                     # interpolate the mast alignment metadata for today
-                    most_recent_gps = mast_hdg_df['gps_hdg'].reindex(fast_data_10hz[inst].index,method='pad')
-                    most_recent_mast = mast_hdg_df['mast_hdg'].reindex(fast_data_10hz[inst].index,method='pad')
+                    most_recent_gps = mast_hdg_df['gps_hdg'].reindex(index=fast_data_10hz[inst].index,method='pad')
+                    most_recent_mast = mast_hdg_df['mast_hdg'].reindex(index=fast_data_10hz[inst].index,method='pad')
                     mast_align = most_recent_gps - most_recent_mast   
-                    if today >  mast_hdg_df.index[-2]:
+                    if today >  mast_hdg_df.index[-2]: # if we are in leg 1 pad, but lineraly interp thru leg 2
                         meth = 'linear'
                     else:
                         meth = 'pad' 
                            
-                    mast_hdg_series = np.mod(logger_today['tower_heading'].reindex(fast_data_10hz[inst].index).interpolate()-mast_align,360)                    
+                    mast_hdg_series = np.mod(logger_today['tower_heading'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360)                    
 
                     # if we are working on the mast but we don't have a v102 we have to set to missing values, although we can report our estiamte of the heading
                     logger_today['mast_lat']=np.zeros(len(logger_today['tower_lat']))+def_fill_flt 
                     logger_today['mast_lon']=np.zeros(len(logger_today['tower_lon']))+def_fill_flt 
                     logger_today['mast_ice_alt']=np.zeros(len(logger_today['tower_ice_alt']))+def_fill_flt 
-                    logger_today['mast_heading']=mast_hdg_series
+                    logger_today['mast_heading']=mast_hdg_series.reindex(index=seconds_today)
                 
                 # This is the Newdle in Leg 3. 
                 #   A "spare" v102 was used so the heading is tracked directly. 
@@ -1021,7 +1059,7 @@ def main(): # the main data crunching program
                 else:                     
                     # set to 68.5 from calcs416.py 
                     mast_align = 68.5
-                    mast_hdg_series = np.mod(logger_today['mast_heading'].reindex(fast_data_10hz[inst].index).interpolate()-mast_align,360) 
+                    mast_hdg_series = np.mod(logger_today['mast_heading'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360) 
                     # also, set the heading for the file
                     logger_today['mast_heading'] = np.mod(logger_today['mast_heading']-mast_align,360)
                     
@@ -1102,126 +1140,235 @@ def main(): # the main data crunching program
         for inst in metek_inst_keys:
             stats_data = pd.concat(  [stats_data, metek_stats[inst]], axis=1)
         stats_data = pd.concat(  [stats_data, licor_stats], axis=1 )
-        print(stats_data)
+        stats_data = stats_data[today:tomorrow]
+ 
         # ~~~~~~~~~~~~~~~~~~~~ (6) Flux Capacitor  ~~~~~~~~~~~~~~~~~~~~~~~~~
-        verboseprint('... calculating turbulent fluxes and associated MO parameter s')
-
+        verboseprint('... calculating turbulent fluxes and associated MO parameters')
         # Rotation to the streamline, FFT window segmentation, detrending,
         # hamming, and computation of power [welch] & cross spectral densities,
         # covariances and associated diagnostics, as well as derived
         # variables (fluxes and stress parameters) are performed within a
         # sub-function called below.
         #
-        # turbulence_data = grachev_fluxcapacitor(z_level_nominal,z_level_n,sonic_dir,metek,licor,clasp)
-        #       z_level_nominal = nomoinal height nomenclature as a string: '2m', '6m', '10m', or 'mast' so that we can reference unique column names later
-        #       z_level_n = Height of measurements in m, being precise because it affects the calculation
-        #       sonic_dir = Orientation (azimuth) of the sonic anemoneter relative to true North
-        #       metek = the metek DataFrame
-        #       licor = the licor DataFrame - currently unused until we get that coded up
-        #       clasp = the clasp data frame - currently unused until we get that coded up
-        #
-        turb_data = pd.DataFrame()    
-        flux_freq = '{}T'.format(integ_time_turb_flux)
-        flux_time_today = pd.date_range(today, today+timedelta(1), freq=flux_freq)
-        suffix_list = ['_2m','_6m','_10m','_mast'] # suffix for vars in turb file
-        # a DatetimeIndex based on integ_time_turb_flux, the integration window
-        # for the calculations that is defined at the top  of the code
-        for i_inst, inst in enumerate(metek_inst_keys):
-            verboseprint("... processing turbulence data for {}".format(inst))
-            for time_i in range(0,len(flux_time_today)-1): # flux_time_today = 
-                # Get the index, ind, of the metek frame that pertains to the present calculation 
-                inds = (fast_data_10hz[inst].index >= flux_time_today[time_i]) \
-                       & \
-                       (fast_data_10hz[inst].index < flux_time_today[time_i+1]) 
+        # turbulence_data = fl.grachev_fluxcapacitor(sz, sonic_data, licor_data, h2o_units, co2_units, p, t, q, verbose=v)
+        #       sz = instrument height
+        #       sonic_data = dataframe of u,v,w winds
+        #       licor_data = dataframe of h2o adn co2
+        #       h2o_units = units of licor h2o, e.g., 'mmol/m3'
+        #       co2_units = units of licor co2, e.g., 'mmol/m3'
+        #       p = pressure in hPa, scaler
+        #       t = air temperature in C, scaler
+        #       q = vapor mixing ratio, scaler
+        for win_len in range(0,len(integ_time_turb_flux)):
+            turb_data = pd.DataFrame()    
+            flux_freq = '{}T'.format(integ_time_turb_flux[win_len])
+            flux_time_today = pd.date_range(today, today+timedelta(1), freq=flux_freq)
+            suffix_list = ['_2m','_6m','_10m','_mast'] # suffix for vars in turb file
+            # a DatetimeIndex based on integ_time_turb_flux, the integration window
+            # for the calculations that is defined at the top  of the code
+            for i_inst, inst in enumerate(metek_inst_keys):
+                verboseprint("... processing turbulence data for {}".format(inst))
+                for time_i in range(0,len(flux_time_today)-1): # flux_time_today = 
+                    # Get the index, ind, of the metek frame that pertains to the present calculation 
+                   # inds = (fast_data_10hz[inst].index >= flux_time_today[time_i]) \
+                   #        & \
+                   #        (fast_data_10hz[inst].index < flux_time_today[time_i+1]) 
+                           
+                    # Get the index, ind, of the metek frame that pertains to the present calculation 
+                    # A little tricky. We need to make sure we give it enough data to encompass the nearest power of 2: for 30 min fluxes this is ~27 min so you are good, but for 10 min fluxes it is 13.6 min so you need to give it more. 
+                    # We buffered the 10 Hz so that we can go outside the edge of "today" by up to an hour. It's a bit of a formality, but for general cleanliness we are going to center all fluxes to the nearest min so that e.g,
+                    # 12:00-12:10 is actually 11:58 through 12:12
+                    # 12:00-12:30 is actually 12:01 through 12:28   
+                    po2_len = np.ceil(2**round(np.log2(integ_time_turb_flux[win_len]*60*10))/10/60) # @10Hz,# min needed to cover the nearet po2 [minutes]
+                    t_win = pd.Timedelta((po2_len-integ_time_turb_flux[win_len])/2,'minutes')
+                    calc_data = fast_data_10hz[inst].loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].copy()
+                    
+                    # get the licor data. we will just pass it through for every height as a placeholder, but only save the output for the right height. the decision doesnt need to be in the loop, but at least it is findable
+                    licor_data = licor_10hz.loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].copy()  
+                    if licor_z > 8: 
+                        use_this_licor = suffix_list[2]
+                    if licor_z > 4 and licor_z < 8: 
+                        use_this_licor = suffix_list[1] 
+                    if licor_z < 4: 
+                        use_this_licor = suffix_list[0]
 
-                # !! tower heading...is this meant to be oriented with the sonic North? like, does this
-                # equal "sonic north"? hdg = np.float64(logger_today['gps_hdg'][logger_today['gps_hdg'].index ==
-                # flux_time_today[time_i]])
-                hdg = logger_today['gps_hdg'].mean()
+                    # we need pressure and temperature
+                    # these are just for calculation of constants so the 2m data should be close enough...the original code assumed a nominal pressure and used sonic temperature...
+                    Pr_time_i = slow_data['pressure_vaisala_2m'].loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].mean()
+                    T_time_i = slow_data['temp_vaisala_2m'].loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].mean()
+                    Q_time_i = slow_data['MR_vaisala_2m'].loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].mean()/1000
+                                                  
+                    # make the turbulent flux calculations via Grachev module
+                    v = False
+                    if args.verbose: v = True;
+    
+                    # give generic names for calculations and select the desired indexes
+                    calc_data.rename(columns={inst+'_u' : 'u',
+                                        inst+'_v' : 'v',
+                                        inst+'_w' : 'w',
+                                        inst+'_T' : 'T',
+                                        }, errors="raise", inplace=True)
+                    if 'mast' not in inst: sz = sonic_z[0][i_inst]
+                    else: sz = mast_sonic_height
+                    data = fl.grachev_fluxcapacitor(sz, calc_data, licor_data, 'mmol/m3', 'mmol/m3', Pr_time_i, T_time_i, Q_time_i, verbose=v)
+                    data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True) # # Sanity check on Cd. Ditch the whole run if it fails
+                    data = data.add_suffix(suffix_list[i_inst])                                        
+                    if time_i == 0: # doubtless there is a better way to initialize this
+                        inst_data = data
+                    else:
+                        inst_data = inst_data.append(data)
+    
+                # now add the indexer datetime doohicky
+                verboseprint("... concatting turbulence calculations to one dataframe")
+                inst_data.index = flux_time_today[0:-1]
+                turb_data = pd.concat( [turb_data, inst_data], axis=1) # concat columns alongside each other without adding indexes
+                
+                # ugh. there are 2 dimensions to the spectral variables, but the spectra are smoothed. The smoothing routine is a bit strange in that is is dependent
+                # on the length of the window (to which it should be orthogonal!) and worse, is not obviously predictable...it groes in a for loop nested in a while 
+                # loop that is seeded by a counter and limited by half the length of the window, but the growth is not entirely predictable and neither is the result
+                # so I can't preallocate the frequency vector. I need to talk to Andrey about this and I need a programatic solution to assigning a frequency dimension
+                # when pandas actually treats that dimension indpendently along the time dimension. I will search the data frame for instances of a frequency dim then assign
+                # times without it nan of that length. for days without a frequency dim I will assign it to be length of 2 arbitrarily so that the netcdf can be written. This
+                # is ugly.
+    
+                # (1) figure out the length of the freq dim and how many times are missing. also, save the frequency itself or you will write that vector as nan later on...
+                missing_f_dim_ind = []
+                f_dim_len = 1 
+                for ii in range(0, np.array(turb_data['fs'+suffix_list[i_inst]]).size):
+                    len_var = np.array(turb_data['fs'+suffix_list[i_inst]][ii]).size
+                    if len_var == 1:
+                        missing_f_dim_ind.append(ii)
+                    else:
+                        f_dim_len = len_var
+                        fs = turb_data['fs'+suffix_list[i_inst]][ii]
+                                             
+                # (2) if missing times were found, fill with nans of the freq length you discovered. this happens on days when the instruents are turned on and also perhaps runs when missing data meant the flux_capacitor returned for lack of inputs
+                if f_dim_len > 1 and not not missing_f_dim_ind: # omg, double negatives...python is so absurd. it didn't understand "is" so missing_f_dim_ind is not not a thing will have to do
+                    for ii in range(0,len(missing_f_dim_ind)):
+                        # these are the array with multiple dims...
+                        # im filling the ones that are missing with nan (of fs in the case of fs...) such that they can form a proper and square array for the netcdf
+                        turb_data['fs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs
+                        turb_data['sus'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['svs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['sws'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['sTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['sqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['scs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cwus'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cwvs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cwTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cuTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cvTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cwqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cuqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cvqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cwcs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cucs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cvcs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                        turb_data['cuvs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
 
-                # make the turbulent flux calculations via Grachev module
-                v = False
-                if args.verbose: v = True;
+            # now reassign the naming convention for the licor stuff
+            turb_data['Hl'] = turb_data['Hl'+use_this_licor]
+            turb_data['Hl_Webb'] = turb_data['Hl_Webb'+use_this_licor]
+            turb_data['CO2_flux'] = turb_data['CO2_flux'+use_this_licor]
+            turb_data['CO2_flux_Webb'] = turb_data['CO2_flux_Webb'+use_this_licor]
+            turb_data['nSq'] = turb_data['nSq'+use_this_licor]
+            turb_data['nSc'] = turb_data['nSc'+use_this_licor]
+            turb_data['fs'] = turb_data['fs'+use_this_licor]
+            turb_data['wq_csp'] = turb_data['wq_csp'+use_this_licor]
+            turb_data['uq_csp'] = turb_data['uq_csp'+use_this_licor]
+            turb_data['vq_csp'] = turb_data['vq_csp'+use_this_licor]
+            turb_data['wc_csp'] = turb_data['wc_csp'+use_this_licor]
+            turb_data['uc_csp'] = turb_data['uc_csp'+use_this_licor]
+            turb_data['vc_csp'] = turb_data['vc_csp'+use_this_licor]
+            turb_data['sqs'] = turb_data['sqs'+use_this_licor]
+            turb_data['scs'] = turb_data['scs'+use_this_licor]
+            turb_data['cwqs'] = turb_data['cwqs'+use_this_licor]
+            turb_data['cuqs'] = turb_data['cuqs'+use_this_licor]
+            turb_data['cvqs'] = turb_data['cvqs'+use_this_licor]
+            turb_data['cwcs'] = turb_data['cwcs'+use_this_licor]
+            turb_data['cucs'] = turb_data['cucs'+use_this_licor]
+            turb_data['cvcs'] = turb_data['cvcs'+use_this_licor]
+            turb_data['Deltaq'] = turb_data['Deltaq'+use_this_licor]
+            turb_data['Kurt_q'] = turb_data['Kurt_q'+use_this_licor]
+            turb_data['Kurt_wq'] = turb_data['Kurt_wq'+use_this_licor]
+            turb_data['Kurt_uq'] = turb_data['Kurt_uq'+use_this_licor]
+            turb_data['Skew_q'] = turb_data['Skew_q'+use_this_licor]
+            turb_data['Skew_wq'] = turb_data['Skew_wq'+use_this_licor]
+            turb_data['Skew_uq'] = turb_data['Skew_uq'+use_this_licor]
+            turb_data['Deltac'] = turb_data['Deltac'+use_this_licor]
+            turb_data['Kurt_c'] = turb_data['Kurt_c'+use_this_licor]
+            turb_data['Kurt_wc'] = turb_data['Kurt_wc'+use_this_licor]
+            turb_data['Kurt_uc'] = turb_data['Kurt_uc'+use_this_licor]
+            turb_data['Skew_c'] = turb_data['Skew_c'+use_this_licor]
+            turb_data['Skew_wc'] = turb_data['Skew_wc'+use_this_licor]
+            turb_data['Skew_uc'] = turb_data['Skew_uc'+use_this_licor]                        
+                    
+            # calculate the bulk every 30 min
+            print('... calculating bulk fluxes for day: {}'.format(today))
+            # Input dataframe
+                # first get 1 s wind speed. i dont care about direction. 
+            ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v']**2)**0.5
+            ws = ws.resample('1s',label='left').apply(fl.take_average)
+                # make a better surface temperature
+            tsfc = (((slow_data['surface_T_IRT']+273.15)**4 / 0.985)**0.25)-273.15
+            empty_data = np.zeros(np.size(slow_data['MR_vaisala_10m'][seconds_today]))
+            bulk_input = pd.DataFrame()
+            bulk_input['u']  = ws[seconds_today]                                               # wind speed                         (m/s)
+            bulk_input['ts'] = tsfc                                             # bulk water/ice surface tempetature (degC) this needs to be corrected for reflected
+            bulk_input['t']  = slow_data['temp_vaisala_10m'][seconds_today]     # air temperature                    (degC) 
+            bulk_input['Q']  = slow_data['MR_vaisala_10m'][seconds_today]/1000  # air moisture mixing ratio          (kg/kg)
+            bulk_input['zi'] = empty_data+600                                   # inversion height                   (m) wild guess
+            bulk_input['P']  = slow_data['pressure_vaisala_2m'][seconds_today]  # surface pressure                   (mb)
+            bulk_input['zu'] = empty_data+10                                    # height of anemometer               (m)
+            bulk_input['zt'] = empty_data+10                                    # height of thermometer              (m)
+            bulk_input['zq'] = empty_data+10                                    # height of hygrometer               (m)      
+            bulk_input = bulk_input.resample(str(integ_time_turb_flux[win_len])+'min',label='left').apply(fl.take_average)
+            # output dataframe
+            empty_data = np.zeros(len(bulk_input))
+            bulk = pd.DataFrame() 
+            bulk['bulk_Hs_10m']      = empty_data*nan # hsb: sensible heat flux (Wm-2)
+            bulk['bulk_Hl_10m']      = empty_data*nan # hlb: latent heat flux (Wm-2)
+            bulk['bulk_tau']         = empty_data*nan # tau: stress                             (Pa)
+            bulk['bulk_z0']          = empty_data*nan # zo: roughness length, veolicity              (m)
+            bulk['bulk_z0t']         = empty_data*nan # zot:roughness length, temperature (m)
+            bulk['bulk_z0q']         = empty_data*nan # zoq: roughness length, humidity (m)
+            bulk['bulk_L']           = empty_data*nan # L: Obukhov length (m)       
+            bulk['bulk_ustar']       = empty_data*nan # usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
+            bulk['bulk_tstar']       = empty_data*nan # tsr: temperature scale, tstar (K)
+            bulk['bulk_qstar']       = empty_data*nan # qsr: specific humidity scale, qstar (kg/kg?)
+            bulk['bulk_dter']        = empty_data*nan # dter
+            bulk['bulk_dqer']        = empty_data*nan # dqer
+            bulk['bulk_Hl_Webb_10m'] = empty_data*nan # hl_webb: Webb density-corrected Hl (Wm-2)
+            bulk['bulk_Cd_10m']      = empty_data*nan # Cd: transfer coefficient for stress
+            bulk['bulk_Ch_10m']      = empty_data*nan # Ch: transfer coefficient for Hs
+            bulk['bulk_Ce_10m']      = empty_data*nan # Ce: transfer coefficient for Hl
+            bulk['bulk_Cdn_10m']     = empty_data*nan # Cdn_10: 10 m neutral transfer coefficient for stress
+            bulk['bulk_Chn_10m']     = empty_data*nan # Chn_10: 10 m neutral transfer coefficient for Hs
+            bulk['bulk_Cen_10m']     = empty_data*nan # Cen_10: 10 m neutral transfer coefficient for Hl
+            bulk['bulk_Rr']          = empty_data*nan # Reynolds number
+            bulk['bulk_Rt']          = empty_data*nan # 
+            bulk['bulk_Rq']          = empty_data*nan # 
+            bulk=bulk.reindex(index=bulk_input.index)
+           
+            for ii in range(len(bulk)):
+                tmp = [bulk_input['u'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
+                if not any(np.isnan(tmp)):
+                    bulkout = fl.cor_ice_A10(tmp)
+                    for hh in range(len(bulkout)):
+                        if bulkout[13] < cd_lim[0] or bulkout[13] > cd_lim[1]:  # Sanity check on Cd. Ditch the whole run if it fails
+                            bulk[bulk.columns[hh]][ii]=nan  # for some reason this needs to be in a loop
+                        else:
+                            bulk[bulk.columns[hh]][ii]=bulkout[hh]
+ 
+            # add this to the EC data
+            turb_data = pd.concat( [turb_data, bulk], axis=1) # concat columns alongside each other without adding indexes
+            print('Outputting {} turbulent fluxes to netcdf files: {}'.format(str(integ_time_turb_flux[win_len])+"min",today))
+            turb_q = Queue()
+            Thread(target=write_turb_netcdf,\
+                args=(turb_data.copy(), today, turb_q)).start()
+            turb_q.get()
 
-                # give generic names for calculations and select the desired indexes
-                calc_data = fast_data_10hz[inst][inds]
-                calc_data.rename(columns={inst+'_u' : 'u',
-                                    inst+'_v' : 'v',
-                                    inst+'_w' : 'w',
-                                    inst+'_T' : 'T',
-                                    }, errors="raise", inplace=True)
-                if 'mast' not in inst: sz = sonic_z[0][i_inst]
-                else: sz = mast_sonic_height
-
-                data = fl.grachev_fluxcapacitor(sz, hdg, calc_data, [], [], verbose=v)
-                data = data.add_suffix(suffix_list[i_inst])
-                if time_i == 0: # doubtless there is a better way to initialize this
-                    inst_data = data
-                else:
-                    inst_data = inst_data.append(data)
-
-            # now add the indexer datetime doohicky
-            verboseprint("... concatting turbulence calculations to one dataframe")
-            inst_data.index = flux_time_today[0:-1]
-            turb_data = pd.concat( [turb_data, inst_data], axis=1) # concat columns alongside each other without adding indexes
-            
-        # calculate the bulk every 30 min
-        print('... calculating bulk fluxes for day: {}'.format(today))
-        # Input dataframe
-            # first get 1 s wind speed. i dont care about direction. 
-        ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v']**2)**0.5
-        ws = ws.resample('1s',label='left').apply(fl.take_average)
-            # make a better surface temperature
-        tsfc = (((slow_data['surface_T_IRT']+273.15)**4 / 0.985)**0.25)-273.15
-        empty_data = np.zeros(np.size(slow_data['MR_vaisala_10m'][seconds_today]))
-        bulk_input = pd.DataFrame()
-        bulk_input['u']  = ws                                               # wind speed                         (m/s)
-        bulk_input['ts'] = tsfc                                             # bulk water/ice surface tempetature (degC) this needs to be corrected for reflected
-        bulk_input['t']  = slow_data['temp_vaisala_10m'][seconds_today]     # air temperature                    (degC) 
-        bulk_input['Q']  = slow_data['MR_vaisala_10m'][seconds_today]/1000  # air moisture mixing ratio          (fraction)
-        bulk_input['zi'] = empty_data+600                                   # inversion height                   (m) wild guess
-        bulk_input['P']  = slow_data['pressure_vaisala_2m'][seconds_today]  # surface pressure                   (mb)
-        bulk_input['zu'] = empty_data+10                                    # height of anemometer               (m)
-        bulk_input['zt'] = empty_data+10                                    # height of thermometer              (m)
-        bulk_input['zq'] = empty_data+10                                    # height of hygrometer               (m)      
-        bulk_input = bulk_input.resample('30min',label='left').apply(fl.take_average)
-   
-        # output dataframe
-        empty_data = np.zeros(len(bulk_input))
-        bulk = pd.DataFrame() 
-        bulk['bulk_Hs_10m']      = empty_data*nan # hsb: sensible heat flux (Wm-2)
-        bulk['bulk_Hl_10m']      = empty_data*nan # hlb: latent heat flux (Wm-2)
-        bulk['bulk_tau']         = empty_data*nan # tau: stress                             (Pa)
-        bulk['bulk_z0']          = empty_data*nan # zo: roughness length, veolicity              (m)
-        bulk['bulk_z0t']         = empty_data*nan # zot:roughness length, temperature (m)
-        bulk['bulk_z0q']         = empty_data*nan # zoq: roughness length, humidity (m)
-        bulk['bulk_L']           = empty_data*nan # L: Obukhov length (m)       
-        bulk['bulk_ustar']       = empty_data*nan # usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
-        bulk['bulk_tstar']       = empty_data*nan # tsr: temperature scale, tstar (K)
-        bulk['bulk_qstar']       = empty_data*nan # qsr: specific humidity scale, qstar (kg/kg?)
-        bulk['bulk_dter']        = empty_data*nan # dter
-        bulk['bulk_dqer']        = empty_data*nan # dqer
-        bulk['bulk_Hl_Webb_10m'] = empty_data*nan # hl_webb: Webb density-corrected Hl (Wm-2)
-        bulk['bulk_Cd_10m']      = empty_data*nan # Cd: transfer coefficient for stress
-        bulk['bulk_Ch_10m']      = empty_data*nan # Ch: transfer coefficient for Hs
-        bulk['bulk_Ce_10m']      = empty_data*nan # Ce: transfer coefficient for Hl
-        bulk['bulk_Cdn_10m']     = empty_data*nan # Cdn_10: 10 m neutral transfer coefficient for stress
-        bulk['bulk_Chn_10m']     = empty_data*nan # Chn_10: 10 m neutral transfer coefficient for Hs
-        bulk['bulk_Cen_10m']     = empty_data*nan # Cen_10: 10 m neutral transfer coefficient for Hl
-        bulk['bulk_Rr']          = empty_data*nan # Reynolds number
-        bulk['bulk_Rt']          = empty_data*nan # 
-        bulk['bulk_Rq']          = empty_data*nan # 
-        bulk=bulk.reindex(index=bulk_input.index)
-       
-        for ii in range(len(bulk)):
-            tmp = [bulk_input['u'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
-            if not any(np.isnan(tmp)):
-                bulkout = fl.cor_ice_A10(tmp)
-                for hh in range(len(bulkout)):
-                    bulk[bulk.columns[hh]][ii]=bulkout[hh]
-     
-        # add this to the EC data
-        turb_data = pd.concat( [turb_data, bulk], axis=1) # concat columns alongside each other without adding indexes
 
         print('... writing to level2 netcdf files and calcuating averages for day: {}'.format(today))
 
@@ -1234,11 +1381,6 @@ def main(): # the main data crunching program
         Thread(target=write_level2_netcdf,\
                args=(l2_data.copy(), today, "1min", onemin_q)).start()
         onemin_q.get()
-
-        turb_q = Queue()
-        Thread(target=write_turb_netcdf,\
-                args=(turb_data.copy(), today, turb_q)).start()
-        turb_q  .get()
 
         tenmin_q = Queue()
         Thread(target=write_level2_netcdf,\
@@ -1349,7 +1491,7 @@ def write_level2_netcdf(l2_data, date, timestep, q):
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
 
-    l2_atts, l2_cols = define_level2_variables()
+    l2_atts, l2_cols = define_level2_variables(sonic_z, mast_sonic_height, licor_z)
 
     all_missing     = True 
     first_loop      = True
@@ -1467,7 +1609,7 @@ def write_turb_netcdf(turb_data, date, q):
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
 
-    turb_atts, turb_cols = define_turb_variables()
+    turb_atts, turb_cols = define_turb_variables(sonic_z, mast_sonic_height, licor_z)
 
     if turb_data.empty:
         print("... there was no turbulence data to write today {}".format(date))
@@ -1482,7 +1624,7 @@ def write_turb_netcdf(turb_data, date, q):
     print("... writing turbulence data for on {}, ~{}% of data is present".format(date, 100-avg_missing))
 
     out_dir  = turb_dir
-    file_str = '/mosflxtowerturb.level2.{}min.{}.nc'.format(integ_time_turb_flux, date.strftime('%Y%m%d.%H%M%S'))
+    file_str = '/mosflxtowerturb.level2.{}min.{}.nc'.format(integ_time_turb_flux[win_len], date.strftime('%Y%m%d.%H%M%S'))
 
     turb_name  = '{}/{}'.format(out_dir, file_str)
 
@@ -1490,7 +1632,7 @@ def write_turb_netcdf(turb_data, date, q):
     netcdf_turb = Dataset(turb_name, 'w') 
 
     for att_name, att_val in global_atts.items(): netcdf_turb.setncattr(att_name, att_val) 
-    n_turb_in_day = np.int(24*60/integ_time_turb_flux)
+    n_turb_in_day = np.int(24*60/integ_time_turb_flux[win_len])
 
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_turb.createDimension('time', None)# n_turb_in_day)    
@@ -1500,10 +1642,10 @@ def write_turb_netcdf(turb_data, date, q):
                       'long_name' : 'seconds since the first day of MOSAiC',
                       'calendar'  : 'standard',}
     # this is a bit klugy
-    time_atts_turb['delta_t']   = '0000-00-00 '+np.str(pd.Timedelta(integ_time_turb_flux,'m')).split(sep=' ')[2] 
+    time_atts_turb['delta_t']   = '0000-00-00 '+np.str(pd.Timedelta(integ_time_turb_flux[win_len],'m')).split(sep=' ')[2] 
 
     bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
-    times_turb = np.floor(((pd.date_range(date, tomorrow, freq=np.str(integ_time_turb_flux)+'T') - bot).total_seconds()))
+    times_turb = np.floor(((pd.date_range(date, tomorrow, freq=np.str(integ_time_turb_flux[win_len])+'T') - bot).total_seconds()))
 
     # fix problems with flt rounding errors for high temporal resolution (occasional errant 0.00000001)
     times_turb = pd.Int64Index(times_turb)
@@ -1512,21 +1654,45 @@ def write_turb_netcdf(turb_data, date, q):
     t    = netcdf_turb.createVariable('time', 'i','time') # seconds since
     t[:] = times_turb.values
     for att_name, att_val in time_atts_turb.items() : netcdf_turb['time'].setncattr(att_name,att_val)
-
+    
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():
          
-        if turb_data[var_name].dtype == object: # happens when all fast data is missing...
-            turb_data[var_name] = np.float64(turb_data[var_name])
+        # seriously python, seriously????
+        if turb_data[var_name].isnull().all():
+            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
+                turb_data[var_name] = np.float64(turb_data[var_name])     
+        elif turb_data[var_name][0].size > 1:
+            if turb_data[var_name][0].dtype == object: # happens when all fast data is missing...
+                turb_data[var_name] = np.float64(turb_data[var_name])
+        else:         
+            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
+                turb_data[var_name] = np.float64(turb_data[var_name])        
 
         # create variable, # dtype inferred from data file via pandas
-        var_dtype = turb_data[var_name].dtype
-        var_turb  = netcdf_turb.createVariable(var_name, var_dtype, 'time')
+        var_dtype = turb_data[var_name][0].dtype
+        if turb_data[var_name][0].size == 1:
+            var_turb  = netcdf_turb.createVariable(var_name, var_dtype, 'time')
+            turb_data[var_name].fillna(def_fill_flt, inplace=True)
+            # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
+            var_turb[:] = turb_data[var_name].values
+        else:
+            if 'fs' in var_name:  
+                netcdf_turb.createDimension('freq', turb_data[var_name][0].size)   
+                var_turb  = netcdf_turb.createVariable(var_name, var_dtype, ('freq'))
+                turb_data[var_name][0].fillna(def_fill_flt, inplace=True)
+                # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
+                var_turb[:] = turb_data[var_name][0].values      
+            else:   
+                var_turb  = netcdf_turb.createVariable(var_name, var_dtype, ('time','freq'))
+                for jj in range(0,turb_data[var_name].size):
+                    turb_data[var_name][jj].fillna(def_fill_flt, inplace=True)
+                # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
+                tmp = np.empty([turb_data[var_name].size,turb_data[var_name][0].size])
+                for jj in range(0,turb_data[var_name].size):
+                    tmp[jj,:]=np.array(turb_data[var_name][jj])
+                var_turb[:] = tmp         
 
-        turb_data[var_name].fillna(def_fill_flt, inplace=True)
-
-        # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
-        var_turb[:] = turb_data[var_name].values
 
         # add variable descriptions from above to each file
         for att_name, att_desc in var_atts.items(): netcdf_turb[var_name] .setncattr(att_name, att_desc)

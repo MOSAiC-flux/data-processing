@@ -47,7 +47,7 @@ code_version = code_version()
 # HOWTO:
 #
 # To run this package with verbose printing over all of the data:
-# python3 create_level2_product_asfs.py -v -s 20191005 -e 20201005
+# python3 create_level2_product_asfs.py -v -s 20191005 -e 20201005 -p /psd3data/arctic/MOSAiC/
 #
 # To profile the code and see what's taking so long:
 # python3 -m cProfile -s cumulative ./create_Daily_Tower_NetCDF.py -v -s 20191201 -e 20191201 
@@ -60,6 +60,17 @@ from asfs_data_definitions import define_global_atts, define_level2_variables, d
 from asfs_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
+
+# Ephemeris
+# SPA is NREL's (Ibrahim Reda's) emphemeris calculator that all those BSRN/ARM radiometer geeks use ;) 
+# pvlib is NREL's photovoltaic library
+from pvlib import spa 
+    # .. [1] I. Reda and A. Andreas, Solar position algorithm for solar radiation
+    #    applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.
+
+    # .. [2] I. Reda and A. Andreas, Corrigendum to Solar position algorithm for
+    #    solar radiation applications. Solar Energy, vol. 81, no. 6, p. 838,
+    #    2007.
 
 import os, inspect, argparse, time, gc
 
@@ -77,6 +88,9 @@ from netCDF4   import Dataset, MFDataset, num2date
 
 import warnings; warnings.filterwarnings(action='ignore') # vm python version problems, cleans output....
 
+# just in case... avoids some netcdf nonsense involving the default file locking across mounts
+os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
+
 version_msg = '\n\nPS-122 MOSAiC Flux team ASFS processing code v.'+code_version[0]\
               +', last updates: '+code_version[1]+' by '+code_version[2]+'\n\n'
 
@@ -86,22 +100,14 @@ print(version_msg)
 def main(): # the main data crunching program
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
-    global beginning_of_time, integ_time_turb_flux
+    global beginning_of_time, integ_time_turb_flux, win_len
     beginning_of_time    = datetime(2019,10,5,0,0) # the first day of MOSAiC ASFS data
-    integ_time_turb_flux = 10                      # [minutes] the integration time for the turbulent flux calculation
-    calc_fluxes          = True                   # if you want to run turbulent flux calculations and write files
+    integ_time_turb_flux = [10,30]                 # [minutes] the integration time for the turbulent flux calculation
+    calc_fluxes          = True                    # if you want to run turbulent flux calculations and write files
 
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
     global verbose       # a useable flag to allow subroutines etc when using -v 
-
-    global data_dir, level1_dir, level2_dir, turb_dir # make data available
-    data_dir   = './data/'
-    level1_dir = './processed_data/level1/'  # where does level1 data go
-    level2_dir = './processed_data/level2/'  # where does level2 data go
-    turb_dir    = './processed_data/turb/'    # where does level2 data go
-
-    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties 
     
     # constants for calculations
     global nan, def_fill_int, def_fill_flt # make using nans look better
@@ -113,6 +119,8 @@ def main(): # the main data crunching program
     K_offset = 273.15  # convert C to K
     h2o_mass = 18      # are the obvious things...
     co2_mass = 44      # ... ever obvious?
+    sb       = 5.67e-8 # stefan-boltzmann
+    emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Warren and so on
 
     # there are two command line options that effect processing, the start and end date...
     # ... if not specified it runs over all the data. format: '20191001' AKA '%Y%m%d'
@@ -120,12 +128,22 @@ def main(): # the main data crunching program
     parser.add_argument('-s', '--start_time', metavar='str', help='beginning of processing period, Ymd syntax')
     parser.add_argument('-e', '--end_time', metavar='str', help='end  of processing period, Ymd syntax')
     parser.add_argument('-v', '--verbose', action ='count', help='print verbose log messages')
+    parser.add_argument('-p', '--path', metavar='str', help='base path to data up to, including /data/, include trailing slash') # pass the base path to make it more mobile
+    parser.add_argument('-a', '--station', metavar='str',help='asfs#0, if omitted all will be procesed')
     # add verboseprint function for extra info using verbose flag, ignore these 5 lines if you want
-
+    
     args         = parser.parse_args()
     verbose      = True if args.verbose else False # use this to run segments of code via v/verbose flag
     v_print      = print if verbose else lambda *a, **k: None     # placeholder
     verboseprint = v_print # use this function to print a line if the -v/--verbose flag is provided
+    
+    global data_dir, level1_dir, level2_dir, turb_dir # make data available
+    data_dir   = args.path
+    if args.station:
+        flux_stations = args.station.split(',')
+    else:
+        flux_stations = ['asfs30', 'asfs40', 'asfs50']
+          
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
               .format(startline, endline))
@@ -143,58 +161,167 @@ def main(): # the main data crunching program
     else:
         end_time = beginning_of_time.today() # any datetime object can provide current time
         end_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
+        
+    # expand the load by 1 day to facilite gps processing    
+    start_time = start_time-timedelta(1)
+    end_time = end_time+timedelta(1)
 
-    printline(endline="\n")
-    print('The first day of the experiment is:   %s' % beginning_of_time)
-    print('The first day we process data is:     %s' % start_time)
-    print('The last day we will process data is: %s' % end_time)
-    printline(startline="\n")
+    print('The first day of the experiment is:    %s' % beginning_of_time)
+    print('The first day we  process data is:     %s' % str(start_time+timedelta(1)))
+    print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
+    printline()
 
     # thresholds! limits that can warn you about bad data!
     # these aren't used yet but should be used to warn about spurious data
-    lat_thresh        = (70   ,90)   # limits area where station
-    hdg_thresh_lo     = (0    ,360)  # limits on gps heading
-    irt_targ_lo       = (-80  ,5)    # IRT surface brightness temperature limits [Celsius]
-    sr50d             = (1    ,2.5)  # distance limits from SR50 to surface [m]; install height -1 m or +0.5
-    sr50_qc           = (152  ,210)  # reported "quality numbers" 0-151=can't read dist;
-                                     # 210-300=reduced signal; 300+=high uncertainty
-    flxp              = (-120 ,120)  # minimum and maximum conductive heat flux (W/m2)
-    T_thresh          = (-70  ,20)   # minimum & maximum air temperatures (C)
-    rh_thresh         = (5    ,130)  # relative humidity (#)
-    p_thresh          = (850  ,1100) # air pressure
-    ws_thresh         = (0    ,40)   # wind speed from sonics (m/s)
-    lic_co2sig_thresh = (85   ,100)  # rough estimate of minimum CO2 signal value corresponding to
-                                     # optically-clean window. < 90 = needs cleaned (e.g., salt residue); < ~80?? = ice!
-    lic_h2o           = (0    ,100)  # Licor h2o [mg/m3]
-    lic_co2           = (0    ,5000) # Licor co2 [g/m3]
-    max_bad_paths     = (0.01 ,1)    # METEK: maximum [fraction] of bad paths allowed. (0.01 = 1%), but is
-                                     # actually in 1/9 increments. This just says we require all paths to be usable.
-    incl_range        = (-90  ,90)   # The inclinometer on the metek
-    sw_range          = (-4   ,1000) # SWD & SWU max [Wm^2]
-    lw_range          = (50  ,400)   # LWD & LWU max [Wm^2] 
-    # FYI, ~315 W/m2@ 0 C and LWD under clear skies can be as low as ~100 Wm2)
-    met_t             = T_thresh     # Vaisala air temperature [C]
-    met_rh            = rh_thresh    # Vaisala relative humidity [#]
-    met_p             = p_thresh     # Vaisala air pressure [hPa or ~mb]
+    lat_thresh        = (70   ,90)       # limits area where station
+    hdg_thresh_lo     = (0    ,360)      # limits on gps heading
+    irt_targ_lo       = (-80  ,5)        # IRT surface brightness temperature limits [Celsius]
+    sr50d             = (1    ,2.5)      # distance limits from SR50 to surface [m]; install height -1 m or +0.5
+    sr50_qc           = (152  ,300)      # reported "quality numbers" 0-151=can't read dist;
+                                         # 210-300=reduced signal; 300+=high uncertainty
+    irt_targ          = (-80  ,5)        # IRT surface brightness temperature limits [Celsius]
+    flxp              = (-120 ,120)      # minimum and maximum conductive heat flux (W/m2)
+    T_thresh          = (-70  ,20)       # minimum & maximum air temperatures (C)
+    rh_thresh         = (55   ,110)      # relative humidity (#)
+    p_thresh          = (900  ,1100)     # air pressure
+    ws_thresh         = (0    ,40)       # wind speed from sonics (m/s)
+    lic_co2sig_thresh = (94   ,105)      # rough estimate of minimum CO2 signal value corresponding to
+                                         # optically-clean window. < 90 = needs cleaned (e.g., salt residue); < ~80?? = ice!
+    lic_h2o           = (1e-3 ,50)       # Licor h2o [mg/m3]
+    lic_co2           = (600  ,5000)     # Licor co2 [g/m3]
+    max_bad_paths     = (0.01 ,1)        # METEK: maximum [fraction] of bad paths allowed. (0.01 = 1%), but is
+                                         # actually in 1/9 increments. This just says we require all paths to be usable.
+    incl_range        = (-90  ,90)       # The inclinometer on the metek
+    met_t             = T_thresh         # Vaisala air temperature [C]
+    met_rh            = rh_thresh        # Vaisala relative humidity [#]
+    met_p             = p_thresh         # Vaisala air pressure [hPa or ~mb]
+    alt_lim           = (-5.1,10.1)      # largest range of +/- 3sigma on the altitude data between the stations
+    cd_lim            = (-2.3e-3,1.5e-2) # drag coefficinet sanity check. really it can't be < 0, but a small negative threshold allows for empiracally defined (from EC) 3 sigma noise distributed about 0.
+
+    # QCRAD thresholds & coefficents    
+    sw_range          = (-4   ,1000)     # SWD & SWU max [Wm^2]
+    lw_range          = (50  ,400)       # LWD & LWU max [Wm^2] 
+    D1                = 1.15             # SWD CCL for Alert, which seems to work well here too (less data than climatology to check against!)
+    D5                = 0.9              # SWU. Bumbed up a little from 0.88 used at Alert.
+    D11               = 0.62             # LWD<->Tair low (bumped up from 0.58 at Alert)
+    D12               = 23               # LWD<->Tair high (Alert)
+    D13               = 8                # LWU<->Tair Low side. A lot stricter than Alert; I think the tighter LWU is because of the consitent surface type relatve to the land site
+    D14               = 8                # LWU<->Tair High side. A lot stricter than Alert; I think the tighter LWU is because of the consitent surface type relatve to the land site
+    D15               = 120              # LWU <-> LWD test. Low side. Stricter than Alert, as with above.
+    D16               = 20               # LWU <-> LWD test. High side. As at Alert.
+    A0                = 1                # albedo limit
+
+    # official "start" times, defined as EFOY-on on install day per Ola's notes
+    station_initial_start_time = {}
+    station_initial_start_time['asfs30'] = datetime(2019,10,5,3,15,0) 
+    station_initial_start_time['asfs40'] = datetime(2019,10,7,0,0,0)
+    station_initial_start_time['asfs50'] = datetime(2019,10,10,5,0,0) 
+    
+    # Load the ship track and reindex to slow_data, calculate distance [m] and bearing [deg from tower rel to true north, as wind direction]
+    ship_df = pd.read_csv('/psd3data/arctic/MOSAiC_dump/ais/MOSAiCTrack.dat',sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
+    ship_df.columns = ['u1','latd','latm','lond','lonm','u2','u3','u4','u5','u6']
+    ship_df['lat']=ship_df['latd']+ship_df['latm']/60
+    ship_df['lat'].mask(ship_df['lat'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data
+    ship_df['lon']=ship_df['lond']+ship_df['lonm']/60
+    ship_df['lon'].mask(ship_df['lon'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data 
 
     # various calibration params
     # ###################################################################################################
+    
+    # # initial distance measurement for sr50 to snow made/noted in the field
+    
+    init_asfs30 = pd.DataFrame()
+    init_asfs40 = pd.DataFrame()
+    init_asfs50 = pd.DataFrame()
+      
+    # ASFS 30 ---------------------------
+    
+    init_asfs30['init_date']  = [
+                                station_initial_start_time['asfs30'],   # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019
+                                datetime(2020,4,7,0,0),                 # LOG
+                                datetime(2020,4,15,12)                  # Balloon Town
+                                ]
+        
+    init_asfs30['init_dist']  = [
+                                sqrt((-7.75+K_offset)/K_offset)*201.8,  # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
+                                nan,                                    # LOG
+                                sqrt((-17.9+K_offset)/K_offset)*206.9   # Ballooon Town
+                                ]
+                                
+        
+    init_asfs30['init_depth'] = [
+                                8.3,                                    # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
+                                nan,                                    # LOG
+                                66                                      # Ballooon Town
+                                ]    
+                
+        
+    init_asfs30['init_loc']   = [
+                                'L2',                                   # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
+                                'LOG',                                  # LOG
+                                'Balloon_Town'                          # Ballooon Town
+                                ]       
 
-    # initial distance measurement for sr50 to snow made/noted by Ola for calibration
-    sr50_init_dist  = {} # dicts, with station name as key
-    sr50_init_depth = {}
 
-    # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
-    sr50_init_dist[flux_stations[0]]  = sqrt((-7.75+K_offset)/K_offset)*201.8
-    sr50_init_depth[flux_stations[0]] = 8.3 # snow depth (cm) measured under SR50 at 0430 UTC Oct 7, 2019
 
-    # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
-    sr50_init_dist[flux_stations[1]]  = sqrt((-13.9+K_offset)/K_offset)*214.9
-    sr50_init_depth[flux_stations[1]] = 9.1 # snow depth (cm) measured under SR50 at 0921 UTC Oct 5, 2019
 
-    # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
-    sr50_init_dist[flux_stations[2]]  = sqrt((-10.1+K_offset)/K_offset)*213.3
-    sr50_init_depth[flux_stations[2]] = 6.5 # snow depth (cm) measured under SR50 at 0400 UTC Oct 10, 2019
+    # ASFS 40 ---------------------------
+    
+    init_asfs40['init_date']  = [
+                                station_initial_start_time['asfs40']    # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                ]
+        
+    init_asfs40['init_dist']  = [
+                                sqrt((-7.75+K_offset)/K_offset)*201.8   # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                ]
+                                
+        
+    init_asfs40['init_depth'] = [
+                                8.3                                     # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                ]    
+                
+        
+    init_asfs40['init_loc']   = [
+                                'L1'                                    # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
+                                ]       
+
+
+
+    
+    # ASFS 50 ---------------------------
+    
+    init_asfs50['init_date']  = [
+                                station_initial_start_time['asfs50'],   # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
+                                datetime(2020,4,4,0,0),                 # LOG
+                                datetime(2020,4,14,12,45)               # BGC1
+                                ]
+        
+    init_asfs50['init_dist']  = [
+                                sqrt((-10.1+K_offset)/K_offset)*213.3,  # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
+                                nan,                                    # LOG
+                                sqrt((-17.7+K_offset)/K_offset)*198.6   # BGC1
+                                ]
+                                
+        
+    init_asfs50['init_depth'] = [
+                                6.5,                                    # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
+                                nan,                                    # LOG
+                                32                                      # BGC1
+                                ]    
+                
+        
+    init_asfs50['init_loc']   = [
+                                'L3',                                   # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
+                                'LOG',                                  # LOG
+                                'BGC1'                                  # BGC1
+                                ]       
+
+    
+    # Set the index
+    init_asfs30.set_index(init_asfs30['init_date'],inplace=True)
+    init_asfs40.set_index(init_asfs40['init_date'],inplace=True)
+    init_asfs50.set_index(init_asfs50['init_date'],inplace=True)
+    
 
     # program logic starts here, the logic flow goes like this:
     # #########################################################
@@ -268,12 +395,67 @@ def main(): # the main data crunching program
                 print("\nStation {} was alive for the entire time range you requested!! Not bad... "
                       .format(curr_station, threshold))
 
+    
+    ########################################  # # Process the GPS # #  #############################################
+    # I'm going to do all the gps qc up front mostly because I need to smooth the heading before we split individual days  
+    print('\n---------------------------------------------------------------------------------------------\n')            
+    for curr_station in flux_stations:
+        
+        # Get the current station's initialzation dataframe. ...eval...sorry, it had to be
+        init_data = eval('init_'+curr_station)
+        init_data = init_data.reindex(method='pad',index=slow_data[curr_station].index)
+        
+        print('Processing GPS: qc, calculations, and band-pass median filter applied to heading for '+curr_station) 
+
+        # convert to degrees
+        slow_data[curr_station]['station_lat'] = slow_data[curr_station]['gps_lat_deg_Avg']+slow_data[curr_station]['gps_lat_min_Avg']/60.0 # add decimal values
+        slow_data[curr_station]['station_lon']     = slow_data[curr_station]['gps_lon_deg_Avg']+slow_data[curr_station]['gps_lon_min_Avg']/60.0
+        slow_data[curr_station]['station_heading'] = slow_data[curr_station]['gps_hdg_Avg']
+        # QC
+        slow_data[curr_station]['station_heading'] = slow_data[curr_station]['station_heading'].where(~np.isinf(slow_data[curr_station]['station_heading'])) # infinities->nan
+        slow_data[curr_station]['gps_alt_Avg'].mask( (slow_data[curr_station]['gps_alt_Avg']<alt_lim[0]) | (slow_data[curr_station]['gps_alt_Avg']>alt_lim[1]) , inplace=True) # stat lims
+        slow_data[curr_station]['station_lat'].mask( (slow_data[curr_station]['gps_qc']==0) | (slow_data[curr_station]['gps_hdop_Avg']>4) , inplace=True) 
+        slow_data[curr_station]['station_lon'].mask( (slow_data[curr_station]['gps_qc']==0) | (slow_data[curr_station]['gps_hdop_Avg']>4), inplace=True) 
+        slow_data[curr_station]['gps_alt_Avg'].mask( (slow_data[curr_station]['gps_qc']==0) | (slow_data[curr_station]['gps_hdop_Avg']>4), inplace=True) 
+        slow_data[curr_station]['station_heading'].mask( (slow_data[curr_station]['gps_qc']==0) | (slow_data[curr_station]['gps_hdop_Avg']>4), inplace=True) 
+        # There are infrequenly hiccups that sneak through. not sure of the origin, but we can easily filter
+        slow_data[curr_station]['station_lat'] = fl.despike(slow_data[curr_station]['station_lat'],0.01,24,'no').interpolate(limit=15) # replace spikes outside 0.01 deg over 2 min interp
+        slow_data[curr_station]['station_lon'] = fl.despike(slow_data[curr_station]['station_lon'],0.01,24,'no').interpolate(limit=15) # replace spikes outside 0.01 deg over 2 min interp
+        
+        # since we have altitude data, lets make it somewhat useful and correct to reference the ice surface
+        slow_data[curr_station]['ice_alt'] = slow_data[curr_station]['gps_alt_Avg'] - (2.228 +  init_data['init_depth']/100) # 2.228 is what I think the distance is from the top of the plywood to the gps sensor
+        
+        # !! Important !!
+        # The v102 gps is mounted perpendicualr to the berm, but "station north", which is the sonic orientation is defined along the boom. 
+        # The gps is mount 90 degrees to the left of sonic-north.
+        slow_data[curr_station]['station_heading'] = np.mod(slow_data[curr_station]['station_heading']+90,360)     
+        
+        # The heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, 12.8 hours. I've considered several approaches: wavelet frequency rejection,
+        # various band-pass filters, Kalman filter, tower->ais bearing baseline. Median filter works the best. Because the lowest nosie frequency is near 12 hours, a
+        # 24 hour filter is needed. I have implemented a 1 day buffer on the start_time, end_time for this. For missing data we forward pad to reduce edge effects but report
+        # nan in the padded space.
+        tmph =  slow_data[curr_station]['station_heading'].interpolate(method='pad').rolling(1440,min_periods=1,center=True).median()
+        tmph.mask(slow_data[curr_station]['station_heading'].isna(),inplace=True)
+        slow_data[curr_station]['station_heading'] = tmph
+        tmpa = slow_data[curr_station]['ice_alt'].interpolate(method='pad').rolling(1440,min_periods=1,center=True).median()
+        tmpa.mask(slow_data[curr_station]['ice_alt'].isna(),inplace=True)
+        slow_data[curr_station]['ice_alt'] = tmpa
+                  
+        # Get the bearing on the ship
+  
+        ship_df_now=ship_df.reindex(slow_data[curr_station].index)
+        slow_data[curr_station]['ship_distance'] = fl.distance(slow_data[curr_station]['station_lat'],slow_data[curr_station]['station_lon'],ship_df['lat'],ship_df['lon'])*1000
+        slow_data[curr_station]['ship_bearing'] = fl.calculate_initial_angle(slow_data[curr_station]['station_lat'],slow_data[curr_station]['station_lon'],ship_df['lat'],ship_df['lon'])
+        # there are little tiny spikes in lat/lon that result in a few spikes of ~5 m in distance, so despike
+        slow_data[curr_station]['ship_distance'] = fl.despike(slow_data[curr_station]['ship_distance'],2,15,'yes')
+        slow_data[curr_station]['ship_bearing'] = fl.despike(slow_data[curr_station]['ship_bearing'],0.02,15,'yes')
+
+
     # OK we have all the slow data, now loop over each day and get fast data for that
     # day and do the QC/processing you want. all calculations are done in this loop
     # ######################################################################
-    day_series = pd.date_range(start_time, end_time)    # data was requested for these days
+    day_series = pd.date_range(start_time+timedelta(1), end_time-timedelta(1))    # data was requested for these days
     day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
-
     printline(startline='\n')
     print("\n We have retreived all slow data, now processing each day...\n")
     i_day = -1 
@@ -328,45 +510,447 @@ def main(): # the main data crunching program
 
             fdt = fast_data_today[curr_station] # shorthand to make upcoming code clean(er)
             sdt = slow_data_today[curr_station]
+            idt = init_data[today:tomorrow]
 
             if len(fdt.index) == 0: # data warnings and sanity checks
                 if len(sdt.index) == 0: 
                     print(" !!! No data available for {} on {} !!!".format(curr_station, fl.dstr(today)))
                     continue
                 print("... no fast data available for {} on {}... ".format(curr_station, fl.dstr(today)))
-            if len(sdt.index) == 0: print("... no slow data available for {} on {}... ".format(curr_station, fl.dstr(today)))
+            if len(sdt.index) == 0: 
+                print("... no slow data available for {} on {}... ".format(curr_station, fl.dstr(today)))
+                continue
             printline(startline="\n")
 
-            # now clean and QC data 'subtleties'. any and all fixing of data is done here before the day is written out
-            # ########################################################################################################
-            # first, we assign some variables we want to keep from level1, in level2, and essentially rename them
-            # don't worry, we'll QC these down below after assigning them
-            sdt['station_heading']      = sdt['gps_hdg_Avg']
-            sdt['gps_alt']              = sdt['gps_alt_Avg']
-            sdt['sr50_dist']            = sdt['sr50_dist_Avg']
-            sdt['press_vaisala']        = sdt['vaisala_P_Avg']
-            sdt['temp_vaisala']         = sdt['vaisala_T_Avg']
-            sdt['rel_humidity_vaisala'] = sdt['vaisala_RH_Avg']
-            sdt['body_T_IRT']           = sdt['apogee_body_T_Avg']
-            sdt['surface_T_IRT']        = sdt['apogee_targ_T_Avg']
-            sdt['flux_plate_A_Wm2']     = sdt['fp_A_Wm2_Avg']
-            sdt['flux_plate_B_Wm2']     = sdt['fp_B_Wm2_Avg']
-            sdt['H2O_licor']            = sdt['licor_h2o_Avg']
-            sdt['CO2_licor']            = sdt['licor_co2_Avg']
-            sdt['temp_licor']           = sdt['licor_T_Avg']
-            sdt['co2_signal_licor']     = sdt['licor_co2_str_out_Avg']
-            sdt['radiation_LWd']        = sdt['ir20_lwd_Wm2_Avg']
-            sdt['radiation_SWd']        = sdt['sr30_swd_Irr_Avg']
-            sdt['radiation_LWu']        = sdt['ir20_lwu_Wm2_Avg']
-            sdt['radiation_SWu']        = sdt['sr30_swu_Irr_Avg']
+            # first rename some columns to something we like better in way that deletes the old veresion so we make sure not to perform operations on the wrong version below
+                                # old name              : new name
+            sdt.rename(columns={'sr50_dist_Avg'         : 'sr50_dist'            , \
+                                'vaisala_P_Avg'         : 'press_vaisala'        , \
+                                'vaisala_T_Avg'         : 'temp_vaisala'         , \
+                                'vaisala_Td_Avg'        : 'dewpoint_vaisala'     , \
+                                'vaisala_RH_Avg'        : 'rel_humidity_vaisala' , \
+                                'apogee_body_T_Avg'     : 'body_T_IRT'           , \
+                                'apogee_targ_T_Avg'     : 'surface_T_IRT'        , \
+                                'fp_A_Wm2_Avg'          : 'flux_plate_A_Wm2'     , \
+                                'fp_B_Wm2_Avg'          : 'flux_plate_B_Wm2'     , \
+                                'licor_h2o_Avg'         : 'H2O_licor'            , \
+                                'licor_co2_Avg'         : 'CO2_licor'            , \
+                                'licor_co2_str_out_Avg' : 'co2_signal_licor'     , \
+                                'sr30_swd_IrrC_Avg'     : 'radiation_SWd'        , \
+                                'sr30_swu_IrrC_Avg'     : 'radiation_SWu'        , \
+                               },inplace=True)
+               
+            print("\nQuality controlling data for {} on {}".format(curr_station, today))                  
+            
+            # First remove any data before official start of station in October (there may be some indoor or Fedorov hold test data)
+            sdt[:].loc[:station_initial_start_time[curr_station]]=nan    
+            
+            if 'asfs30' in curr_station:
+                
+                #
+                # Recalibrate IR20s. The logger code saved the raw and offered a preliminary cal that ignored the minor terms. We can do better.
+                #
+                coef_S = 12.15/1000
+                coef_a = -16.36e-6
+                coef_b = 2.62e-3
+                coef_c = 0.9541
+                term = (coef_a*sdt['ir20_lwd_DegC_Avg']**2 + coef_b*sdt['ir20_lwd_DegC_Avg'] + coef_c)
+                sdt['radiation_LWd'] = sdt['ir20_lwd_mV_Avg'] / (coef_S * term) + sb * (sdt['ir20_lwd_DegC_Avg']+273.15)**4
+                
+                coef_S = 12.48/1000
+                coef_a = -16.25e-6
+                coef_b = 2.62e-3
+                coef_c = 0.9541
+                term = (coef_a*sdt['ir20_lwu_DegC_Avg']**2 + coef_b*sdt['ir20_lwu_DegC_Avg'] + coef_c)
+                sdt['radiation_LWu'] = sdt['ir20_lwu_mV_Avg'] / (coef_S * term) + sb * (sdt['ir20_lwu_DegC_Avg']+273.15)**4
+                #
+                # ##############
+                #
+                
+                # When the RH sensor is powered, it needs to warm up and so you get bd data for 20 min or so. Also, some bad data around the time a station goes off. Hand-edited here.
+                sdt['rel_humidity_vaisala'] .loc[:datetime(2019,10,7,2,9)] = nan # garbage data during setup...in the  ol'e Fedorov hold, I think
+                sdt['rel_humidity_vaisala'] .loc[datetime(2019,11,12,11,9):datetime(2019,11,12,12,43)] = nan
+                sdt['rel_humidity_vaisala'] .loc[datetime(2019,11,30,11,15):datetime(2019,11,30,15,25)] = nan 
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,3,4,10,31):datetime(2020,3,4,10,48)] = nan 
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,4,56)] = nan 
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,3,17,12,51):datetime(2020,3,17,13,23)] = nan 
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,3,30,9,0):datetime(2020,3,30,9,36)] = nan  
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,3,30,12,5):datetime(2020,3,31,2,55)] = nan  
+                sdt['dewpoint_vaisala'] .loc[:datetime(2019,10,7,2,9)] = nan # garbage data during setup...in the  ol'e Fedorov hold, I think
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,11,12,11,9):datetime(2019,11,12,12,43)] = nan 
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,11,30,11,15):datetime(2019,11,30,15,25)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,4,10,31):datetime(2020,3,4,10,48)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,4,56)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,17,12,51):datetime(2020,3,17,13,23)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,30,9,0):datetime(2020,3,30,9,36)] = nan 
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,30,12,5):datetime(2020,3,31,2,55)] = nan
+                
+                # a couple hiccups in temps
+                sdt['temp_vaisala'] .loc[:datetime(2019,10,7,1,11)] = nan
+                sdt['dewpoint_vaisala'] .loc[:datetime(2019,10,7,1,11)] = nan
+                sdt['temp_vaisala'] .loc[datetime(2019,10,7,6,33):datetime(2019,10,7,6,36)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,10,7,6,33):datetime(2019,10,7,6,36)] = nan
+                
+                sdt['temp_vaisala'] .loc[datetime(2019,11,12,11,18):datetime(2019,11,12,12,41)] = nan 
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,11,12,11,18):datetime(2019,11,12,12,41)] = nan 
+                                                                             
+                sdt['temp_vaisala'] .loc[datetime(2019,11,30,12,0):datetime(2019,11,30,15,23)] = nan 
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,11,30,12,0):datetime(2019,11,30,15,23)] = nan 
+            
+                sdt['temp_vaisala'] .loc[datetime(2020,2,26,21,30):datetime(2020,2,26,21,45)] = nan   
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,2,26,21,30):datetime(2020,2,26,21,45)] = nan
+                
+                sdt['temp_vaisala'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,4,58)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,4,58)] = nan
+                
+                sdt['temp_vaisala'] .loc[datetime(2020,3,30,12,27):datetime(2020,3,31,2,52)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,30,12,27):datetime(2020,3,31,2,52)] = nan
+                
+                sdt['temp_vaisala'] .loc[datetime(2020,3,31,10,41):datetime(2020,3,31,15,0)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,3,31,10,41):datetime(2020,3,31,15,0)] = nan
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,3,31,10,41):datetime(2020,3,31,15,0)] = nan
+                
+                sdt['surface_T_IRT'] .loc[datetime(2020,3,5,18,24):datetime(2020,3,5,18,32)] = nan
+                                                                                                                                                               
+                # Removing data from the flux plates prior to being buried in October and April and some other nonsense
+                sdt['flux_plate_A_Wm2'] .loc[:datetime(2019,10,7,4,53)] = nan # after initial install, this is when it equillibrated
+                sdt['flux_plate_B_Wm2'] .loc[:datetime(2019,10,7,4,16)] = nan # after initial install, this is when it equillibrated
+                sdt['flux_plate_A_Wm2'] .loc[datetime(2020,4,7,12,0):datetime(2020,4,15,12,47)] = nan # the plate was plugged in but not installed at first, jsut hanging in a loop on the frame
+                sdt['flux_plate_A_Wm2'] .loc[datetime(2020,3,5,18,23):datetime(2020,3,5,18,32)] = nan # probably when chris turned it back on?
+                sdt['flux_plate_B_Wm2'] .loc[datetime(2020,3,5,18,23):datetime(2020,3,5,18,32)] = nan # probably when chris turned it back on?
+                
+                # Fix the flux plates that were insalled upside down
+                sdt['flux_plate_A_Wm2'] = sdt['flux_plate_A_Wm2'] * -1
+                
+                # A fan on the LWD failed during installation and Chris failed to notice :( It appeared to stay clear until clearing skies midday 10/8. It was fixed again on Nov 6. 
+                # I'm manually screening instead of thresholding fan spin because it is less restrictive, allowong for some likely good data to go thru.
+                sdt['radiation_LWd'] .loc[datetime(2019,10,8,11,49):datetime(2019,11,6,9,7)] = nan
+                
+                # two stray points without enough context for auto-qc
+                sdt['sr50_dist'] .loc[datetime(2020,1,5,19,30):datetime(2020,1,5,20,15)] = nan
+                
+                # These are shadows
+                sdt['radiation_SWd'] .loc[datetime(2020,4,17,9,40):datetime(2020,4,17,9,43)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,21,23,22):datetime(2020,4,21,23,24)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,1,12):datetime(2020,4,22,1,17)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,2,11):datetime(2020,4,22,2,15)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,9,19):datetime(2020,4,22,9,26)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,23,18):datetime(2020,4,22,23,20)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,1,7):datetime(2020,4,23,1,13)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,2,6):datetime(2020,4,23,2,11)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,9,22):datetime(2020,4,23,9,25)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,23,18):datetime(2020,4,23,23,21)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,1,8):datetime(2020,4,24,1,14)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,2,7):datetime(2020,4,24,2,12)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,9,24):datetime(2020,4,24,9,26)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,25,1,9):datetime(2020,4,25,1,15)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,25,2,9):datetime(2020,4,25,2,14)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,25,9,16):datetime(2020,4,25,9,24)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,1,7):datetime(2020,4,26,1,13)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,2,8):datetime(2020,4,26,2,12)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,9,18):datetime(2020,4,26,9,29)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,27,9,25):datetime(2020,4,26,9,35)] = nan
+                
+                # a couple others that snuck through
+                sdt['radiation_SWd'] .loc[datetime(2020,3,31,14,48):datetime(2020,3,31,14,50)] = nan 
+                sdt['radiation_SWd'] .loc[datetime(2020,4,7,12,36):datetime(2020,4,7,12,37)] = nan 
+                sdt['radiation_LWd'] .loc[datetime(2020,3,17,12,44):datetime(2020,3,17,12,46)] = nan
+                
+                # some sr50 times that are not easily auto-qc'd
+                sdt['sr50_dist'] .loc[datetime(2020,1,5,20,16):datetime(2020,1,6,11,12)] = nan
+                sdt['sr50_dist'] .loc[datetime(2020,1,7,22,54):datetime(2020,1,7,22,57)] = nan
+                
+                # some weirdness in the gps sometimes when the system shuts off
+                sdt['station_lat'] .loc[datetime(2019,11,12,11,7):datetime(2019,11,12,12,56)] = nan 
+                sdt['station_lon'] .loc[datetime(2019,11,12,11,7):datetime(2019,11,12,12,56)] = nan 
+                sdt['ship_distance'] .loc[datetime(2019,11,12,11,7):datetime(2019,11,12,12,56)] = nan 
+                sdt['ship_bearing'] .loc[datetime(2019,11,12,11,7):datetime(2019,11,12,12,56)] = nan 
+                sdt['ice_alt'] .loc[datetime(2019,11,12,11,7):datetime(2019,11,12,12,56)] = nan 
+                sdt['station_heading'] .loc[datetime(2019,11,12,11,7):datetime(2019,11,12,12,56)] = nan
+                
+                sdt['station_lat'] .loc[datetime(2020,2,26,21,28):datetime(2020,2,26,22,0)] = nan 
+                sdt['station_lon'] .loc[datetime(2020,2,26,21,28):datetime(2020,2,26,22,0)] = nan 
+                sdt['ship_distance'] .loc[datetime(2020,2,26,21,28):datetime(2020,2,26,22,0)] = nan 
+                sdt['ship_bearing'] .loc[datetime(2020,2,26,21,28):datetime(2020,2,26,22,0)] = nan 
+                sdt['ice_alt'] .loc[datetime(2020,2,26,21,28):datetime(2020,2,26,22,0)] = nan 
+                sdt['station_heading'] .loc[datetime(2020,2,26,21,28):datetime(2020,2,26,22,0)] = nan 
+                
+                sdt['station_lat'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,5,5)] = nan 
+                sdt['station_lon'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,5,5)] = nan 
+                sdt['ship_distance'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,5,5)] = nan 
+                sdt['ship_bearing'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,5,5)] = nan 
+                sdt['ice_alt'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,5,5)] = nan 
+                sdt['station_heading'] .loc[datetime(2020,3,6,3,0):datetime(2020,3,6,5,5)] = nan 
+                
+                sdt['station_lat'] .loc[datetime(2020,3,27,18,25):datetime(2020,3,27,18,55)] = nan 
+                sdt['station_lon'] .loc[datetime(2020,3,27,18,25):datetime(2020,3,27,18,55)] = nan 
+                sdt['ship_distance'] .loc[datetime(2020,3,27,18,25):datetime(2020,3,27,18,55)] = nan 
+                sdt['ship_bearing'] .loc[datetime(2020,3,27,18,25):datetime(2020,3,27,18,55)] = nan 
+                sdt['ice_alt'] .loc[datetime(2020,3,27,18,25):datetime(2020,3,27,18,55)] = nan 
+                sdt['station_heading'] .loc[datetime(2020,3,27,18,25):datetime(2020,3,27,18,55)] = nan 
+                
+                sdt['station_lat'] .loc[datetime(2020,3,31,10,42):datetime(2020,3,31,14,10)] = nan 
+                sdt['station_lon'] .loc[datetime(2020,3,31,10,42):datetime(2020,3,31,14,10)] = nan 
+                sdt['ship_distance'] .loc[datetime(2020,3,31,10,42):datetime(2020,3,31,14,10)] = nan 
+                sdt['ship_bearing'] .loc[datetime(2020,3,31,10,42):datetime(2020,3,31,14,10)] = nan 
+                sdt['ice_alt'] .loc[datetime(2020,3,31,10,42):datetime(2020,3,31,14,10)] = nan 
+                sdt['station_heading'] .loc[datetime(2020,3,31,10,42):datetime(2020,3,31,14,10)] = nan 
+                
+                sdt['station_lat'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
+                sdt['station_lon'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
+                sdt['ship_distance'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
+                sdt['ship_bearing'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
+                sdt['ice_alt'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
+                sdt['station_heading'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
 
-            # next, the following variables are derived and defined below:
-            # ###############################################################################################
-            # 'station_lat','station_lon','snow_depth','MR_vaisala','abs_humidity_vaisala','enthalpy_vaisala',
-            # 'pw_vaisala','RHw_vaisala','RHi_vaisala','wind_speed_metek','wind_direction_metek',
-            # 'temp_metek','temp_variance_metek','radiation_net'
+            elif 'asfs40' in curr_station:
+                                #
+                # Recalibrate IR20s. The logger code saved the raw and offered a preliminary cal that ignored the minor terms. We can do better.
+                #
+                coef_S = 9.52/1000
+                coef_a = -15.75e-6
+                coef_b = 2.53e-3
+                coef_c = 0.9556
+                term = (coef_a*sdt['ir20_lwd_DegC_Avg']**2 + coef_b*sdt['ir20_lwd_DegC_Avg'] + coef_c)
+                sdt['radiation_LWd'] = sdt['ir20_lwd_mV_Avg'] / (coef_S * term) + sb * (sdt['ir20_lwd_DegC_Avg']+273.15)**4
+                
+                coef_S = 8.99/1000
+                coef_a = -16.96e-6
+                coef_b = 2.30e-3
+                coef_c = 0.9608
+                term = (coef_a*sdt['ir20_lwu_DegC_Avg']**2 + coef_b*sdt['ir20_lwu_DegC_Avg'] + coef_c)
+                sdt['radiation_LWu'] = sdt['ir20_lwu_mV_Avg'] / (coef_S * term) + sb * (sdt['ir20_lwu_DegC_Avg']+273.15)**4
+                #
+                # ##############
+                #
+                
+                # When the RH sensor is powered, it needs to warm up and so you get bd data for 20 min or so. Also, some bad data around the time a station goes off. Hand-edited here.
+                sdt['rel_humidity_vaisala'] .loc[datetime(2019,11,8,7,52):datetime(2019,11,8,9,28)] = nan 
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,2,27,2,1):] = nan # that's all she wrote
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,11,8,7,52):datetime(2019,11,8,9,28)] = nan 
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,2,27,2,1):] = nan # that's all she wrote
+                
+                # Hiccup
+                sdt['temp_vaisala'] .loc[datetime(2019,12,25,10,14):datetime(2019,12,25,10,14)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,12,25,10,14):datetime(2019,12,25,10,14)] = nan
+                sdt['temp_vaisala'] .loc[datetime(2020,2,4,6,50):datetime(2020,2,4,6,50)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,2,4,6,50):datetime(2020,2,4,6,50)] = nan
+                                
+                # Some nonsense in the FP that needed to go
+                sdt['flux_plate_A_Wm2'] .loc[datetime(2019,10,15,5,23):datetime(2019,10,15,6,0)] = nan
+                
+                # Fix the flux plates that were insalled upside down
+                sdt['flux_plate_A_Wm2'] = sdt['flux_plate_A_Wm2'] * -1
+                sdt['flux_plate_B_Wm2'] = sdt['flux_plate_B_Wm2'] * -1
+                
+                # what on earth happend here?
+                sdt['ice_alt'] .loc[datetime(2019,11,7,20,30):datetime(2019,11,10,15,46)] = nan
+           
+            elif 'asfs50' in curr_station:
+                
+                # Recalibrate IR20s. The logger code saved the raw and offered a preliminary cal that ignored the minor terms. We can do better.
+                #
+                coef_S = 11.42/1000
+                coef_a = -16.05e-6
+                coef_b = 2.57e-3
+                coef_c = 0.9551
+                term = (coef_a*sdt['ir20_lwd_DegC_Avg']**2 + coef_b*sdt['ir20_lwd_DegC_Avg'] + coef_c)
+                sdt['radiation_LWd'] = sdt['ir20_lwd_mV_Avg'] / (coef_S * term) + sb * (sdt['ir20_lwd_DegC_Avg']+273.15)**4
+                
+                coef_S = 12.01/1000
+                coef_a = -16.58e-6
+                coef_b = 2.49e-3
+                coef_c = 0.9568
+                term = (coef_a*sdt['ir20_lwu_DegC_Avg']**2 + coef_b*sdt['ir20_lwu_DegC_Avg'] + coef_c)
+                sdt['radiation_LWu'] = sdt['ir20_lwu_mV_Avg'] / (coef_S * term) + sb * (sdt['ir20_lwu_DegC_Avg']+273.15)**4
+                #
+                # ##############
+                #
+                
+                # When the RH sensor is powered, it needs to warm up and so you get bd data for 20 min or so. Also, some bad data around the time a station goes off. Hand-edited here.
+                sdt['rel_humidity_vaisala'] .loc[:datetime(2019,10,10,1,14)] = nan # firing it up in October
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,1,30,13,21):datetime(2020,1,30,13,37)] = nan # firing it up in October
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,2,5,3,2):datetime(2020,2,5,3,6)] = nan # firing it up in October
+                sdt['rel_humidity_vaisala'] .loc[datetime(2020,4,14,12,43):datetime(2020,4,14,12,49)] = nan 
+                sdt['dewpoint_vaisala'] .loc[:datetime(2019,10,10,1,14)] = nan # firing it up in October
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,1,30,13,21):datetime(2020,1,30,13,37)] = nan # firing it up in October
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,2,5,3,2):datetime(2020,2,5,3,6)] = nan # firing it up in October
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,4,14,12,43):datetime(2020,4,14,12,49)] = nan 
+                
+                # Temp weirdness at on/off
+                sdt['temp_vaisala'] .loc[datetime(2020,1,22,1,28):datetime(2020,1,23,0,15)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,1,22,1,28):datetime(2020,1,23,0,15)] = nan
+                sdt['temp_vaisala'] .loc[datetime(2020,4,4,16,45):datetime(2020,4,5,12,0)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,4,5,12,0):datetime(2020,4,5,12,0)] = nan
+                
+                # ??
+                sdt['temp_vaisala'] .loc[datetime(2019,12,6,12,23):datetime(2019,12,6,13,12)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2019,12,6,12,23):datetime(2019,12,6,13,12)] = nan
+                sdt['rel_humidity_vaisala'] .loc[datetime(2019,12,6,12,23):datetime(2019,12,6,13,12)] = nan
+                
+                # zeros that are isolated and fall through the auto-qc
+                sdt['temp_vaisala'] .loc[datetime(2020,2,5,5,45):datetime(2020,2,5,6,0)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,2,5,5,45):datetime(2020,2,5,6,0)] = nan
+                sdt['temp_vaisala'] .loc[datetime(2020,4,4,10,48):datetime(2020,4,4,18,0)] = nan
+                sdt['dewpoint_vaisala'] .loc[datetime(2020,4,4,10,48):datetime(2020,4,4,18,0)] = nan    
+                sdt['body_T_IRT'] .loc[datetime(2020,4,4,9,36):datetime(2020,4,5,14,24)] = nan
+                sdt['surface_T_IRT'] .loc[datetime(2020,4,4,9,36):datetime(2020,4,5,14,24)] = nan
 
-            print("\nQuality controlling data for {} on {}".format(curr_station, today))
+                # FP equillibrating and some other nonsense
+                sdt['flux_plate_A_Wm2'] .loc[datetime(2020,4,15,13,54):datetime(2020,4,15,14,21)] = nan 
+                sdt['flux_plate_A_Wm2'] .loc[datetime(2020,2,1,1,10):datetime(2020,2,3,16,26)] = nan 
+                sdt['flux_plate_B_Wm2'] .loc[:datetime(2019,10,10,1,51)] = nan 
+                sdt['flux_plate_B_Wm2'] .loc[datetime(2020,2,1,1,24):datetime(2020,2,4,1,17)] = nan 
+                sdt['flux_plate_B_Wm2'] .loc[datetime(2020,4,5,0,0):datetime(2020,5,2,23,59)] = nan
+                
+                # Fix the flux plates that were insalled upside down
+                sdt['flux_plate_B_Wm2'] = sdt['flux_plate_B_Wm2'] * -1
+                
+                # Removing data from the flux plates prior to being buried in October and April
+                sdt['flux_plate_A_Wm2'] .loc[datetime(2020,2,3,12,0):datetime(2020,2,5,12,0)] = nan # I think when L3 got flipped the plates were exposed??
+                sdt['flux_plate_B_Wm2'] .loc[datetime(2020,2,3,12,0):datetime(2020,2,5,12,0)] = nan # I think when L3 got flipped the plates were exposed??
+                
+                # These are shadows
+                sdt['radiation_SWd'] .loc[datetime(2020,4,17,10,41):datetime(2020,4,17,10,50)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,17,12,26):datetime(2020,4,17,12,28)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,17,13,0):datetime(2020,4,17,13,3)] = nan
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,21,22,15):datetime(2020,4,21,22,20)] = nan
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,21,23,1):datetime(2020,4,21,23,16)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,21,23,1):datetime(2020,4,21,23,16)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,21,23,25):datetime(2020,4,21,23,35)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,21,23,25):datetime(2020,4,21,23,35)] = nan 
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,8,24):datetime(2020,4,22,8,26)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,8,57):datetime(2020,4,22,9,0)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,10,13):datetime(2020,4,22,10,16)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,10,38):datetime(2020,4,22,10,40)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,10,25):datetime(2020,4,22,10,31)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,11,59):datetime(2020,4,22,12,2)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,12,33):datetime(2020,4,22,12,35)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,22,10):datetime(2020,4,22,22,15)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,22,23,3):datetime(2020,4,22,23,29)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,22,22,55):datetime(2020,4,22,23,29)] = nan
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,8,22):datetime(2020,4,23,8,24)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,8,56):datetime(2020,4,23,8,58)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,10,13):datetime(2020,4,23,10,15)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,10,13):datetime(2020,4,23,10,14)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,10,23):datetime(2020,4,23,10,31)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,10,35):datetime(2020,4,23,10,37)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,11,57):datetime(2020,4,23,12,1)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,12,33):datetime(2020,4,23,12,35)] = nan 
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,22,12):datetime(2020,4,23,22,17)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,22,47):datetime(2020,4,23,23,7)] = nan 
+                sdt['radiation_SWu'] .loc[datetime(2020,4,23,22,47):datetime(2020,4,23,23,7)] = nan 
+                sdt['radiation_SWd'] .loc[datetime(2020,4,23,23,21):datetime(2020,4,23,23,28)] = nan 
+                sdt['radiation_SWu'] .loc[datetime(2020,4,23,23,21):datetime(2020,4,23,23,28)] = nan 
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,8,24):datetime(2020,4,24,8,26)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,8,58):datetime(2020,4,24,9,1)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,10,15):datetime(2020,4,24,10,18)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,10,25):datetime(2020,4,24,10,37)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,11,57):datetime(2020,4,24,11,59)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,12,33):datetime(2020,4,24,12,34)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,22,13):datetime(2020,4,24,22,17)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,22,59):datetime(2020,4,24,23,9)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,24,22,59):datetime(2020,4,24,23,9)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,24,23,22):datetime(2020,4,24,23,25)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,24,23,21):datetime(2020,4,24,23,30)] = nan
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,25,22,11):datetime(2020,4,25,22,14)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,25,23,2):datetime(2020,4,25,23,14)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,25,22,59):datetime(2020,4,25,23,14)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,25,23,19):datetime(2020,4,25,23,23)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,25,23,19):datetime(2020,4,25,23,23)] = nan
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,8,29):datetime(2020,4,26,8,31)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,9,4):datetime(2020,4,26,9,7)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,10,21):datetime(2020,4,26,10,37)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,11,57):datetime(2020,4,26,11,59)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,26,22,15):datetime(2020,4,26,22,20)] = nan
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,4,27,8,36):datetime(2020,4,27,8,39)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,27,9,12):datetime(2020,4,27,9,15)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,27,10,29):datetime(2020,4,27,10,41)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,4,27,12,2):datetime(2020,4,27,12,5)] = nan
+                
+                sdt['radiation_SWd'] .loc[datetime(2020,5,2,8,40):datetime(2020,5,2,8,41)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,5,2,9,18):datetime(2020,5,2,9,21)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,5,2,10,33):datetime(2020,5,2,10,39)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,5,2,11,55):datetime(2020,5,2,11,57)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,5,2,12,33):datetime(2020,5,2,12,35)] = nan
+                sdt['radiation_SWd'] .loc[datetime(2020,5,2,22,19):datetime(2020,5,2,22,24)] = nan
+                
+                # and a couple other hiccups
+                sdt['radiation_SWd'] .loc[datetime(2020,4,4,9,36):datetime(2020,4,5,14,24)] = nan
+                sdt['radiation_SWu'] .loc[datetime(2020,4,4,9,36):datetime(2020,4,5,14,24)] = nan
+                
+                # some weirdness in the gps sometimes when the system shuts off
+                sdt['station_lat'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+                sdt['station_lon'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+                sdt['ship_distance'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+                sdt['ship_bearing'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+                sdt['ice_alt'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+                sdt['station_heading'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan
+                
+            
+            # met sensor ppl
+            sdt['press_vaisala']   .mask( (sdt['press_vaisala']<p_thresh[0])     | (sdt['press_vaisala']>p_thresh[1]) , inplace=True) # ppl
+            sdt['temp_vaisala']   .mask( (sdt['temp_vaisala']<T_thresh[0])     | (sdt['temp_vaisala']>T_thresh[1]) , inplace=True) # ppl
+            sdt['dewpoint_vaisala']  .mask( (sdt['dewpoint_vaisala']<T_thresh[0])    | (sdt['dewpoint_vaisala']>T_thresh[1]) , inplace=True) # ppl
+            sdt['rel_humidity_vaisala']  .mask( (sdt['rel_humidity_vaisala']<rh_thresh[0])   | (sdt['rel_humidity_vaisala']>rh_thresh[1]) , inplace=True) # ppl
+            
+            # Ephemeris
+            # set it up
+            utime_in = np.array(sdt.index.astype(np.int64)/10**9)                                                    # unix time. sec since 1/1/70
+            lat_in   = sdt['station_lat']                                                                            # latitude
+            lon_in   = sdt['station_lon']                                                                            # latitude
+            elv_in   = np.zeros(sdt.index.size)+2                                                                    # the elvation shall be 2 m...the details are negligible
+            pr_in    = sdt['press_vaisala'].fillna(sdt['press_vaisala'].median())                                    # mb 
+            t_in     = sdt['temp_vaisala'].fillna(sdt['temp_vaisala'].median())                                      # degC
+            
+            atm_ref  = ( 1.02 * 1/np.tan(np.deg2rad(0+(10.3/(0+5.11)))) ) * pr_in/1010 * (283/(273.15+t_in))/60      # est of atm ref at sunrise/set following U. S. Naval Observatory's Vector Astrometry Software @ wikipedia https://en.wikipedia.org/wiki/Atmospheric_refraction. This really just sets a flag for when to apply the refraction adjustment. 
+            delt_in  = spa.calculate_deltat(sdt.index.year, sdt.index.month)                                         # seconds. delta_t between terrestrial and UT1 time
+            # do the thing
+            app_zenith, zenith, app_elevation, elevation, azimuth, eot = spa.solar_position(utime_in,lat_in,lon_in,elv_in,pr_in,t_in,delt_in,atm_ref)
+            # write it out
+            sdt['sza_true'] = zenith
+            sdt['sza_app']  = app_zenith 
+            sdt['azimuth']  = azimuth 
+
+            # in matlab, there were rare instabilities in the Reda and Andreas algorithm that resulted in spikes (a few per year). no idea if this is a problem in the python version, but lets make sure
+            sdt['sza_true'] = fl.despike(sdt['sza_true'],2,5,'no')
+            sdt['sza_app'] = fl.despike(sdt['sza_app'],2,5,'no')
+            sdt['azimuth'] = fl.despike(sdt['azimuth'],2,5,'no')
+            
+            # IR20 ventilation bias. The IRT was heated with 1.5 W. If the ventilator fan was off, the analysis suggests that the heat was improperly diffused
+            # causing a positive bias in the instrument resulting in a bias calculated at 1.42 Wm2. the mechanism is unknown because the effect should be to 
+            # mimic ir-loss as a backflow voltage as the heating escapes most effectively from the top. 
+            sdt['radiation_LWu'].loc[sdt['ir20_lwu_fan_Avg'] < 400] = sdt['radiation_LWu']-1.42
+            sdt['radiation_LWd'].loc[sdt['ir20_lwd_fan_Avg'] < 400] = sdt['radiation_LWd']-1.42
+
+            # IRT QC
+            sdt['body_T_IRT'].mask( (sdt['body_T_IRT']<irt_targ[0]) | (sdt['body_T_IRT']>irt_targ[1]) , inplace=True) # ppl
+            sdt['surface_T_IRT'].mask( (sdt['surface_T_IRT']<irt_targ[0]) | (sdt['surface_T_IRT']>irt_targ[1]) , inplace=True) # ppl
+            sdt['body_T_IRT'].mask( (sdt['temp_vaisala']<-1) & (abs(sdt['body_T_IRT'])==0) , inplace=True) # reports spurious 0s sometimes
+            sdt['surface_T_IRT'].mask( (sdt['temp_vaisala']<-1) & (abs(sdt['surface_T_IRT'])==0) , inplace=True) # reports spurious 0s sometimes
+            sdt['body_T_IRT']  = fl.despike(sdt['body_T_IRT'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
+            sdt['surface_T_IRT']  = fl.despike(sdt['surface_T_IRT'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
+            
+            # Flux plate QC
+            sdt['flux_plate_A_Wm2'].mask( (sdt['flux_plate_A_Wm2']<flxp[0]) | (sdt['flux_plate_A_Wm2']>flxp[1]) , inplace=True) # ppl
+            sdt['flux_plate_B_Wm2'].mask( (sdt['flux_plate_B_Wm2']<flxp[0]) | (sdt['flux_plate_B_Wm2']>flxp[1]) , inplace=True) # ppl
+            
+            # SR50
+            sdt['sr50_dist'].mask( (sdt['sr50_qc_Avg']<sr50_qc[0]) | (sdt['sr50_qc_Avg']>sr50_qc[1]) , inplace=True) # ppl
+            sdt['sr50_dist'].mask( (sdt['sr50_dist']<sr50d[0])  | (sdt['sr50_dist']>sr50d[1]) , inplace=True) # ppl
+            sdt['sr50_dist']  = fl.despike(sdt['sr50_dist'],0.01,5,"no") # screen but do not replace
+            # if the qc is high, say 210-300 I think there is intermittent icing. this seems to work.
+            if sdt['sr50_qc_Avg'].mean():
+                sdt['sr50_dist']  = fl.despike(sdt['sr50_dist'],0.05,720,"no")
+
             # clean up missing met data that comes in as '0' instead of NaN... good stuff
             zeros_list = ['rel_humidity_vaisala', 'press_vaisala', 'sr50_dist']
             for param in zeros_list: # make the zeros nans
@@ -379,14 +963,16 @@ def main(): # the main data crunching program
                 for ind in potential_inds[0]:
                     #ind = ind.item() # convert to native python type from np.int64, so we can index
                     lo = ind
-                    hi = ind+5
+                    hi = ind+15
                     T_nearby = sdt[param][lo:hi]
                     if np.any(T_nearby < -5) or np.any(T_nearby > 5):    # temps cant go from 0 to +/-5C in 5 minutes
                         sdt[param].iloc[ind] = nan
                     elif (sdt[param].iloc[lo:hi] == 0).all(): # no way all values for a minute are *exactly* 0
                         sdt[param].iloc[lo:hi] = nan
 
-
+            # Radiation
+            sdt = fl.qcrad(sdt,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0)
+            
             # derive some useful parameters that we want to write to the output file
             # ###################################################################################################
             # compute RH wrt ice -- compute RHice(%) from RHw(%), Temperature(deg C), and pressure(mb)
@@ -395,34 +981,28 @@ def main(): # the main data crunching program
                                                                        sdt['press_vaisala'],
                                                                        0)
             sdt['RHi_vaisala']          = rhi2
-            sdt['enthalpy_vaisala']     = h2
             sdt['abs_humidity_vaisala'] = a2
             sdt['pw_vaisala']           = Pw2
             sdt['MR_vaisala']           = x2
-            sdt['dewpoint_vaisala']     = Td2
-
-            # add useful data columns, these were sprinkled throughout Ola's code, like information nuggets
-            sdt['station_lat']     = sdt['gps_lat_deg_Avg']+sdt['gps_lat_min_Avg']/60.0 # add decimal values
-            sdt['station_lon']     = sdt['gps_lon_deg_Avg']+sdt['gps_lon_min_Avg']/60.0
-            sdt['station_heading'] = sdt['station_heading']/100.0  # convert to degrees
-            sdt['gps_alt']         = sdt['gps_alt']/1000.0 # convert to meters
- 
+    
             # snow depth in cm, corrected for temperature
             sdt['sr50_dist']  = sdt['sr50_dist']*sqrt((sdt['temp_vaisala']+K_offset)/K_offset)*100
-            sdt['snow_depth'] = sr50_init_dist[curr_station] - sdt['sr50_dist'] + sr50_init_depth[curr_station]
+            sdt['snow_depth'] = idt['init_dist'] - sdt['sr50_dist'] + idt['init_depth']
 
-            # is up or down positive in our convention??
-            sdt['radiation_net'] = (sdt['radiation_LWd']+sdt['radiation_SWd']) - (sdt['radiation_LWu']+sdt['radiation_SWu'])
+            # net radiation
+            sdt['radiation_LWnet'] =  sdt['radiation_LWd']-sdt['radiation_LWu']
+            sdt['radiation_SWnet'] =  sdt['radiation_SWd']-sdt['radiation_SWu']
+            sdt['radiation_net'] = sdt['radiation_LWnet'] + sdt['radiation_SWnet'] 
+            
+            # surface skin temperature
+            sdt['surface_skin_T'] = (((sdt['radiation_LWu']-(1-emis)*sdt['radiation_LWd'])/(emis*sb))**0.25)-K_offset # Persson et al. (2002) https://www.doi.org/10.1029/2000JC000705
 
             # ###################################################################################################
-            flux_freq = '{}T'.format(integ_time_turb_flux)
 
-            Hz10_today        = pd.date_range(today, tomorrow, freq='0.1S') # all the 0.1 seconds today, for obs
+            Hz10_today        = pd.date_range(today-pd.Timedelta(1,'hour'), tomorrow+pd.Timedelta(1,'hour'), freq='0.1S') # all the 0.1 seconds today, for obs. we buffer by 1 hr for easy of po2 in turbulent fluxes below
             seconds_today     = pd.date_range(today, tomorrow, freq='S')    # all the seconds today, for obs
             minutes_today     = pd.date_range(today, tomorrow, freq='T')    # all the minutes today, for obs
             ten_minutes_today = pd.date_range(today, tomorrow, freq='10T')  # all the 10 minutes today, for obs
-
-            flux_time_today   = pd.date_range(today, today+timedelta(1), freq=flux_freq) # flux calc intervals
 
             #                              !! Important !!
             #   first resample to 10 Hz by averaging and reindexed to a continuous 10 Hz time grid (NaN at
@@ -471,6 +1051,7 @@ def main(): # the main data crunching program
             fdt ['metek_x']  [np.abs(fdt['metek_x'])  > ws_thresh[1]]  = nan
             fdt ['metek_y']  [np.abs(fdt['metek_y'])  > ws_thresh[1]]  = nan
             fdt ['metek_z']  [np.abs(fdt['metek_z'])  > ws_thresh[1]]  = nan
+            
 
             # Diagnostic: break up the diagnostic and search for bad paths. the diagnostic is as follows:
             # 1234567890123
@@ -496,23 +1077,17 @@ def main(): # the main data crunching program
 
             # And now Licor ####################################################
             #
-            # Physically-possible limits, python isnt happy with ambiguous "or"s
-            # im accustomed to in matlab so i split it into two lines
-            fdt['licor_T'  ][fdt['licor_T']   < T_thresh[0]]    = nan 
-            fdt['licor_T'  ][fdt['licor_T']   > T_thresh[1]]    = nan
-            fdt['licor_pr' ][fdt['licor_pr']  < p_thresh[0]/10] = nan
-            fdt['licor_pr' ][fdt['licor_pr']  > p_thresh[1]/10] = nan
-            fdt['licor_h2o'][fdt['licor_h2o'] < lic_h2o[0]]     = nan
-            fdt['licor_h2o'][fdt['licor_h2o'] > lic_h2o[1]]     = nan
-            fdt['licor_co2'][fdt['licor_co2'] < lic_co2[0]]     = nan
-            fdt['licor_co2'][fdt['licor_co2'] > lic_co2[1]]     = nan
+            # Physically-possible limits
+            fdt['licor_h2o'].mask( (fdt['licor_h2o']<lic_h2o[0]) | (fdt['licor_h2o']>lic_h2o[1]) , inplace=True) # ppl
+            fdt['licor_co2'].mask( (fdt['licor_co2']<lic_co2[0]) | (fdt['licor_co2']>lic_co2[1]) , inplace=True) # ppl
+            fdt['licor_pr'].mask( (fdt['licor_pr']<p_thresh[0]) | (fdt['licor_pr']>p_thresh[1]) , inplace=True) # ppl
 
             # CO2 signal strength is a measure of window cleanliness applicable to CO2 and H2O vars
-            fdt['licor_co2'][fdt['licor_co2_str'] < lic_co2sig_thresh[0]] = nan
-            fdt['licor_h2o'][fdt['licor_co2_str'] < lic_co2sig_thresh[0]] = nan
-            fdt['licor_co2'][fdt['licor_co2_str'] > lic_co2sig_thresh[1]] = nan
-            fdt['licor_h2o'][fdt['licor_co2_str'] > lic_co2sig_thresh[1]] = nan
-                                                                            
+            # first map the signal strength onto the fast data since it is empty in the fast files
+            fdt['licor_co2_str'] = sdt['co2_signal_licor'].reindex(fdt.index).interpolate()
+            fdt['licor_h2o'].mask( (fdt['licor_co2_str']<lic_co2sig_thresh[0]), inplace=True) # ppl
+            fdt['licor_co2'].mask( (fdt['licor_co2_str']<lic_co2sig_thresh[0]), inplace=True) # ppl
+
             # The diagnostic is coded                                       
             print("... decoding Licor diagnostics. It's fast like the Dranitsyn, even vectorized. Gimme a minute...")
 
@@ -538,11 +1113,12 @@ def main(): # the main data crunching program
             #
             #   !!!! Replaces failures with the median of the window !!!!
             #
-            fdt['metek_x'] = fl.despike(fdt['metek_x'],5,1200)
-            fdt['metek_y'] = fl.despike(fdt['metek_y'],5,1200)
-            fdt['metek_z'] = fl.despike(fdt['metek_z'],5,1200)
-            fdt['metek_T'] = fl.despike(fdt['metek_T'],5,1200)
-
+            fdt['metek_x'] = fl.despike(fdt['metek_x'],5,1200,'yes')
+            fdt['metek_y'] = fl.despike(fdt['metek_y'],5,1200,'yes')
+            fdt['metek_z'] = fl.despike(fdt['metek_z'],5,1200,'yes')
+            fdt['metek_T'] = fl.despike(fdt['metek_T'],5,1200,'yes')           
+            fdt['licor_h2o'] = fl.despike(fdt['licor_h2o'],0.5,1200,'yes')
+            fdt['licor_co2'] = fl.despike(fdt['licor_co2'],50,1200,'yes')
 
             # ~~~~~~~~~~~~~~~~~~~~~~~ (3) Resample  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             print('... resampling 20 Hz -> 10 Hz.')
@@ -558,12 +1134,10 @@ def main(): # the main data crunching program
             fdt_10hz = fdt_10hz.reindex(index=Hz10_today)
 
             # ~~~~~~~~~~~~~~~~~ (4) Do the Tilt Rotation  ~~~~~~~~~~~~~~~~~~~~~~
-            print('... cartesian tilt rotation. translating body -> earth coordinates. caveats!')
-            print('... read in-line comments please! solution being developed with J. Hutchings.')
+            print("... cartesian tilt rotation. Translating body -> earth coordinates.")
 
             # This really only affects the slow interpretation of the data.
-            # When we do the fluxes it will be a double rotation into the streamline that
-            # implicitly accounts for deviations between body and earth
+            # When we do the fluxes it will be a double rotation into the streamline that implicitly accounts for deviations between body and earth
             #
             # The rotation is done in subroutine tilt_rotation, which is based on code from Chris Fairall et al.
             #
@@ -582,28 +1156,10 @@ def main(): # the main data crunching program
             #             metek y -> earth u, +North
             #             metek x -> earth v, +West
             #             Have a look also at pg 21-23 of NEW_MANUAL_20190624_uSonic-3_Cage_MP_Manual for metek conventions. Pg 21 seems to have errors in the diagram?
-            #
-            #  !! Azimuth is from a linear interpolation of the gps heading. Two questions:
-            #       (1) Were the meteks mounted such that metek north = gps north or if not, what is the offset? offset presently assumed = 0
-            #       (2) We could calculate the wind direction based on the 1 Hz data, with some code like this:
-            #               sdt['station_heading'].reindex(index=Hz10_today, copy=False).interpolate('linear')
-            #           However, there is low-frequency variability in the heading information recevied at the gps. The period is roughly
-            #           1-2 hours and the standard deviation is 1-1.5 deg. This variability is NOT movement of the ice floe! We saw this in
-            #           the GPS when stationary in Boulder and it looks similar at MOSAiC. Jenny H. says it is normal and calls it "noise".
-            #           Probably somehow related to the satellite constellation, though it was uncorrelated with GPS qc vars in Colorado.
-            #           It is not noise in the conventional sense, but appears very systematic, which makes it something we need to
-            #           take into account. In order to avoid propogating the error into the reported wind directions, we need some sort
-            #           of low-pass filter having an averaging period that is shorter than significant deviations in the actual heading
-            #           of the floe but at least ~3 hours.
-            #               For now, I will use the DAILY AVERAGE HEADING!
-            #               Working with J Hutchings to analyze the times scales of floe rotation vs the time scales of GPS HEHDT errors.
-            #               Planning to develop of floe-scale hdg by using multiple GPS acroess the floe to beat down the error
 
-            # Michael made this the average tilt for the day when converting the tower code, do we want to be more subtle?
-
-            ct_u, ct_v, ct_w = fl.tilt_rotation(np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
-                                                np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
-                                                np.zeros(len(fdt_10hz))+sdt['station_heading'].mean(),\
+            ct_u, ct_v, ct_w = fl.tilt_rotation(sdt['metek_InclY_Avg'].reindex(fdt_10hz.index).interpolate(),\
+                                                sdt['metek_InclX_Avg'].reindex(fdt_10hz.index).interpolate(),\
+                                                sdt['station_heading'].reindex(fdt_10hz.index).interpolate(),\
                                                 fdt_10hz['metek_y'], fdt_10hz['metek_x'], fdt_10hz['metek_z'])
 
             fdt_10hz['metek_x'] = ct_v # x -> v on uSonic!
@@ -611,8 +1167,8 @@ def main(): # the main data crunching program
             fdt_10hz['metek_z'] = ct_w
 
             # start referring to xyz as uvw now
-            fdt_10hz.rename(columns={'metek_x':'metek_u'}, inplace=True)
-            fdt_10hz.rename(columns={'metek_y':'metek_v'}, inplace=True)
+            fdt_10hz.rename(columns={'metek_x':'metek_v'}, inplace=True)
+            fdt_10hz.rename(columns={'metek_y':'metek_u'}, inplace=True)
             fdt_10hz.rename(columns={'metek_z':'metek_w'}, inplace=True)
 
             # !!
@@ -627,8 +1183,8 @@ def main(): # the main data crunching program
 
             u_min = fdt_10hz['metek_u'].resample('1T',label='left').apply(fl.take_average)
             v_min = fdt_10hz['metek_v'].resample('1T',label='left').apply(fl.take_average)
-            bottom_ws_corr, bottom_wd_corr = fl.calculate_metek_ws_wd(u_min.index, u_min, v_min, sdt['station_heading']*0) 
-            # !! we are already in earth coordinates, so hdg = 0!
+            ws = np.sqrt(u_min**2+v_min**2)
+            wd = np.mod((np.arctan2(-v_min,-u_min)*180/np.pi),360)
 
             # ~~~~~~~~~~~~~~~~~~ (5) Recalculate Stats ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             # !!  Sorry... This is a little messed up. The original stats are read from the NOAA Services stats
@@ -637,29 +1193,18 @@ def main(): # the main data crunching program
             # reading the stats data in the first place?
             print('... recalculating NOAA Services style stats with corrected, rotated, and QCed values.')
 
-            sdt['wind_speed_metek']     = bottom_ws_corr
-            sdt['wind_direction_metek'] = bottom_wd_corr
+            sdt['wind_speed_metek']     = ws
+            sdt['wind_direction_metek'] = wd
             sdt['temp_variance_metek']  = fdt_10hz['metek_T'].resample('1T',label='left').var()
             sdt['temp_metek']           = fdt_10hz['metek_T'].resample('1T',label='left').mean()
-
-            ## is there any reason to recalculate these licor averages or save the uvw components?
-            # sdt['H2O_licor']            = fdt_10hz['h2o'].resample('1T',label='left').mean()
-            # sdt['CO2_licor']            = fdt_10hz['co2'].resample('1T',label='left').mean()
-            # sdt['temp_licor']           = fdt_10hz['T'].resample('1T',label='left').mean()
-            # sdt['pr_licor']             = fdt_10hz['pr'].resample('1T',label='left').mean()*10 # [to hPa]
-            # sdt['co2_signal_licor']     = fdt_10hz['co2_str'].resample('1T',label='left').mean()
-            # sdt['u_metek']              = fdt_10hz['u'].resample('1T',label='left').mean()
-            # sdt['v_metek']              = fdt_10hz['v'].resample('1T',label='left').mean()
-            # sdt['w_metek']              = fdt_10hz['w'].resample('1T',label='left').mean()
-            # sdt['stddev_u_metek']       = fdt_10hz['u'].resample('1T',label='left').std()
-            # sdt['stddev_v_metek']       = fdt_10hz['v'].resample('1T',label='left').std()
-            # sdt['stddev_w_metek']       = fdt_10hz['w'].resample('1T',label='left').std()
-            # sdt['stddev_T_metek']       = fdt_10hz['T'].resample('1T',label='left').std()
+            
+            sdt['H2O_licor']            = fdt_10hz['licor_h2o'].resample('1T',label='left').mean()
+            sdt['CO2_licor']            = fdt_10hz['licor_co2'].resample('1T',label='left').mean()
+            sdt['pr_licor']             = fdt_10hz['licor_pr'].resample('1T',label='left').mean()*10 # [to hPa]
 
             # ~~~~~~~~~~~~~~~~~~~~ (6) Flux Capacitor  ~~~~~~~~~~~~~~~~~~~~~~~~~
             if calc_fluxes == True:
                 verboseprint('\nCalculating turbulent fluxes and associated MO parameters.')
-                verboseprint('... turbulent flux code not yet set up for Licor and CLASP :(')
 
                 # Rotation to the streamline, FFT window segmentation, detrending,
                 # hamming, and computation of power [welch] & cross spectral densities,
@@ -667,69 +1212,184 @@ def main(): # the main data crunching program
                 # variables (fluxes and stress parameters) are performed within a
                 # sub-function called below.
                 #
-                # turbulence_data = grachev_fluxcapacitor(z_level_nominal,z_level_n,sonic_dir,metek,licor,clasp)
-                #       z_level_nominal = nomoinal height nomenclature as a string: '2m', '6m', '10m', or 'mast' so that
-                #       we can reference unique column names later
-                #       
-                #       z_level_n = Height of measurements in m, being precise because it affects the calculation
-                #       sonic_dir = Orientation (azimuth) of the sonic anemoneter relative to true North
-                #       flux_time_today = a DatetimeIndex defined earlier and based on integ_time_turb_flux, the integration
-                #       window for the calculations that is defined at the top of the code
-                #       
-                #       metek = the metek DataFrame
-                #       licor = the licor DataFrame - currently unused until we get that coded up
-                #       clasp = the clasp data frame - currently unused until we get that coded up
-                #
+                # turbulence_data = fl.grachev_fluxcapacitor(sz, sonic_data, licor_data, h2o_units, co2_units, p, t, q, verbose=v)
+                #       sz = instrument height
+                #       sonic_data = dataframe of u,v,w winds
+                #       licor_data = dataframe of h2o adn co2
+                #       h2o_units = units of licor h2o, e.g., 'mmol/m3'
+                #       co2_units = units of licor co2, e.g., 'mmol/m3'
+                #       p = pressure in hPa, scaler
+                #       t = air temperature in C, scaler
+                #       q = vapor mixing ratio, scaler
+           
                 metek_10hz = fdt_10hz[['metek_u', 'metek_v', 'metek_w','metek_T']].copy()
                 metek_10hz.rename(columns={\
                                            'metek_u':'u',
                                            'metek_v':'v',
                                            'metek_w':'w',
                                            'metek_T':'T'}, inplace=True)
-                print(fdt)
-                print(fdt_10hz)
-                print(metek_10hz)
-                for time_i in range(0,len(flux_time_today)-1): # flux_time_today = a DatetimeIndex defined earlier and based on integ_time_turb_flux, the integration window for the calculations that is defined at the top  of the code
+                licor_10hz = fdt_10hz[['licor_h2o', 'licor_co2']].copy()
+                
+                for win_len in range(0,len(integ_time_turb_flux)):
+                    flux_freq = '{}T'.format(integ_time_turb_flux[win_len])
+                    flux_time_today   = pd.date_range(today, today+timedelta(1), freq=flux_freq) # flux calc intervals
+                    for time_i in range(0,len(flux_time_today)-1): # flux_time_today = a DatetimeIndex defined earlier and based on integ_time_turb_flux, the integration window for the calculations that is defined at the top  of the code
+                        
+                        if time_i % 6 == 0:
+                            verboseprint('... processing turbulence data for hour '+np.str(flux_time_today[time_i]))
+    
+                        # Get the index, ind, of the metek frame that pertains to the present calculation 
+                        # A little tricky. We need to make sure we give it enough data to encompass the nearest power of 2: for 30 min fluxes this is ~27 min so you are good, but for 10 min fluxes it is 13.6 min so you need to give it more. 
+                        # We buffered the 10 Hz so that we can go outside the edge of "today" by up to an hour. It's a bit of a formality, but for general cleanliness we are going to center all fluxes to the nearest min so that e.g,
+                        # 12:00-12:10 is actually 11:58 through 12:12
+                        # 12:00-12:30 is actually 12:01 through 12:28     
+                        po2_len = np.ceil(2**round(np.log2(integ_time_turb_flux[win_len]*60*10))/10/60) # @10Hz,# min needed to cover the nearet po2 [minutes]
+                        t_win = pd.Timedelta((po2_len-integ_time_turb_flux[win_len])/2,'minutes')
+                        metek_in = metek_10hz.loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].copy()
+                        
+                        # we need pressure and temperature and humidity
+                        Pr_time_i = sdt['press_vaisala'].loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].mean()
+                        T_time_i = sdt['temp_vaisala'].loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].mean()
+                        Q_time_i = sdt['MR_vaisala'].loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].mean()/1000
 
-                    if time_i % 12 == 0:
-                        verboseprint('... processing turbulence data '+np.str(flux_time_today[time_i])+' to '+np.str(flux_time_today[time_i+1]))
+                        # get the licor data
+                        licor_data = licor_10hz.loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].copy()
+                    
+                        # make th1e turbulent flux calculations via Grachev module
+                        v = False
+                        if verbose: v = True;
+                        sonic_z       = 3.3 # what is sonic_z for the flux stations
+                        data = fl.grachev_fluxcapacitor(sonic_z, metek_in, licor_data, 'g/m3', 'mg/m3', Pr_time_i, T_time_i, Q_time_i, verbose=v)
+                        data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True) # # Sanity check on Cd. Ditch the whole run if it fails
+    
+                        # doubtless there is a better way to initialize this
+                        if time_i == 0: turbulencetom = data
+                        else: turbulencetom = turbulencetom.append(data)
 
-                    # Get the index, ind, of the metek frame that pertains to the present calculation This
-                    # statement cannot be evaluated with the "and", only one side or the other. wtf?  i =
-                    # metek_10hz.index >= flux_time_today[time_i] and metek_10hz.index <
-                    # flux_time_today[time_i+1] so we have to split it up in this wacky way
-                    ind = metek_10hz.index >= flux_time_today[time_i]
-                    ind[metek_10hz.index > flux_time_today[time_i+1]] = False
-                    print(ind)
-                    print(metek_10hz)
-                    # !! heading...is this meant to be oriented with the sonic North? like, does this
-                    # equal "sonic north"?  
-                    hdg = sdt['station_heading'].mean()
+                    # now add the indexer datetime doohicky
+                    turbulencetom.index = flux_time_today[0:-1] 
+    
+                    turb_cols = turbulencetom.keys()
+                    
+                    # ugh. there are 2 dimensions to the spectral variables, but the spectra are smoothed. The smoothing routine is a bit strange in that is is dependent
+                    # on the length of the window (to which it should be orthogonal!) and worse, is not obviously predictable...it groes in a for loop nested in a while 
+                    # loop that is seeded by a counter and limited by half the length of the window, but the growth is not entirely predictable and neither is the result
+                    # so I can't preallocate the frequency vector. I need to talk to Andrey about this and I need a programatic solution to assigning a frequency dimension
+                    # when pandas actually treats that dimension indpendently along the time dimension. I will search the data frame for instances of a frequency dim then assign
+                    # times without it nan of that length. for days without a frequency dim I will assign it to be length of 2 arbitrarily so that the netcdf can be written. This
+                    # is ugly.
+                    
+                    # (1) figure out the length of the freq dim and how many times are missing. also, save the frequency itself or you will write that vector as nan later on...
+                    missing_f_dim_ind = []
+                    f_dim_len = 1 
+                    for ii in range(0, np.array(turbulencetom['fs']).size):
+                        len_var = np.array(turbulencetom['fs'][ii]).size
+                        if len_var == 1:
+                            missing_f_dim_ind.append(ii)
+                        else:
+                            f_dim_len = len_var
+                            fs = turbulencetom['fs'][ii]
+                            
+                            
+                    # (2) if missing times were found, fill with nans of the freq length you discovered. this happens on days when the instruents are turned on and also perhaps runs when missing data meant the flux_capacitor returned for lack of inputs
+                    if f_dim_len > 1 and not not missing_f_dim_ind: # omg, double negatives...python is so absurd. it didn't understand "is" so missing_f_dim_ind is not not a thing will have to do
+                        for ii in range(0,len(missing_f_dim_ind)):
+                            # these are the array with multiple dims...
+                            # im filling the ones that are missing with nan (of fs in the case of fs...) such that they can form a proper and square array for the netcdf
+                            turbulencetom['fs'][missing_f_dim_ind[ii]] = fs
+                            turbulencetom['sus'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['svs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['sws'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['sTs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['sqs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['scs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cwus'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cwvs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cwTs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cuTs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cvTs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cwqs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cuqs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cvqs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cwcs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cucs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cvcs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cuvs'][missing_f_dim_ind[ii]] = fs*nan
+                      
+                    # calculate the bulk 
+                    print('... calculating bulk fluxes for day: {}'.format(today))
+                    # Input dataframe
+                    empty_data = np.zeros(np.size(sdt['MR_vaisala'][minutes_today]))
+                    bulk_input = pd.DataFrame()
+                    bulk_input['u']  = sdt['wind_speed_metek'][minutes_today]           # wind speed                         (m/s)
+                    bulk_input['ts'] = sdt['surface_skin_T'][minutes_today]             # bulk water/ice surface tempetature (degC) 
+                    bulk_input['t']  = sdt['temp_vaisala'][minutes_today]               # air temperature                    (degC) 
+                    bulk_input['Q']  = sdt['MR_vaisala'][minutes_today]/1000            # air moisture mixing ratio          (kg/kg)
+                    bulk_input['zi'] = empty_data+600                                   # inversion height                   (m) wild guess
+                    bulk_input['P']  = sdt['press_vaisala'][minutes_today]              # surface pressure                   (mb)
+                    bulk_input['zu'] = empty_data+3.3                                   # height of anemometer               (m)
+                    bulk_input['zt'] = empty_data+2                                     # height of thermometer              (m)
+                    bulk_input['zq'] = empty_data+2                                     # height of hygrometer               (m)      
+                    bulk_input = bulk_input.resample(str(integ_time_turb_flux[win_len])+'min',label='left').apply(fl.take_average)
 
-                    # make th1e turbulent flux calculations via Grachev module
-                    v = False
-                    if verbose: v = True;
-                    sonic_z       = 2.50 # what is sonic_z for the flux stations
+                    # output dataframe
+                    empty_data = np.zeros(len(bulk_input))
+                    bulk = pd.DataFrame() 
+                    bulk['bulk_Hs']          = empty_data*nan # hsb: sensible heat flux (Wm-2)
+                    bulk['bulk_Hl']          = empty_data*nan # hlb: latent heat flux (Wm-2)
+                    bulk['bulk_tau']         = empty_data*nan # tau: stress                             (Pa)
+                    bulk['bulk_z0']          = empty_data*nan # zo: roughness length, veolicity              (m)
+                    bulk['bulk_z0t']         = empty_data*nan # zot:roughness length, temperature (m)
+                    bulk['bulk_z0q']         = empty_data*nan # zoq: roughness length, humidity (m)
+                    bulk['bulk_L']           = empty_data*nan # L: Obukhov length (m)       
+                    bulk['bulk_ustar']       = empty_data*nan # usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
+                    bulk['bulk_tstar']       = empty_data*nan # tsr: temperature scale, tstar (K)
+                    bulk['bulk_qstar']       = empty_data*nan # qsr: specific humidity scale, qstar (kg/kg?)
+                    bulk['bulk_dter']        = empty_data*nan # dter
+                    bulk['bulk_dqer']        = empty_data*nan # dqer
+                    bulk['bulk_Hl_Webb']     = empty_data*nan # hl_webb: Webb density-corrected Hl (Wm-2)
+                    bulk['bulk_Cd']          = empty_data*nan # Cd: transfer coefficient for stress
+                    bulk['bulk_Ch']          = empty_data*nan # Ch: transfer coefficient for Hs
+                    bulk['bulk_Ce']          = empty_data*nan # Ce: transfer coefficient for Hl
+                    bulk['bulk_Cdn_10m']     = empty_data*nan # Cdn_10: 10 m neutral transfer coefficient for stress
+                    bulk['bulk_Chn_10m']     = empty_data*nan # Chn_10: 10 m neutral transfer coefficient for Hs
+                    bulk['bulk_Cen_10m']     = empty_data*nan # Cen_10: 10 m neutral transfer coefficient for Hl
+                    bulk['bulk_Rr']          = empty_data*nan # Reynolds number
+                    bulk['bulk_Rt']          = empty_data*nan # 
+                    bulk['bulk_Rq']          = empty_data*nan # 
+                    bulk=bulk.reindex(index=bulk_input.index)
+               
+                    for ii in range(len(bulk)):
+                        tmp = [bulk_input['u'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
+                        if not any(np.isnan(tmp)):
+                            bulkout = fl.cor_ice_A10(tmp)
+                            for hh in range(len(bulkout)):
+                                if bulkout[13] < cd_lim[0] or bulkout[13] > cd_lim[1]:  # Sanity check on Cd. Ditch the whole run if it fails
+                                    bulk[bulk.columns[hh]][ii]=nan  # for some reason this needs to be in a loop
+                                else:
+                                    bulk[bulk.columns[hh]][ii]=bulkout[hh]
+                    
+                    # add this to the EC data
+                    turbulencetom = pd.concat( [turbulencetom, bulk], axis=1) # concat columns alongside each other without adding indexes
+                    print('Outputting {} turbulent fluxes to netcdf files: {}'.format(str(integ_time_turb_flux[win_len])+"min",today))
+                    turb_q_dict[curr_station] = Queue()
+                    Thread(target=write_turb_netcdf, \
+                           args=(turbulencetom.copy(), curr_station, today,\
+                                str(integ_time_turb_flux[win_len])+"min", \
+                                idt['init_loc'][0],\
+                                turb_q_dict[curr_station])).start()
+    
+                    trash_var = turb_q_dict[curr_station].get()
+                    if win_len < len(integ_time_turb_flux)-1:
+                        print('\n')
 
-                    data = fl.grachev_fluxcapacitor(sonic_z, hdg, metek_10hz[ind], [], [], verbose=v)
-
-                    # doubtless there is a better way to initialize this
-                    if time_i == 0: turbulencetom = data
-                    else: turbulencetom = turbulencetom.append(data)
-
-                # now add the indexer datetime doohicky
-                turbulencetom.index = flux_time_today[0:-1] 
-
-                turb_cols = turbulencetom.keys()
-
-            else:
-                turb_cols = []
 
             print('\nOutputting to netcdf files and calcuating averages for day: {}'.format(today))
             onemin_q_dict[curr_station] = Queue()
             Thread(target=write_level2_netcdf, \
                    args=(sdt.copy(), curr_station, today, \
-                         "1min", \
+                         "1min",\
+                         idt['init_loc'][0],\
                          onemin_q_dict[curr_station])).start()
  
             # wait for results from threads and then put dataframes into list
@@ -739,17 +1399,11 @@ def main(): # the main data crunching program
             tenmin_q_dict[curr_station] = Queue()
             Thread(target=write_level2_netcdf, \
                    args=(sdt.copy(), curr_station, today,\
-                         "10min", \
+                         "10min",\
+                         idt['init_loc'][0],\
                          tenmin_q_dict[curr_station])).start()
 
             trash_var = tenmin_q_dict[curr_station].get()
-
-            turb_q_dict[curr_station] = Queue()
-            Thread(target=write_turb_netcdf, \
-                   args=(turbulencetom.copy(), curr_station, today,\
-                         turb_q_dict[curr_station])).start()
-
-            trash_var = turb_q_dict[curr_station].get()
 
     printline()
     print("All done! Go check out your freshly baked files")
@@ -757,13 +1411,13 @@ def main(): # the main data crunching program
     printline()
 
 # loop over all slow files in time range and return data from for full range of days
-def get_slow_netcdf_data(curr_station, start_time, end_time, q): 
+def get_slow_netcdf_data(curr_station, start_time, end_time, qq): 
     l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
 
     data_atts, data_cols = define_level1_slow()
     time_var = 'time'
 
-    in_dir = level1_dir+curr_station+"/" # point this program to your data
+    in_dir = data_dir+curr_station+'/1_level_ingest_'+curr_station+'/'  # where does level1 data go #in_dir = level1_dir+curr_station+"/" # point this program to your data
 
     day_series = pd.date_range(start_time, end_time) # get data for these days
     file_list  = [] 
@@ -801,15 +1455,16 @@ def get_slow_netcdf_data(curr_station, start_time, end_time, q):
     data_frame = pd.concat(df_list)
     del df_list
     gc.collect()
-    q.put(data_frame)
+    qq.put(data_frame)
 
 # get level1 fast data from netcdf for specified day (each day eats RAM)
-def get_fast_netcdf_data(curr_station, date, q): 
+def get_fast_netcdf_data(curr_station, date, qq): 
     l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
     data_atts, data_cols = define_level1_fast()
     time_var = data_cols[0]
 
-    file_dir = level1_dir+curr_station+"/"
+    file_dir = data_dir+curr_station+'/1_level_ingest_'+curr_station+'/'
+    
     file_name = 'fast_preliminary_{}.{}.{}.nc'.format(curr_station,
                                                       l_site_names[curr_station],
                                                       date.strftime('%Y%m%d'))
@@ -819,7 +1474,7 @@ def get_fast_netcdf_data(curr_station, date, q):
         print('... no fast data for {} on {}, file {} not found !!!'.format(curr_station, date, file_name))
         nan_row   = np.ndarray((1,len(data_cols)))*nan
         nan_frame = pd.DataFrame(nan_row, columns=data_cols, index=pd.DatetimeIndex([date]))
-        q.put(nan_frame)
+        qq.put(nan_frame)
         return 
 
     print("... converting {} level1 fast data to dataframe, takes a second".format(curr_station))
@@ -833,7 +1488,7 @@ def get_fast_netcdf_data(curr_station, date, q):
         print("!!! this means there was no data in this file^^^^")
         nan_row   = np.ndarray((1,len(data_cols)))*nan
         nan_frame = pd.DataFrame(nan_row, columns=data_cols, index=pd.DatetimeIndex([date]))
-        q.put(nan_frame)
+        qq.put(nan_frame)
         return
     
     data_frame = xarr_ds.to_dataframe()
@@ -842,16 +1497,15 @@ def get_fast_netcdf_data(curr_station, date, q):
                  .format(n_entries, date, curr_station, round((n_entries/1728000)*100.,2)))
 
     #return data_frame
-    q.put(data_frame)
+    qq.put(data_frame)
 
 # do the stuff to write out the level1 files, set timestep equal to anything from "1min" to "XXmin"
 # and we will average the native 1min data to that timestep. right now we are writing 1 and 10min files
-def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
+def write_level2_netcdf(l2_data, curr_station, date, timestep, site_loc, qq):
 
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
 
-    l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
     l2_atts, l2_cols = define_level2_variables()
 
     all_missing     = True 
@@ -861,7 +1515,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
     if l2_data.empty:
         print("... there was no data to write today {} for {} at station {}".format(date,timestep,curr_station))
         print(l2_data)
-        q.put(False)
+        qq.put(False)
         return
 
     # get some useful missing data information for today and print it for the user
@@ -882,11 +1536,10 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
 
     print("... writing {} level2 for {} on {}, ~{}% of data is present".format(timestep, curr_station, date, 100-avg_missing))
 
-    out_dir  = level2_dir+curr_station+"/"
-    file_str = '/level2_preliminary_{}_{}.{}.{}.nc'.format(timestep,curr_station,
-                                                           l_site_names[curr_station],
-                                                           date.strftime('%Y%m%d'))
-
+    out_dir = data_dir+curr_station+'/2_level_product_'+curr_station # where does level2 data go #out_dir  = level2_dir+curr_station+"/"
+     
+    file_str = 'mos{}met.level2.{}.{}.{}.nc'.format(curr_station,timestep,site_loc,date.strftime('%Y%m%d.%H%M%S'))
+    
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
     global_atts = define_global_atts(curr_station, "level2") # global atts for level 1 and level 2
@@ -949,21 +1602,20 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, q):
         netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
 
     netcdf_lev2.close() # close and write files for today
-    q.put(True)
+    qq.put(True)
 
 # do the stuff to write out the level1 files, set timestep equal to anything from "1min" to "XXmin"
 # and we will average the native 1min data to that timestep. right now we are writing 1 and 10min files
-def write_turb_netcdf(turb_data, curr_station, date, q):
-
+def write_turb_netcdf(turb_data, curr_station, date, timestep, site_loc, qq):
+    
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
 
-    l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
     turb_atts, turb_cols = define_turb_variables()
 
     if turb_data.empty:
         print("... there was no turbulence data to write today {} at station {}".format(date,curr_station))
-        q.put(False)
+        qq.put(False)
         return
 
     # get some useful missing data information for today and print it for the user
@@ -973,10 +1625,9 @@ def write_turb_netcdf(turb_data, curr_station, date, q):
 
     print("... writing turbulence data for {} on {}, ~{}% of data is present".format(curr_station, date, 100-avg_missing))
 
-    out_dir  = turb_dir+curr_station+"/"
-    file_str = '/turb_preliminary_{}min_{}.{}.{}.nc'.format(integ_time_turb_flux,curr_station,
-                                                            l_site_names[curr_station],
-                                                            date.strftime('%Y%m%d'))
+    out_dir = data_dir+curr_station+'/2_level_product_'+curr_station # where does level2 data go 
+    
+    file_str = 'mos{}turb.level2.{}.{}.{}.nc'.format(curr_station,timestep,site_loc,date.strftime('%Y%m%d.%H%M%S'))
 
     turb_name  = '{}/{}'.format(out_dir, file_str)
 
@@ -988,7 +1639,7 @@ def write_turb_netcdf(turb_data, curr_station, date, q):
 
     # !! sorry, i have a different set of globals for this file so it isnt in the file list
     for att_name, att_val in global_atts.items(): netcdf_turb.setncattr(att_name, att_val) 
-    n_turb_in_day = np.int(24*60/integ_time_turb_flux)
+    n_turb_in_day = np.int(24*60/integ_time_turb_flux[win_len])
 
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_turb.createDimension('time', None)# n_turb_in_day)    
@@ -998,10 +1649,10 @@ def write_turb_netcdf(turb_data, curr_station, date, q):
                       'long_name' : 'seconds since the first day of MOSAiC',
                       'calendar'  : 'standard',}
     # this is a bit klugy
-    time_atts_turb['delta_t']   = '0000-00-00 '+np.str(pd.Timedelta(integ_time_turb_flux,'m')).split(sep=' ')[2] 
+    time_atts_turb['delta_t']   = '0000-00-00 '+np.str(pd.Timedelta(integ_time_turb_flux[win_len],'m')).split(sep=' ')[2] 
 
     bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
-    times_turb = np.floor(((pd.date_range(date, tomorrow, freq=np.str(integ_time_turb_flux)+'T') - bot).total_seconds()))
+    times_turb = np.floor(((pd.date_range(date, tomorrow, freq=np.str(integ_time_turb_flux[win_len])+'T') - bot).total_seconds()))
 
     # fix problems with flt rounding errors for high temporal resolution (occasional errant 0.00000001)
     times_turb = pd.Int64Index(times_turb)
@@ -1014,22 +1665,45 @@ def write_turb_netcdf(turb_data, curr_station, date, q):
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():
          
-        if turb_data[var_name].dtype == object: # happens when all fast data is missing...
-            turb_data[var_name] = np.float64(turb_data[var_name])
+        # seriously python, seriously????
+        if turb_data[var_name].isnull().all():
+            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
+                turb_data[var_name] = np.float64(turb_data[var_name])     
+        elif turb_data[var_name][0].size > 1:
+            if turb_data[var_name][0].dtype == object: # happens when all fast data is missing...
+                turb_data[var_name] = np.float64(turb_data[var_name])
+        else:         
+            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
+                turb_data[var_name] = np.float64(turb_data[var_name]) 
 
         # create variable, # dtype inferred from data file via pandas
-        var_dtype = turb_data[var_name].dtype
-        var_turb  = netcdf_turb.createVariable(var_name, var_dtype, 'time')
-
-        turb_data[var_name].fillna(def_fill_flt, inplace=True)
-
-        # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
-        var_turb[:] = turb_data[var_name].values
+        var_dtype = turb_data[var_name][0].dtype
+        if turb_data[var_name][0].size == 1:
+            var_turb  = netcdf_turb.createVariable(var_name, var_dtype, 'time')
+            turb_data[var_name].fillna(def_fill_flt, inplace=True)
+            # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
+            var_turb[:] = turb_data[var_name].values
+        else:
+            if 'fs' in var_name:  
+                netcdf_turb.createDimension('freq', turb_data[var_name][0].size)   
+                var_turb  = netcdf_turb.createVariable(var_name, var_dtype, ('freq'))
+                turb_data[var_name][0].fillna(def_fill_flt, inplace=True)
+                # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
+                var_turb[:] = turb_data[var_name][0].values      
+            else:   
+                var_turb  = netcdf_turb.createVariable(var_name, var_dtype, ('time','freq'))
+                for jj in range(0,turb_data[var_name].size):
+                    turb_data[var_name][jj].fillna(def_fill_flt, inplace=True)
+                # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
+                tmp = np.empty([turb_data[var_name].size,turb_data[var_name][0].size])
+                for jj in range(0,turb_data[var_name].size):
+                    tmp[jj,:]=np.array(turb_data[var_name][jj])
+                var_turb[:] = tmp         
 
         # add variable descriptions from above to each file
         for att_name, att_desc in var_atts.items(): netcdf_turb[var_name] .setncattr(att_name, att_desc)
 
-        # add a percent_missing attribute to give a first look at "data quality"
+        # add a percent_missing attribute to give a first loop at "data quality"
         perc_miss = fl.perc_missing(var_turb)
         max_val = np.nanmax(var_turb) # masked array max/min/etc
         min_val = np.nanmin(var_turb)
@@ -1041,7 +1715,7 @@ def write_turb_netcdf(turb_data, curr_station, date, q):
         netcdf_turb[var_name].setncattr('missing_value', def_fill_flt)
 
     netcdf_turb.close() # close and write files for today
-    q.put(True)
+    qq.put(True)
     
 # this runs the function main as the main program... this is a hack that allows functions
 # to come after the main code so it presents in a more logical, C-like, way
