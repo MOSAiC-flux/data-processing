@@ -119,10 +119,10 @@ def main(): # the main data crunching program
     # paths
     global data_dir, level1_dir, level2_dir, turb_dir, sonic_z, mast_sonic_height, licor_z # make data available
     data_dir   = args.path 
-    level1_dir = data_dir+'MOSAiC/tower/1_level_ingest/'  # where does level1 data go
-    level2_dir = data_dir+'MOSAiC/tower/2_level_product/' # where does level2 data go
-    turb_dir   = data_dir+'MOSAiC/tower/2_level_product/' # where does level2 data go
-    ais_dir    = data_dir+'MOSAiC_dump/ais/'              # this is where ais data lives
+    level1_dir = data_dir+'MOSAiC/tower/1_level_ingest/'                  # where does level1 data go
+    level2_dir = data_dir+'MOSAiC/tower/2_level_product/'                 # where does level2 data go
+    turb_dir   = data_dir+'MOSAiC/tower/2_level_product/'                 # where does level2 data go
+    leica_dir  = data_dir+'MOSAiC/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives  
     
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -712,12 +712,13 @@ def main(): # the main data crunching program
 
     # Get the bearing on the ship 
     # Load the ship track and reindex to slow_data, calculate distance [m] and bearing [deg from tower rel to true north, as wind direction]
-    ship_df = pd.read_csv(ais_dir+'MOSAiCTrack.dat',sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
-    ship_df.columns = ['u1','latd','latm','lond','lonm','u2','u3','u4','u5','u6']
+    ship_df = pd.read_csv(leica_dir+'Leica_Sep20_2019_Oct01_2020_clean.dat',sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
+    ship_df.columns = ['u1','lon_ew','latd','latm','lond','lonm','u2','u3','u4','u5','u6','u7']
     ship_df['lat']=ship_df['latd']+ship_df['latm']/60
     ship_df['lat'].mask(ship_df['lat'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data
     ship_df['lon']=ship_df['lond']+ship_df['lonm']/60
     ship_df['lon'].mask(ship_df['lon'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data 
+    ship_df['lon'] = ship_df['lon']*ship_df['lon_ew'] # deg west will be negative now
     ship_df=ship_df.reindex(slow_data.index).interpolate()
     slow_data['ship_distance']=fl.distance(slow_data['tower_lat'],slow_data['tower_lon'],ship_df['lat'],ship_df['lon'])*1000
     slow_data['ship_bearing']=fl.calculate_initial_angle(slow_data['tower_lat'],slow_data['tower_lon'],ship_df['lat'],ship_df['lon']) 

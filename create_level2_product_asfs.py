@@ -138,7 +138,8 @@ def main(): # the main data crunching program
     verboseprint = v_print # use this function to print a line if the -v/--verbose flag is provided
     
     global data_dir, level1_dir, level2_dir, turb_dir # make data available
-    data_dir   = args.path
+    data_dir  = args.path
+    leica_dir = data_dir+'MOSAiC/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
     if args.station:
         flux_stations = args.station.split(',')
     else:
@@ -218,12 +219,13 @@ def main(): # the main data crunching program
     station_initial_start_time['asfs50'] = datetime(2019,10,10,5,0,0) 
     
     # Load the ship track and reindex to slow_data, calculate distance [m] and bearing [deg from tower rel to true north, as wind direction]
-    ship_df = pd.read_csv('/psd3data/arctic/MOSAiC_dump/ais/MOSAiCTrack.dat',sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
-    ship_df.columns = ['u1','latd','latm','lond','lonm','u2','u3','u4','u5','u6']
+    ship_df = pd.read_csv(leica_dir+'Leica_Sep20_2019_Oct01_2020_clean.dat',sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
+    ship_df.columns = ['u1','lon_ew','latd','latm','lond','lonm','u2','u3','u4','u5','u6','u7']
     ship_df['lat']=ship_df['latd']+ship_df['latm']/60
     ship_df['lat'].mask(ship_df['lat'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data
     ship_df['lon']=ship_df['lond']+ship_df['lonm']/60
     ship_df['lon'].mask(ship_df['lon'] == 9+9/60, inplace=True) # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data 
+    ship_df['lon'] = ship_df['lon']*ship_df['lon_ew'] # deg west will be negative now
 
     # various calibration params
     # ###################################################################################################
@@ -239,27 +241,38 @@ def main(): # the main data crunching program
     init_asfs30['init_date']  = [
                                 station_initial_start_time['asfs30'],   # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019
                                 datetime(2020,4,7,0,0),                 # LOG
-                                datetime(2020,4,15,12)                  # Balloon Town
+                                datetime(2020,4,15,12),                 # Balloon Town
+                                datetime(2020,5,5,0),                   # BGC1LOG
+                                datetime(2020,5,7,11,37)                # BGC1
+                                datetime(2020,6,30,0),                  # L2
                                 ]
         
     init_asfs30['init_dist']  = [
                                 sqrt((-7.75+K_offset)/K_offset)*201.8,  # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
                                 nan,                                    # LOG
-                                sqrt((-17.9+K_offset)/K_offset)*206.9   # Ballooon Town
+                                sqrt((-17.9+K_offset)/K_offset)*206.9,  # Ballooon Town
+                                nan,                                    # BGC1LOG
+                                sqrt((-9.7+K_offset)/K_offset)*192.7,   # BGC1
+                                nan                                     # L2
                                 ]
                                 
         
     init_asfs30['init_depth'] = [
                                 8.3,                                    # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
                                 nan,                                    # LOG
-                                66                                      # Ballooon Town
+                                66,                                     # Balloon Town
+                                nan,                                    # BGC1LOG
+                                36.1,                                   # BGC1. last snow depth from asfs50 sr50 in this spot on 5/7...for continuity
+                                nan                                     # L2. Depth reported as difficult to quantify in melting state
                                 ]    
                 
         
     init_asfs30['init_loc']   = [
                                 'L2',                                   # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
                                 'LOG',                                  # LOG
-                                'Balloon_Town'                          # Ballooon Town
+                                'Balloon_Town',                         # Ballooon Town
+                                'BGC1LOG',                              # BGC1LOG
+                                'L2'                                    # back to L2!
                                 ]       
 
 
@@ -293,27 +306,39 @@ def main(): # the main data crunching program
     init_asfs50['init_date']  = [
                                 station_initial_start_time['asfs50'],   # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
                                 datetime(2020,4,4,0,0),                 # LOG
-                                datetime(2020,4,14,12,45)               # BGC1
+                                datetime(2020,4,14,12,45),              # BGC1
+                                datetime(2020,6,24,0),                  # LOG
+                                datetime(2020,6,29,13,0)                # FYI - First Year Ice
+                                datetime(2020,7,10,12,20)               # FYI, same as before but moved a few feet and re-initialized
                                 ]
         
     init_asfs50['init_dist']  = [
                                 sqrt((-10.1+K_offset)/K_offset)*213.3,  # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
                                 nan,                                    # LOG
-                                sqrt((-17.7+K_offset)/K_offset)*198.6   # BGC1
+                                sqrt((-17.7+K_offset)/K_offset)*198.6,  # BGC1
+                                nan,                                    # LOG
+                                nan,                                    # FYI - First Year Ice
+                                sqrt((nan+K_offset)/K_offset)*208.0     # FYI - First Year Ice 
                                 ]
                                 
         
     init_asfs50['init_depth'] = [
                                 6.5,                                    # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
                                 nan,                                    # LOG
-                                32                                      # BGC1
+                                32,                                     # BGC1
+                                nan,                                    # LOG
+                                nan,                                    # FYI - First Year Ice. Depth reported not quantifiable in melting state.
+                                5                                       # FYI - First Year Ice. "soft-to-hard interface was 5cm down"
                                 ]    
                 
         
     init_asfs50['init_loc']   = [
                                 'L3',                                   # L3 distance (213.3 cm) and 2-m Tvais (-10.1 C) at 0400 UTC Oct 10, 2019
                                 'LOG',                                  # LOG
-                                'BGC1'                                  # BGC1
+                                'BGC1',                                 # BGC1
+                                'LOG',                                  # LOG  
+                                'FYI',                                  # FYI - First Year Ice
+                                'FYI'                                   # FYI - First Year Ice
                                 ]       
 
     

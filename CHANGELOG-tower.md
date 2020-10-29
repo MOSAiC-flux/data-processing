@@ -74,3 +74,8 @@ gps processing, ship distance/bearing, and some variable calculations. The turbu
 # Revision 1.2. 9/8/2020 ccox (pushed later)
 Updates specifically to tower were reletively few. Some bug fixes. Some Qc. Updates made to functions library. See ASFS changelog for more details. 
 Basically, this is the push for August through mid September by Cox that implemented quality control and "releases" version 1 of level2
+
+## Revision 1.2.1 10/29/2020 ccox
+
+- minor changes to ship_df to accomodate some structural preferences for Leica data location. also updated the leica data.
+- minor typos

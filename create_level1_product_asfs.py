@@ -106,7 +106,7 @@ def main(): # the main data crunching program
 
     global data_dir, level1_dir
 
-    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties
+    flux_stations = ['asfs30']#['asfs30', 'asfs40', 'asfs50'] # our beauties
     apogee_switch_date = {}
     apogee_switch_date['asfs30'] = datetime(2019,12,13,11,9,0) # 
     apogee_switch_date['asfs40'] = datetime(2019,12,13,11,9,0) # 

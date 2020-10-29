@@ -58,3 +58,11 @@ Turbulence
 - added cos mass flux (mg m^-2 s^-1)
 - add Webb corrections for Hl and co2 fluxes
 - added saved variables, many edits to attributes
+
+## Revision 1.2.1 10/29/2020 ccox
+
+- added metadata for Leg 4 ASFS 
+- minor changes to ship_df to accomodate some structural preferences for Leica data location. also updated the leica data.
+- minor typos
+
+

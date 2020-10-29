@@ -25,7 +25,7 @@ code_version = code_version()
 # level1 "slow":
 #
 #       Observations from all instruments averaged over 1 minute intervals, as logged by the
-#       CR!000X at the base of the tower. 
+#       CR1000X at the base of the tower. 
 # 
 # level1 "fast":
 # 
@@ -36,7 +36,7 @@ code_version = code_version()
 # HOWTO:
 #
 # To run this package with verbose printing over the data from Dec 1st:
-# python3 create_level1_product_tower.py -v -s 20191015 -e 20200231 -p /psd3data/arctic
+# python3 create_level1_product_tower.py -v -s 20191015 -e 20200231 -p /psd3data/arctic/
 #
 # To profile the code and see what's taking so long:
 # python -m cProfile -s cumulative ./create_Daily_Tower_NetCDF.py -v -s 20191201 -e 20191201 -f
