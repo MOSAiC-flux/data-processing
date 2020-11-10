@@ -83,7 +83,7 @@ def main(): # the main data crunching program
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global beginning_of_time, integ_time_turb_flux, win_len
-    beginning_of_time    = datetime(2019,10,15,0,0) # the first day of MOSAiC tower data
+    beginning_of_time    = datetime(1970,1,1,0,0,0) # Unix epoch, ARM convention
     integ_time_turb_flux = [10,30] # [minutes] the integration time for the turbulent flux calculation
 
     global verboseprint  # defines a function that prints only if -v is used when running
@@ -119,9 +119,9 @@ def main(): # the main data crunching program
     # paths
     global data_dir, level1_dir, level2_dir, turb_dir, sonic_z, mast_sonic_height, licor_z # make data available
     data_dir   = args.path 
-    level1_dir = data_dir+'MOSAiC/tower/1_level_ingest/'                  # where does level1 data go
-    level2_dir = data_dir+'MOSAiC/tower/2_level_product/'                 # where does level2 data go
-    turb_dir   = data_dir+'MOSAiC/tower/2_level_product/'                 # where does level2 data go
+    level1_dir = data_dir+'MOSAiC/tower/1_level_ingest/'                  # where does level1 data live?
+    level2_dir = data_dir+'MOSAiC_dump/tower/2_level_product_dev/'        # where does level2 data go
+    turb_dir   = data_dir+'MOSAiC_dump/tower/2_level_product_dev/'        # where does level2 data go
     leica_dir  = data_dir+'MOSAiC/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives  
     
     def printline(startline='',endline=''):
@@ -1057,12 +1057,16 @@ def main(): # the main data crunching program
                 # This is the Newdle in Leg 3. 
                 #   A "spare" v102 was used so the heading is tracked directly. 
                 #   The mast and tower are not on the same piece of ice, so that tower cannot be used as reference for the mast at all.    
-                else:                     
+                elif today > datetime(2020,4,14,0,0) and today < datetime(2020,5,12,0,0):             
                     # set to 68.5 from calcs416.py 
                     mast_align = 68.5
                     mast_hdg_series = np.mod(logger_today['mast_heading'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360) 
                     # also, set the heading for the file
                     logger_today['mast_heading'] = np.mod(logger_today['mast_heading']-mast_align,360)
+                
+                # leg 4 and 5 the mast stays packed away safely in cold storage
+                else:
+                     mast_hdg_series = fast_data_10hz[inst]['metek_mast_T']*nan
                     
                 # No inclinometer up here. For now we are assuming it is plum
                 nmastvals = len(fast_data_10hz[inst])
@@ -1275,7 +1279,6 @@ def main(): # the main data crunching program
             turb_data['CO2_flux_Webb'] = turb_data['CO2_flux_Webb'+use_this_licor]
             turb_data['nSq'] = turb_data['nSq'+use_this_licor]
             turb_data['nSc'] = turb_data['nSc'+use_this_licor]
-            turb_data['fs'] = turb_data['fs'+use_this_licor]
             turb_data['wq_csp'] = turb_data['wq_csp'+use_this_licor]
             turb_data['uq_csp'] = turb_data['uq_csp'+use_this_licor]
             turb_data['vq_csp'] = turb_data['vq_csp'+use_this_licor]
@@ -1303,8 +1306,19 @@ def main(): # the main data crunching program
             turb_data['Kurt_uc'] = turb_data['Kurt_uc'+use_this_licor]
             turb_data['Skew_c'] = turb_data['Skew_c'+use_this_licor]
             turb_data['Skew_wc'] = turb_data['Skew_wc'+use_this_licor]
-            turb_data['Skew_uc'] = turb_data['Skew_uc'+use_this_licor]                        
-                    
+            turb_data['Skew_uc'] = turb_data['Skew_uc'+use_this_licor] 
+            
+            # select a freq vector 
+            if not turb_data['fs_2m'].isnull().all():
+                turb_data['fs'] = turb_data['fs_2m']
+            elif not turb_data['fs_6m'].isnull().all():
+                turb_data['fs'] = turb_data['fs_6m']
+            elif not turb_data['fs_10m'].isnull().all():
+                turb_data['fs'] = turb_data['fs_10m']
+            else:
+                turb_data['fs'] = nan    
+                 
+    
             # calculate the bulk every 30 min
             print('... calculating bulk fluxes for day: {}'.format(today))
             # Input dataframe
@@ -1636,8 +1650,23 @@ def write_turb_netcdf(turb_data, date, q):
     n_turb_in_day = np.int(24*60/integ_time_turb_flux[win_len])
 
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
-    netcdf_turb.createDimension('time', None)# n_turb_in_day)    
-
+    netcdf_turb.createDimension('time', None)# n_turb_in_day) 
+    # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
+    for var_name, var_atts in turb_atts.items(): 
+        # seriously python, seriously????
+        if turb_data[var_name].isnull().all():
+            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
+                turb_data[var_name] = np.float64(turb_data[var_name])     
+            elif turb_data[var_name][0].size > 1:
+                if turb_data[var_name][0].dtype == object: # happens when all fast data is missing...
+                    turb_data[var_name] = np.float64(turb_data[var_name])
+            else:         
+                if turb_data[var_name].dtype == object: # happens when all fast data is missing...
+                    turb_data[var_name] = np.float64(turb_data[var_name])
+                    # create variable, # dtype inferred from data file via pandas
+        if 'fs' in var_name:
+            netcdf_turb.createDimension('freq', turb_data[var_name][0].size)   
+                   
     time_atts_turb = {'units'     : 'seconds since {}'.format(beginning_of_time),
                       'delta_t'   : '0000-00-00 00:00:01',
                       'long_name' : 'seconds since the first day of MOSAiC',
@@ -1658,17 +1687,6 @@ def write_turb_netcdf(turb_data, date, q):
     
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():
-         
-        # seriously python, seriously????
-        if turb_data[var_name].isnull().all():
-            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
-                turb_data[var_name] = np.float64(turb_data[var_name])     
-        elif turb_data[var_name][0].size > 1:
-            if turb_data[var_name][0].dtype == object: # happens when all fast data is missing...
-                turb_data[var_name] = np.float64(turb_data[var_name])
-        else:         
-            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
-                turb_data[var_name] = np.float64(turb_data[var_name])        
 
         # create variable, # dtype inferred from data file via pandas
         var_dtype = turb_data[var_name][0].dtype
@@ -1679,7 +1697,6 @@ def write_turb_netcdf(turb_data, date, q):
             var_turb[:] = turb_data[var_name].values
         else:
             if 'fs' in var_name:  
-                netcdf_turb.createDimension('freq', turb_data[var_name][0].size)   
                 var_turb  = netcdf_turb.createVariable(var_name, var_dtype, ('freq'))
                 turb_data[var_name][0].fillna(def_fill_flt, inplace=True)
                 # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions

@@ -98,7 +98,7 @@ def main(): # the main data crunching program
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global beginning_of_time
-    beginning_of_time    = datetime(2019,10,5,0,0) # the first day of MOSAiC ASFS data
+    beginning_of_time    = datetime(1970,1,1,0,0,0) # Unix epoch, ARM convention
 
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
@@ -106,7 +106,7 @@ def main(): # the main data crunching program
 
     global data_dir, level1_dir
 
-    flux_stations = ['asfs30']#['asfs30', 'asfs40', 'asfs50'] # our beauties
+    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties
     apogee_switch_date = {}
     apogee_switch_date['asfs30'] = datetime(2019,12,13,11,9,0) # 
     apogee_switch_date['asfs40'] = datetime(2019,12,13,11,9,0) # 
@@ -691,12 +691,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     print("... writing level1 for {} on {}, ~{}% of slow data is present".format(curr_station, date, 100-avg_missing_slow))
 
     out_dir       = level1_dir+curr_station+"/1_level_ingest_"+curr_station
-    file_str_fast = '/fast_preliminary_{}.{}.{}.nc'.format(curr_station,
-                                                          l_site_names[curr_station],
-                                                          date.strftime('%Y%m%d'))
-    file_str_slow = '/slow_preliminary_{}.{}.{}.nc'.format(curr_station,
-                                                          l_site_names[curr_station],
-                                                          date.strftime('%Y%m%d'))
+    file_str_fast = '/mos{}fast.level1.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
+    file_str_slow = '/mos{}slow.level1.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
 
     lev1_slow_name  = '{}/{}'.format(out_dir, file_str_slow)
     lev1_fast_name  = '{}/{}'.format(out_dir, file_str_fast)

@@ -78,7 +78,7 @@ def main(): # the main data crunching program
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global beginning_of_time
-    beginning_of_time    = datetime(2019,10,15,0,0) # the first day of MOSAiC tower data
+    beginning_of_time    = datetime(1970,1,1,0,0,0) # Unix epoch, ARM convention
     process_fast_data    = True
     calc_stats           = False # If False, stats are read from NOAA Services. If True calculated here.
     # should set to True normally because recalculating here accounts for coordinate rotations, QC, and the like
@@ -517,8 +517,8 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
         return False
 
     out_dir       = level1_dir
-    file_str_fast = 'fast_preliminary_tower.{}.nc'.format(date.strftime('%Y%m%d'))
-
+    file_str_fast = 'mosflxtowerfast.level1.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
+    
     lev1_fast_name  = '{}/{}'.format(out_dir, file_str_fast)
 
     global_atts_fast = define_global_atts("fast") # global atts for level 1 and level 2
@@ -542,9 +542,9 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
         time_name = 'time'
         curr_group.createDimension(time_name, None)
 
-        time_atts_fast   = {'units'     : 'milliseconds since {}'.format(beginning_of_time),
-                            'delta_t'   : '0000-00-00 00:01:00',
-                            'long_name' : 'milliseconds since the first day of MOSAiC',
+        time_atts_fast   = {'delta_t'   : '0000-00-00 00:01:00',
+                            'long_name' : 'Base time in Epoch',
+                            'units'     : 'milliseconds since {}'.format(beginning_of_time),
                             'calendar'  : 'standard'}
         bot             = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
         fast_dti        = pd.DatetimeIndex(inst_data.index.values)
@@ -635,8 +635,9 @@ def write_level1_slow(slow_data, date):
 
     print("... writing level1 slow data {}, ~{}% of slow data is present".format(date, 100-avg_missing_slow))
 
-    out_dir       = level1_dir
-    file_str_slow = 'slow_preliminary_tower.{}.nc'.format(date.strftime('%Y%m%d'))
+    out_dir       = level1_dir    
+    file_str_slow = 'mosflxtowerslow.level1.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
+    
     lev1_slow_name  = '{}/{}'.format(out_dir, file_str_slow)
 
     global_atts_slow = define_global_atts("slow") # global atts for level 1 and level 2
@@ -648,9 +649,9 @@ def write_level1_slow(slow_data, date):
 
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev1_slow.createDimension('time', None)
-    time_atts_slow   = {'units'     : 'seconds since {}'.format(beginning_of_time),
-                        'delta_t'   : '0000-00-00 00:01:00',
-                        'long_name' : 'seconds since the first day of MOSAiC',
+    time_atts_slow   = {'delta_t'   : '0000-00-00 00:01:00',
+                        'long_name' : 'Base time in Epoch',
+                        'units'     : 'seconds since {}'.format(beginning_of_time),
                         'calendar'  : 'standard'}
     bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
 

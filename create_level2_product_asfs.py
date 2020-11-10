@@ -47,7 +47,7 @@ code_version = code_version()
 # HOWTO:
 #
 # To run this package with verbose printing over all of the data:
-# python3 create_level2_product_asfs.py -v -s 20191005 -e 20201005 -p /psd3data/arctic/MOSAiC/
+# python3 create_level2_product_asfs.py -v -s 20191005 -e 20201005 -p /psd3data/arctic/
 #
 # To profile the code and see what's taking so long:
 # python3 -m cProfile -s cumulative ./create_Daily_Tower_NetCDF.py -v -s 20191201 -e 20191201 
@@ -101,9 +101,9 @@ def main(): # the main data crunching program
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global beginning_of_time, integ_time_turb_flux, win_len
-    beginning_of_time    = datetime(2019,10,5,0,0) # the first day of MOSAiC ASFS data
-    integ_time_turb_flux = [10,30]                 # [minutes] the integration time for the turbulent flux calculation
-    calc_fluxes          = True                    # if you want to run turbulent flux calculations and write files
+    beginning_of_time    = datetime(1970,1,1,0,0,0) # Unix epoch, ARM convention
+    integ_time_turb_flux = [10,30]                  # [minutes] the integration time for the turbulent flux calculation
+    calc_fluxes          = True                     # if you want to run turbulent flux calculations and write files
 
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
@@ -137,9 +137,12 @@ def main(): # the main data crunching program
     v_print      = print if verbose else lambda *a, **k: None     # placeholder
     verboseprint = v_print # use this function to print a line if the -v/--verbose flag is provided
     
-    global data_dir, level1_dir, level2_dir, turb_dir # make data available
+    global data_dir, in_dir, out_dir # make data available
     data_dir  = args.path
-    leica_dir = data_dir+'MOSAiC/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
+    in_dir    = data_dir+'MOSAiC/'+curr_station+'/1_level_ingest_'+curr_station+'/'           # where does level 1 data live?
+    out_dir   = data_dir+'MOSAiC_dump/'+curr_station+'/2_level_product_'+curr_station+'_dev/' # where does level 2 data go?
+    leica_dir = data_dir+'MOSAiC/partner_data/AWI/polarstern/WXstation/'                      # this is where the ship track lives 
+
     if args.station:
         flux_stations = args.station.split(',')
     else:
@@ -1442,8 +1445,6 @@ def get_slow_netcdf_data(curr_station, start_time, end_time, qq):
     data_atts, data_cols = define_level1_slow()
     time_var = 'time'
 
-    in_dir = data_dir+curr_station+'/1_level_ingest_'+curr_station+'/'  # where does level1 data go #in_dir = level1_dir+curr_station+"/" # point this program to your data
-
     day_series = pd.date_range(start_time, end_time) # get data for these days
     file_list  = [] 
     missing_days = [] 
@@ -1488,12 +1489,10 @@ def get_fast_netcdf_data(curr_station, date, qq):
     data_atts, data_cols = define_level1_fast()
     time_var = data_cols[0]
 
-    file_dir = data_dir+curr_station+'/1_level_ingest_'+curr_station+'/'
-    
     file_name = 'fast_preliminary_{}.{}.{}.nc'.format(curr_station,
                                                       l_site_names[curr_station],
                                                       date.strftime('%Y%m%d'))
-    file_str = '{}/{}'.format(file_dir,file_name)
+    file_str = '{}/{}'.format(in_dir,file_name)
 
     if not os.path.isfile(file_str): 
         print('... no fast data for {} on {}, file {} not found !!!'.format(curr_station, date, file_name))
@@ -1561,8 +1560,6 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, site_loc, qq):
 
     print("... writing {} level2 for {} on {}, ~{}% of data is present".format(timestep, curr_station, date, 100-avg_missing))
 
-    out_dir = data_dir+curr_station+'/2_level_product_'+curr_station # where does level2 data go #out_dir  = level2_dir+curr_station+"/"
-     
     file_str = 'mos{}met.level2.{}.{}.{}.nc'.format(curr_station,timestep,site_loc,date.strftime('%Y%m%d.%H%M%S'))
     
     lev2_name  = '{}/{}'.format(out_dir, file_str)
@@ -1576,9 +1573,9 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, site_loc, qq):
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev2.createDimension('time', None)
 
-    time_atts   = {'units'     : 'seconds since {}'.format(beginning_of_time),
-                   'delta_t'   : '0000-00-00 00:01:00',
-                   'long_name' : 'seconds since the first day of MOSAiC',
+    time_atts   = {'delta_t'   : '0000-00-00 00:01:00',
+                   'long_name' : 'Base time in Epoch',
+                   'units'     : 'seconds since {}'.format(beginning_of_time),
                    'calendar'  : 'standard',}
 
     bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
@@ -1649,8 +1646,6 @@ def write_turb_netcdf(turb_data, curr_station, date, timestep, site_loc, qq):
     else: avg_missing = 100.
 
     print("... writing turbulence data for {} on {}, ~{}% of data is present".format(curr_station, date, 100-avg_missing))
-
-    out_dir = data_dir+curr_station+'/2_level_product_'+curr_station # where does level2 data go 
     
     file_str = 'mos{}turb.level2.{}.{}.{}.nc'.format(curr_station,timestep,site_loc,date.strftime('%Y%m%d.%H%M%S'))
 

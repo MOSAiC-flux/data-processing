@@ -65,4 +65,12 @@ Turbulence
 - minor changes to ship_df to accomodate some structural preferences for Leica data location. also updated the leica data.
 - minor typos
 
+## Revision 1.3 11/10/2020 ccox
+- changed write directory to be the "current" directory within private MOSAIC_dump directory. 
+    - ./MOSAiC_dump/product_development/...
+    - level 2 is written to the deveopment directory but level 1 is read from the permenant directory
+- moved directory paths up front and cleaned up a little
+- changed base time to Unix epoch for level 1 and level 2
+- changed filename convention for level 1 to be consistent with level 2 
+
 
