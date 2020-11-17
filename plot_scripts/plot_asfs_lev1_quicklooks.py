@@ -28,7 +28,7 @@ from datetime  import datetime, timedelta
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
-import os, inspect, argparse, sys
+import os, inspect, argparse, sys, socket
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import colorsys
@@ -52,10 +52,15 @@ import functions_library as fl
 
 #import warnings
 mpl.warnings.filterwarnings("ignore", category=mpl.MatplotlibDeprecationWarning) 
+mpl.warnings.filterwarnings("ignore", category=UserWarning) 
 
 def main(): # the main data crunching program
 
     default_data_dir = '/psd3data/arctic/MOSAiC/' # give '-p your_directory' to the script if you don't like this
+
+    if '.psd.' in socket.gethostname():
+        nthreads = 20 # the twins have 64 cores, it won't hurt if we use <20
+    else: nthreads = 3
 
     make_daily_plots = True
     make_leg_plots   = True # make plots that include data from each leg
@@ -73,7 +78,7 @@ def main(): # the main data crunching program
 
     # what are we plotting? dict key is the full plot name, value is another dict...
     # ... of subplot titles and the variables to put on each subplot
-    var_dict = {}
+    var_dict                    = {}
     var_dict['meteorology']     = {'temperature'      : ['apogee_targ_T_Avg','vaisala_T_Avg'],
                                    'humidity'         : ['vaisala_RH_Avg'],
                                    'pressure'         : ['vaisala_P_Avg'],
@@ -90,7 +95,12 @@ def main(): # the main data crunching program
                                    }
     var_dict['is_alive']        = {'logger_temp'      : ['PTemp_Avg'],
                                    'logger_voltage'   : ['batt_volt_Avg'],
+                                   'gps'              : ['gps_hdop_Avg'],
                                    }
+    var_dict['lat_lon']         = {'minutes'         : ['gps_lat_min_Avg', 'gps_lon_min_Avg'],
+                                  'degrees'          : ['gps_lat_deg_Avg', 'gps_lon_deg_Avg'],
+                                  'heading'          : ['gps_hdg_Avg'],
+                                  }
 
     unit_dict = {}
     unit_dict['meteorology']     = {'temperature'      : 'C',
@@ -108,8 +118,13 @@ def main(): # the main data crunching program
                                     'surface_distance' : 'm', 
                                     }
     unit_dict['is_alive']        = {'logger_temp'      : 'C', 
-                                    'logger_voltage'   : 'V', 
+                                    'logger_voltage'   : 'V',
+                                    'gps'   : 'none', 
                                     }
+    unit_dict['lat_lon']        = {'minutes'      : 'minutes',
+                                   'degrees'   : 'degrees',
+                                   'heading'   : 'degrees'
+                                   }
 
     # if you put a color in the list, (rgb or hex) the function below will all lines different luminosities
     # of the same hue. if you put a 3-tuple of colors, it will use the colors provided explicitly for 30/40/50
@@ -118,7 +133,8 @@ def main(): # the main data crunching program
     color_dict['winds']           = ['#4878CF','#6ACC65','#D65F5F','#B47CC7','#C4AD66','#77BEDB','#4878CF']
     color_dict['radiation']       = ['#001C7F','#017517','#8C0900','#7600A1','#B8860B','#006374','#001C7F']
     color_dict['plates_and_sr50'] = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2']
-    color_dict['is_alive']        = [((0.8,0.8,0.9), (0.35,0.55,0.55), (0.55,0.55,0.35)), (0.2,0.5,0.8)]
+    color_dict['is_alive'] = [((0.8,0.8,0.9), (0.35,0.55,0.55), (0.55,0.55,0.35)), (0.2,0.5,0.8), (0.1,0.1,0.3)]
+    color_dict['lat_lon']  = [(0.8,0.8,0.8),(0.2,0.4,0.2),(0.8,0.6,0.6),(0.2,0.4,0.2),(0.9,0.5,0.9),(0.3,0.1,0.5),(0.1,0.01,0.01)]
 
     # gg_colors    = ['#E24A33','#348ABD','#988ED5','#777777','#FBC15E','#8EBA42','#FFB5B8']
     # muted_colors = ['#4878CF','#6ACC65','#D65F5F','#B47CC7','#C4AD66','#77BEDB','#4878CF']
@@ -159,36 +175,43 @@ def main(): # the main data crunching program
     day_series = pd.date_range(start_time, end_time) # we're going to get date for these days between start->end
 
     df_list = []
-    print(" Retreiving data from netcdf files...")    
-    for i_day, today in enumerate(day_series): # loop over the days in the processing range and get a list of files
-        df_today = pd.DataFrame()
-        q_dict = {}
-        p_dict = {}
-        df_dict = {}
-        for istation, curr_station in enumerate(sleds_to_plot):
-            if i_day % 1 == 0 and istation == 0: print("  ... getting data for day {}".format(today))
-            site_strs ={'asfs30':'L2','asfs40':'L1','asfs50':'L3'}
-            #file_str_slow = '/mos{}slow.level1.{}.nc'.format(curr_station, today.strftime('%Y%m%d.%H%M%S'))
-            file_str_slow = '/slow_preliminary_{}.{}.{}.nc'.format(curr_station, site_strs[curr_station],today.strftime('%Y%m%d'))
-            level1_dir    = data_dir+curr_station+'/1_level_ingest_{}/'.format(curr_station) # where does level1 data live?
-            curr_file     = level1_dir+file_str_slow
+    print(" Retreiving data from netcdf files...")
+    nthreadsstation = int(np.floor(nthreads/len(sleds_to_plot)))
+    for i_day, start_day in enumerate(day_series): # loop over days in processing range and get list of files
+        if i_day % nthreadsstation!=0 or i_day>len(day_series): continue
+        print("  ... getting data for day {} (and {} days after in parallel)".format(start_day,nthreadsstation))
+
+        q_list = []; p_list = []
+        for ithread in range(0,nthreadsstation):
+            today = start_day+timedelta(ithread)
+            q_list.append({}); p_list.append({});
+            for istation, curr_station in enumerate(sleds_to_plot):
+                site_strs ={'asfs30':'L2','asfs40':'L1','asfs50':'L3'}
+                #file_str_slow = '/mos{}slow.level1.{}.nc'.format(curr_station, today.strftime('%Y%m%d.%H%M%S'))
+                file_str_slow = '/slow_preliminary_{}.{}.{}.nc'.format(curr_station, site_strs[curr_station],today.strftime('%Y%m%d'))
+                level1_dir    = data_dir+curr_station+'/1_level_ingest_{}/'.format(curr_station) # where does level1 data live?
+                curr_file     = level1_dir+file_str_slow
 
 
-            q_dict[curr_station] = Q()
-            p_dict[curr_station] = P(target=get_asfs_data, \
-                                     args=(curr_file, curr_station, today, \
-                                           q_dict[curr_station])).start()
+                q_list[ithread][curr_station] = Q()
+                p_list[ithread][curr_station] = P(target=get_asfs_data, \
+                                                args=(curr_file, curr_station, today, \
+                                                      q_list[ithread][curr_station])).start()
  
-        for istation, curr_station in enumerate(sleds_to_plot):
-            df_dict[curr_station] = q_dict[curr_station].get()
-            cv = q_dict[curr_station].get()
-            if cv!=None: code_version = cv
+        for ithread in range(0,nthreadsstation):
+            today = start_day+timedelta(ithread)
+            df_today = pd.DataFrame()
+            df_dict = {}
+            for istation, curr_station in enumerate(sleds_to_plot):
+                df_dict[curr_station] = q_list[ithread][curr_station].get()
+                cv = q_list[ithread][curr_station].get()
+                if cv!=None: code_version = cv
 
-        for istation, curr_station in enumerate(sleds_to_plot):
-            if df_today.empty: df_today = df_dict[curr_station]
-            else:              df_today = pd.concat( [df_today, df_dict[curr_station]], axis=1 )
+            for istation, curr_station in enumerate(sleds_to_plot):
+                if df_today.empty: df_today = df_dict[curr_station]
+                else:              df_today = pd.concat( [df_today, df_dict[curr_station]], axis=1 )
 
-        df_list.append(df_today.copy())
+            df_list.append(df_today.copy())
 
     df = pd.concat(df_list)
     time_dates = df.index
@@ -220,29 +243,39 @@ def main(): # the main data crunching program
         day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
         print("~~ making daily plots for all figures ~~")
         print("----------------------------------------")
-        for iday, today in enumerate(day_series):
-            if iday%1==0: print("... plotting for day {}".format(today))
-            tomorrow  = today+day_delta
-            start_str = today.strftime('%Y-%m-%d') # get date string for file name
-            end_str   = (today+timedelta(1)).strftime('%Y-%m-%d')   # get date string for file name
+        nplotthreads = int(np.floor(nthreads/len(var_dict)))
+        for i_day, start_day in enumerate(day_series):
+            if i_day % nplotthreads!=0 or i_day>len(day_series): continue
+            print("  ... plotting data for day {} (and {} days *with {} plots* after in parallel)".format(start_day,nplotthreads,len(var_dict)))
 
-            ifig = -1
-            plot_q_dict = {}; plot_p_dict = {}
-            for plot_name, subplot_dict in var_dict.items():
-                ifig += 1; plot_q_dict[plot_name] = Q()
-                save_str  ='{}/plot_name/MOSAiC_ASFS_{}_{}_to_{}.png'.format(out_dir_daily, plot_name, start_str, end_str)
+            plot_q_list = []; plot_p_list = []
+            for ithread in range(0,nplotthreads):
+                today     = start_day + timedelta(ithread)
+                tomorrow  = today+day_delta
+                start_str = today.strftime('%Y-%m-%d') # get date string for file name
+                end_str   = (today+timedelta(1)).strftime('%Y-%m-%d')   # get date string for file name
 
-                plot_p_dict[plot_name] = P(target=make_plot,
-                                           args=(df[today:tomorrow].copy(), subplot_dict, unit_dict[plot_name],
-                                                 color_dict[plot_name],save_str,True,plot_q_dict[plot_name])).start()
+                plot_q_list.append({}); plot_p_list.append({});
+                for plot_name, subplot_dict in var_dict.items():
+                    plot_q_list[ithread][plot_name] = Q()
+                    save_str  ='{}/{}/MOSAiC_ASFS_{}_{}_to_{}.png'.format(out_dir_daily, plot_name, plot_name, start_str, end_str)
 
-            for plot_name, subplot_dict in var_dict.items():
-                plot_q_dict[plot_name].get()
+                    plot_p_list[ithread][plot_name] = \
+                      P(target=make_plot,
+                        args=(df[today:tomorrow].copy(), subplot_dict, unit_dict[plot_name],
+                              color_dict[plot_name],save_str,True,
+                              plot_q_list[ithread][plot_name])).start()
+
+            for ithread in range(0,nplotthreads):
+                for plot_name, subplot_dict in var_dict.items():
+                    plot_q_list[ithread][plot_name].get()
 
     make_plots_pretty('ggplot')
     if make_leg_plots:
+        print("   ... making leg plots for ",end='', flush=True)
         leg_names = ["leg1","leg2","leg3","leg4","leg5"]
         for ileg in range(0,len(leg_list)-1):
+            print(" {}...".format(leg_names[ileg]),end='', flush=True)
             leg_dir   = "{}/{}_complete".format(quicklooks_dir,leg_names[ileg])
             start_day = leg_list[ileg]; start_str = start_day.strftime('%Y-%m-%d') # get date string for file name
             end_day   = leg_list[ileg+1]; end_str = end_day.strftime('%Y-%m-%d')   # get date string for file name
@@ -250,6 +283,7 @@ def main(): # the main data crunching program
             ifig = -1
             plot_q_dict = {}; plot_p_dict = {}
             for plot_name, subplot_dict in var_dict.items():
+
                 ifig += 1; plot_q_dict[plot_name] = Q()
                 save_str  ='{}/MOSAiC_ASFS_{}_{}_to_{}.png'.format(leg_dir, plot_name, start_str, end_str)
                 plot_p_dict[plot_name] = P(target=make_plot,
@@ -309,6 +343,7 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
 
         for var in var_list:
             ivar+=1
+
             if isinstance(colors[ivar],str) or isinstance(colors[ivar][0],float) :
                 color_tuples = get_rgb_trio(colors[ivar])
             else: color_tuples = list(colors[ivar])
@@ -325,6 +360,8 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
                     plot_success = True
 
                 except Exception as e:
+                    #import traceback
+                    #traceback.print_exc()
                     legend_additions.append('{} (no data)'.format(asfs_var))
                     continue
 
@@ -349,7 +386,7 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
     fig.text(0.5, 0.005,'(plotted on {} from level1 data version {} )'.format(datetime.today(), code_version),
              ha='center')
 
-    fig.tight_layout(pad=0.4)
+    fig.tight_layout(pad=0.3)
     #fig.tight_layout(pad=5.0) # cut off white-space on edges
 
     #print('... saving to: {}'.format(save_str))
