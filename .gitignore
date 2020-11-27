@@ -1,4 +1,4 @@
-__pycache__
+**/__pycache__
 *.log
 *.pyc
 *.CR1X
@@ -6,7 +6,5 @@ __pycache__
 *.tgz
 *.m
 *.mat
+*.org
 .DS_Store
-
-processed_data
-quicklooks
