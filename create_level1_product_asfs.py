@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-  
 from asfs_data_definitions import code_version
 code_version = code_version()
@@ -67,14 +67,26 @@ from asfs_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl
 
-import os, inspect, argparse, time, gc 
+import os, inspect, argparse, time
+ 
 import numpy  as np
 import pandas as pd
 
-pd.options.mode.use_inf_as_na = True # no inf values anywhere
+pd.options.mode.use_inf_as_na = True # no inf values anywhere, inf=nan
 
-from threading import Thread
-from queue     import Queue
+from multiprocessing import Process as P
+from multiprocessing import Queue   as Q
+
+import socket
+
+global nthreads 
+if '.psd.' in socket.gethostname():
+    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
+else: nthreads = 6 # laptops don't tend to have 64 cores
+
+# from threading import Thread
+# from queue     import Queue
+
 from datetime  import datetime, timedelta
 from numpy     import sqrt
 from netCDF4   import Dataset, MFDataset
@@ -83,6 +95,7 @@ import warnings; warnings.filterwarnings(action='ignore') # vm python version pr
 
 # just in case... avoids some netcdf nonsense involving the default file locking across mounts
 os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
+os.environ['HDF5_MPI_OPT_TYPES']='TRUE'     # just in case
 
 version_msg = '\n\nPS-122 MOSAiC Flux team ASFS processing code v.'+code_version[0]\
               +', last updates: '+code_version[1]+' by '+code_version[2]+'\n\n'
@@ -97,8 +110,9 @@ def main(): # the main data crunching program
     n_trial_files = 1500
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
-    global beginning_of_time
-    beginning_of_time    = datetime(1970,1,1,0,0,0) # Unix epoch, ARM convention
+    global epoch_time, beginning_of_time
+    epoch_time        = datetime(1970,1,1,0,0,0)   # Unix epoch, ARM convention  
+    beginning_of_time = datetime(2019,10,5,0,0,0) # ASFS epoch, ARM convention, "base_time"
 
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
@@ -179,7 +193,7 @@ def main(): # the main data crunching program
     # read *all* of the slow data... why have so much RAM if you don't use it?
 
     print("Getting data from raw DAQ files from stations: {}!!".format(flux_stations))
-    print("   and doing it in threads, hopefully this doesn't burn your lap")
+    print("   ... and doing it in threads, hold onto your britches")
     printline()
     # get the "slow" raw data first, heavy lifting is in "get_slow_data()" the slow
     # dataset is "small", so we load it all at once
@@ -190,12 +204,13 @@ def main(): # the main data crunching program
     slow_atts, slow_vars = define_level1_slow()
     for curr_station in flux_stations:
         # try to save some time and multithread the reading
-        slow_q_dict[curr_station] = Queue()
+        slow_q_dict[curr_station] = Q()
         # run the threads for retreiving data
-        Thread(target=get_slow_data, \
+        P(target=get_slow_data, \
                args=(curr_station, start_time, end_time, \
                      slow_q_dict[curr_station])).start()
 
+        
     # wait to finish slow first, then get results from thread queue
     for curr_station in  flux_stations:
         slow_data[curr_station] = slow_q_dict[curr_station].get()
@@ -239,8 +254,7 @@ def main(): # the main data crunching program
     print("\nGetting list of fast files for each station and sorting them by date... \n")
     printline()
 
-    # there's a whole history (now) behind why the fast code looks like this
-    # but...  there's too much fast data, we need to read in and write out each
+    # there's too much fast data, we need to read in and write out each
     # day individually if coded like slow above, station "fast" datasets take
     # 32Gb of RAM (I only have 40Gb) and that's only for legs 1 and 2
     # #########################################################################
@@ -249,8 +263,8 @@ def main(): # the main data crunching program
     first_timestamp_list = {} # corresponding first file timestamp, sorted in time
     fast_file_q = {}
     for curr_station in flux_stations: # get station file lists in parallel
-        fast_file_q[curr_station] = Queue()
-        Thread(target=get_fast_file_list, \
+        fast_file_q[curr_station] = Q()
+        P(target=get_fast_file_list, \
                args=(curr_station, fast_file_q[curr_station])).start()
 
     for curr_station in flux_stations: # wait for threads and get return values
@@ -268,9 +282,10 @@ def main(): # the main data crunching program
     print("\n Got all slow data and have a list of fast files, now processing each day...\n")
     printline()
 
+    nthreads_station = int(np.floor(nthreads/3))
+    q_list = []; p_list = []
     i_day = -1 
     for today in day_series: # loop over the days in the processing range and get a list of files
-        gc.collect()
         i_day+=1
         tomorrow = today+day_delta
 
@@ -288,11 +303,11 @@ def main(): # the main data crunching program
 
         for curr_station in flux_stations:
             # try to save some time and multithread the reading
-            fast_q_dict[curr_station] = Queue()
+            fast_q_dict[curr_station] = Q()
             # run the threads for retreiving data
-            Thread(target=get_fast_data, \
-                   args=(today, fast_file_list[curr_station], first_timestamp_list[curr_station], curr_station, \
-                         fast_q_dict[curr_station])).start()
+            P(target=get_fast_data, \
+                   args=(today, fast_file_list[curr_station], first_timestamp_list[curr_station],
+                         curr_station, fast_q_dict[curr_station])).start()
 
         # wait for results from threads and then put dataframes into list
         for curr_station in flux_stations:
@@ -304,7 +319,6 @@ def main(): # the main data crunching program
         # level 1 files are written out... and it's all here.
         # ########################################################################
         # switch apogee target & body T if necessary, date apogee switched in CR1000X software
-
 
             # correct flux plate sign code from ola
             # jd_flxp_corr(1,1:2)=[modystr(12)-1+31+12/24+00/1440 modystr(10)-1+1+12/24+00/1440]; %ASFS30
@@ -365,7 +379,7 @@ def main(): # the main data crunching program
         write_q_dict     = {} # queue used to retreive data for today
         today_empty_dict = {} # boolean keeper of if there was no data today
         for curr_station in flux_stations:
-            write_q_dict[curr_station] = Queue()
+            write_q_dict[curr_station] = Q()
 
             sdt   = slow_data_today[curr_station]
             fdt   = fast_data_today[curr_station]
@@ -374,9 +388,9 @@ def main(): # the main data crunching program
 
             if not sdt.empty or not fdt.empty: 
                 # run the threads for retreiving data
-                Thread(target=write_level1_netcdfs, \
-                       args=(sdt, satts, fdt, fatts, curr_station, today,\
-                             write_q_dict[curr_station])).start()
+                P(target=write_level1_netcdfs, \
+                  args=(sdt, satts, fdt, fatts, curr_station, today,\
+                        write_q_dict[curr_station])).start()
                 today_empty_dict[curr_station] = False
             else:
                 today_empty_dict[curr_station] = True
@@ -389,6 +403,11 @@ def main(): # the main data crunching program
         #for curr_station in flux_stations: # wait for write threads to finish before moving on
             if not today_empty_dict[curr_station]:
                 write_q_dict[curr_station].get()
+
+        # go get our frames from our threads and wait for them to finish beforer spawning more
+        if (i_day+1) % nthreads_station == 0 or today==day_series[-1]: 
+            for q in q_list: frame_list.append(q.get())
+            q_list = []; p_list = []# reset index/list
 
         continue
 
@@ -414,10 +433,12 @@ def get_slow_data(station, start_time, end_time, qq):
     # 'cause campbell is.... inconsistent
     na_vals         = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"','']
 
-    file_i          = -1
-    for data_file in card_file_list:
-        file_i += 1
-        if file_i % 500 == 0 and file_i != 0:  
+    # we're already in subprocesses for each station, so now we divide further
+    nthreads_station = int(np.floor(nthreads/3))
+    q_list = []; p_list = []
+    for file_i, data_file in enumerate(card_file_list):
+
+        if ((file_i) % 250 == 0) and file_i != 0:  
             verboseprint("... at file {} of {} for slow data in {} ".format(file_i, len(card_file_list), searchdir))
 
         # count the columns in the first line and select the col headers out of asfs_data_definitions.py
@@ -437,11 +458,29 @@ def get_slow_data(station, start_time, end_time, qq):
             
         cols = get_level1_col_headers(num_cols,cver)
 
-        frame = pd.read_csv(data_file, parse_dates=[0], sep=',', na_values=na_vals,\
-                            index_col=0, engine='c', names=cols)
+        #print(f"... threading read, does this work?? {file_i} -- {nthreads_station} {station}")
+        def thread_read(dfile, q):
+            #print(f"... reading file {dfile}")
+            frame = pd.read_csv(dfile, parse_dates=[0], sep=',', na_values=na_vals,\
+                                index_col=0, engine='c', names=cols)
+            q.put(frame)
 
-        frame_list.append(frame) 
+        file_q = Q()
+        file_p = P(target=thread_read, args=(data_file, file_q)).start()
 
+        q_list.append(file_q)
+        p_list.append(file_p)
+
+        #print(q_list)
+        # go get our frames from our threads if we've maxed out or are done
+        if (file_i+1) % nthreads_station == 0 or data_file == card_file_list[-1]:
+            #print(f"... threading read, does this work?? getting qq back {file_i}")
+            for each_q in q_list:
+                q_frame = each_q.get()
+                frame_list.append(q_frame)
+            q_list = []; p_list = []# reset index/list
+
+    print("... got all files read, got all threads back. now we concat")
     data_frame = pd.concat(frame_list) # is concat computationally efficient?    
     data_frame = data_frame.sort_index() # sort chronologically    
     data_frame.drop_duplicates(inplace=True) # get rid of duplicates
@@ -587,7 +626,6 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, qq):
             print("!!! There was an exception reading file {}, skipping!!!".format(data_file))
             printline()
 
-
     # reindex each frame to avoid collisions before concatting/interpolating the time column/axis
     reindex_start = 0 
     for curr_frame in frame_list: # reindex each data frame properly to avoid collisions 
@@ -641,7 +679,7 @@ def get_card_file_list(filestr, searchdir): # filestr is the name in the data fi
     return card_file_list
 
 # do the stuff to write out the level1 files, after finishing this it could probably just be one
-# function that is called separately for fast and slow... : \
+# function that is called separately for fast and slow... : \ maybe refactor someday.... mhm
 def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_station, date, qq):
     l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
 
@@ -691,8 +729,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     print("... writing level1 for {} on {}, ~{}% of slow data is present".format(curr_station, date, 100-avg_missing_slow))
 
     out_dir       = level1_dir+curr_station+"/1_level_ingest_"+curr_station
-    file_str_fast = '/mos{}fast.level1.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
-    file_str_slow = '/mos{}slow.level1.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
+    file_str_fast = '/mos{}fast.level1.{}.nc'.format(curr_station, date.strftime('%Y%m%d.%H%M%S'))
+    file_str_slow = '/mos{}slow.level1.{}.nc'.format(curr_station, date.strftime('%Y%m%d.%H%M%S'))
 
     lev1_slow_name  = '{}/{}'.format(out_dir, file_str_slow)
     lev1_fast_name  = '{}/{}'.format(out_dir, file_str_fast)
@@ -713,44 +751,78 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     netcdf_lev1_slow.createDimension('time', None)
     netcdf_lev1_fast.createDimension('time', None)
 
-    time_atts_slow   = {'units'     : 'seconds since {}'.format(beginning_of_time),
-                        'delta_t'   : '0000-00-00 00:01:00',
-                        'long_name' : 'seconds since the first day of MOSAiC',
-                        'calendar'  : 'standard',}
+    fms = slow_data.index[0]
+    # base_time, ARM spec, the difference between the time of the first data point and the BOT
+    today_midnight = datetime(fms.year, fms.month, fms.day)
 
-    time_atts_fast = time_atts_slow.copy()
-    time_atts_fast['units']     = 'milliseconds since {}'.format(beginning_of_time)
-    time_atts_fast['long_name'] = 'milliseconds since the first day of MOSAiC'
-
-    bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
-
-    # create the arrays that are integer intervals from  'time since beginning of mosaic' for indexing netcdf files
+    # create the three 'bases' that serve for calculating the time arrays
+    et = np.datetime64(epoch_time)
     bot = np.datetime64(beginning_of_time)
+    tm =  np.datetime64(today_midnight)
+
+    # first write the int base_time, the temporal distance from the UNIX epoch
+    base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
+    base_fast = netcdf_lev1_fast.createVariable('base_time', 'u4') # seconds since
+    base_slow = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
+    base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
+
+    base_atts = {'string'     : '{}'.format(bot),
+                 'long_name' : 'Base time in Epoch',
+                 'units'     : 'seconds since {}'.format(et),
+                 'ancillary_variables'  : 'time_offset',}
+    for att_name, att_val in base_atts.items(): netcdf_lev1_slow['base_time'].setncattr(att_name,att_val)
+    for att_name, att_val in base_atts.items(): netcdf_lev1_fast['base_time'].setncattr(att_name,att_val)
+
+    # here we create the array and attributes for 'time'
+    t_atts_slow   = {'units'     : 'seconds since {}'.format(tm),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from midnight',
+                     'calendar'  : 'standard',}
+
+    t_atts_fast = t_atts_slow.copy()
+    t_atts_fast['units']     = 'milliseconds since {}'.format(tm)
+    t_atts_fast['long_name'] = 'Time offset from midnight'
+
+    bt_atts_slow   = {'units'     : 'seconds since {}'.format(bot),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from base_time',
+                     'calendar'  : 'standard',}
+
+    bt_atts_fast = t_atts_slow.copy()
+    bt_atts_fast['units']     = 'milliseconds since {}'.format(bot)
+    bt_atts_fast['long_name'] = 'Time offset from base_time'
+
     slow_dti = pd.DatetimeIndex(slow_data.index.values)
     fast_dti = pd.DatetimeIndex(fast_data.index.values)
 
-    slow_delta_ints = np.floor((slow_dti - bot).total_seconds())      # seconds
-    fast_delta_ints = np.floor((fast_dti - bot).total_seconds()*1000) # ms 
+    slow_delta_ints = np.floor((slow_dti - tm).total_seconds())      # seconds
+    fast_delta_ints = np.floor((fast_dti - tm).total_seconds()*1000) # ms 
 
     t_slow_ind = pd.Int64Index(slow_delta_ints)
     t_fast_ind = pd.Int64Index(fast_delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    # ###########################################################################
-    # 
-    # this is where netcdf/hdf crash with a runtime exception sometimes, and I
-    # can't figure out why. it never happens reliably (never at same point in the
-    # data) I assume it's a bug in netcdf/hdf5. so why not catch the exception and
-    # then try again until it works, lol. saves crashing and restarting
-    # this only works for python versions built with debug symbols, fyi. if you
-    # have a python version without, it just segfaults... weird things
+    t_slow = netcdf_lev1_slow.createVariable('time', 'u4','time') # seconds since
+    t_fast = netcdf_lev1_fast.createVariable('time', 'u8','time') # seconds since
 
-    t_slow = netcdf_lev1_slow.createVariable('time', 'i8','time') # seconds since
-    t_fast = netcdf_lev1_fast.createVariable('time', 'i8','time') # seconds since
+    # now we create the array and attributes for 'time_offset'
+    bt_slow_dti = pd.DatetimeIndex(slow_data.index.values)   
+    bt_fast_dti = pd.DatetimeIndex(fast_data.index.values)
+
+    bt_slow_delta_ints = np.floor((bt_slow_dti - bot).total_seconds())      # seconds
+    bt_fast_delta_ints = np.floor((bt_fast_dti - bot).total_seconds()*1000) # ms 
+
+    bt_slow_ind = pd.Int64Index(bt_slow_delta_ints)
+    bt_fast_ind = pd.Int64Index(bt_fast_delta_ints)
+
+    # set the time dimension and variable attributes to what's defined above
+    bt_slow = netcdf_lev1_slow.createVariable('time_offset', 'u4','time') # seconds since
+    bt_fast = netcdf_lev1_fast.createVariable('time_offset', 'u8','time')
 
     while True:
         try:
             t_slow[:] = t_slow_ind.values
+            bt_slow[:] = bt_slow_ind.values
             break # if no exception, continue as normal
         except RuntimeError as re:
             print("!!! there was an error creating slow time variable with netcdf/hd5 I cant debug !!!")
@@ -759,14 +831,18 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     while True:
         try:
             t_fast[:] = t_fast_ind.values
+            bt_fast[:] = bt_fast_ind.values
             break # if no exception, continue as normal
         except RuntimeError as re:
             print("!!! there was an error creating fast time variable with netcdf/hd5 I cant debug !!!")
             print("!!! {} !!!".format(re))
             print("!!! sorry, trying again, it's not our fault I swear !!!")
 
-    for att_name, att_val in time_atts_slow.items(): netcdf_lev1_slow['time'].setncattr(att_name,att_val)
-    for att_name, att_val in time_atts_fast.items(): netcdf_lev1_fast['time'].setncattr(att_name,att_val)
+    for att_name, att_val in t_atts_slow.items(): netcdf_lev1_slow['time'].setncattr(att_name,att_val)
+    for att_name, att_val in t_atts_fast.items(): netcdf_lev1_fast['time'].setncattr(att_name,att_val)
+
+    for att_name, att_val in bt_atts_slow.items(): netcdf_lev1_slow['time_offset'].setncattr(att_name,att_val)
+    for att_name, att_val in bt_atts_fast.items(): netcdf_lev1_fast['time_offset'].setncattr(att_name,att_val)
 
     for var_name, var_atts in slow_atts_copy.items():
         if var_name == time_name: continue
@@ -833,7 +909,6 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
         netcdf_lev1_fast[var_name].setncattr('percent_missing', perc_miss)
         netcdf_lev1_fast[var_name].setncattr('missing_value'  , fill_val)
 
-    gc.collect() # maybe this helps with the random (rare) memory access crashes in the netcdf/hdf5 libs?
     netcdf_lev1_slow.close() # close and write files for today
     netcdf_lev1_fast.close() 
     if fast_data.empty:
