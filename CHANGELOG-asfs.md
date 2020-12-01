@@ -11,7 +11,7 @@ This revision was for create_level1_product_asfs.py with some asosociated additi
 -turned off hdf5 locking because its a menace
 -changed data_dir to be a passed argument and adjusted paths to generalize, like the tower codes
 -expanded the search to +/- 1 day from start_time and end_time and trimmed back at day_series similar to tower code so that individual days could be -calculated and because I think may be needed in some cases, and because I’m shifting by 1 min (see below)
--shifted slow times by 1 min. the logger records dates by end of avg period so we map 00:01-00:00 onto our convention 00:00-23:59 
+-shifted slow times by 1 min. the logger records dates by end of avg period so we map 00:01-00:00 onto our convention 00:00-23:59
 -shifted fast times by -5s, as above
 -made some hand-edits to the “sdcard” directories to make sure they said “sdcard” instead of working in some complicated search
 -added a drop_duplicates in the read
@@ -53,7 +53,7 @@ Turbulence
 - worked on first guess in bulk, did not change
 - improved contants by passing measurements where there used to be guesses
 - removed Cd/zot from bulk loop, which I put in earlier
-- added a sanity check ppl on Cd for EC and bulk (-1.5e-3,1.5e-2).  allowance for Cd<0 fit around tail of distribution, ie., allows for noise about 0. 
+- added a sanity check ppl on Cd for EC and bulk (-1.5e-3,1.5e-2).  allowance for Cd<0 fit around tail of distribution, ie., allows for noise about 0.
 - added latent heat flux, Hl
 - added cos mass flux (mg m^-2 s^-1)
 - add Webb corrections for Hl and co2 fluxes
@@ -61,16 +61,23 @@ Turbulence
 
 ## Revision 1.2.1 10/29/2020 ccox
 
-- added metadata for Leg 4 ASFS 
+- added metadata for Leg 4 ASFS
 - minor changes to ship_df to accomodate some structural preferences for Leica data location. also updated the leica data.
 - minor typos
 
 ## Revision 1.3 11/10/2020 ccox
-- changed write directory to be the "current" directory within private MOSAIC_dump directory. 
+- changed write directory to be the "current" directory within private MOSAIC_dump directory.
     - ./MOSAiC_dump/product_development/...
     - level 2 is written to the deveopment directory but level 1 is read from the permenant directory
 - moved directory paths up front and cleaned up a little
 - changed base time to Unix epoch for level 1 and level 2
-- changed filename convention for level 1 to be consistent with level 2 
+- changed filename convention for level 1 to be consistent with level 2
 
-
+## Revision 1.4 12/1/2020 mgallagher
+- modified timing conventions for level1 files to match ARM
+- replaced multithreading with multriprocessing and fixed netcdf bugs
+    - ... long story, but finally figured it out
+- threaded application further to fully utilize new twin behemoths
+- int64 time is now uint32
+- merged asfs_data_definitions.py level 1 metadata attributes from ccox
+- some other misc cleaning and improvements
