@@ -49,7 +49,7 @@ code_version = code_version()
 # HOWTO:
 #
 # To run this package with verbose printing over all ofthe data:
-# python3 create_level1_product_asfs.py -v -s 20191005 -e 20201005 -p /psd3data/arctic/MOSAiC/
+# python3 create_level1_product_asfs.py -v -s 20191005 -e 20201005 -p /Projects/MOSAiC/
 #
 # To profile the code and see what's taking so long:
 # python3 -m cProfile -s cumulative ./create_Daily_Tower_NetCDF.py -v -s 20191201 -e 20191201 
@@ -73,7 +73,7 @@ import numpy  as np
 import pandas as pd
 
 pd.options.mode.use_inf_as_na = True # no inf values anywhere, inf=nan
-
+ 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
@@ -81,7 +81,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 6 # laptops don't tend to have 64 cores
 
 # from threading import Thread
@@ -107,12 +107,11 @@ def main(): # the main data crunching program
 
     global trial, n_trial_files
     trial = True # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
-    n_trial_files = 1500
+    n_trial_files = 3000
 
     # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
     global epoch_time, beginning_of_time
-    epoch_time        = datetime(1970,1,1,0,0,0)   # Unix epoch, ARM convention  
-    beginning_of_time = datetime(2019,10,5,0,0,0) # ASFS epoch, ARM convention, "base_time"
+    epoch_time        = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
 
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
@@ -143,8 +142,10 @@ def main(): # the main data crunching program
     verbose      = True if args.verbose else False # use this to run segments of code via v/verbose flag
     v_print      = print if verbose else lambda *a, **k: None     # placeholder
     verboseprint = v_print # use this function to print a line if the -v/--verbose flag is provided
+
+    if args.path: data_dir = args.path
+    else: data_dir = '/Projects/MOSAiC/'
     
-    data_dir = args.path # /psd3data/arctic/MOSAiC/
     level1_dir = data_dir #'./processed_data/level1/'  # where does level1 data go
 
     def printline(startline='',endline=''): # make for pretty printing
@@ -152,27 +153,24 @@ def main(): # the main data crunching program
               .format(startline, endline))
 
     global start_time, end_time
-    start_time = beginning_of_time
     if args.start_time:
         start_time = datetime.strptime(args.start_time, '%Y%m%d')
     else:
         # make the data processing start yesterday! i.e. process only most recent full day of data
-        start_time = beginning_of_time.today() # any datetime object can provide current time
+        start_time = epoch_time.today() # any datetime object can provide current time
         start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
 
     if args.end_time:
         end_time = datetime.strptime(args.end_time, '%Y%m%d')
     else:
-        end_time = beginning_of_time.today() # any datetime object can provide current time
+        end_time = epoch_time.today() # any datetime object can provide current time
         end_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
-
 
     # expand the load by 1 day to facilite gps processing    
     start_time = start_time-timedelta(1)
     end_time = end_time+timedelta(1)
 
     printline(endline="\n")
-    print('The first day of the experiment is:    %s' % beginning_of_time)
     print('The first day we  process data is:     %s' % str(start_time+timedelta(1)))
     print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
     printline()
@@ -219,6 +217,8 @@ def main(): # the main data crunching program
         verboseprint("Data and observations provided by {}:".format(curr_station))
         verboseprint('===================================================')
         if verbose: slow_data[curr_station].info(verbose=True) # must be contained;
+
+    print("\n... got all slow data from files, exiting for timing")
 
     # tell user about big data gaps, good sanity check for downtime
     # using batt_volt_Avg because if the battery voltage is missing....
@@ -283,35 +283,19 @@ def main(): # the main data crunching program
     printline()
 
     nthreads_station = int(np.floor(nthreads/3))
-    q_list = []; p_list = []
-    i_day = -1 
-    for today in day_series: # loop over the days in the processing range and get a list of files
-        i_day+=1
-        tomorrow = today+day_delta
+    station_q_dict = {}
+    station_p_dict = {} 
 
-        # dictionary of data frames for todays data
-        fast_data_today = {}
-        slow_data_today = {} 
-
-        # get slow data for today only from full data frame retreived above
-        for curr_station in flux_stations:
-            slow_data_today[curr_station] = slow_data[curr_station][today:tomorrow]
+    # defined here, called below in loops, this is the code for processing one days data, 
+    # done this way so the code can be threaded
+    def process_station_day(curr_station, slow_data_today, day_q):
 
         # queue used to retreive data for today
-        fast_q_dict = {} 
-        if i_day % 1 == 0: print("\nCurrently processing level1 data for {}".format(today))
+        if i_day % 1 == 0: print("\nCurrently processing level1 data for {} in {}".format(today, curr_station))
 
-        for curr_station in flux_stations:
-            # try to save some time and multithread the reading
-            fast_q_dict[curr_station] = Q()
-            # run the threads for retreiving data
-            P(target=get_fast_data, \
-                   args=(today, fast_file_list[curr_station], first_timestamp_list[curr_station],
-                         curr_station, fast_q_dict[curr_station])).start()
-
-        # wait for results from threads and then put dataframes into list
-        for curr_station in flux_stations:
-            fast_data_today[curr_station] = fast_q_dict[curr_station].get()
+        # run the threads for retreiving data
+        fast_data_today = get_fast_data(today, fast_file_list[curr_station],
+                                        first_timestamp_list[curr_station], curr_station)
 
         # ########################################################################
         # level 1 cleaning and QC starts here. this is *only* minimal fixes fit for
@@ -335,87 +319,92 @@ def main(): # the main data crunching program
             #   end
             # end
 
-        for curr_station in flux_stations:
-            #if not slow_data_today[curr_station].empty:
+        #if not slow_data_today.empty:
 
-            if today == apogee_switch_date[curr_station].replace(hour=0, minute=0, second=0):
-                targ_T = slow_data_today[curr_station]['apogee_targ_T_Avg'].copy()
-                body_T = slow_data_today[curr_station]['apogee_body_T_Avg'].copy()
-                targ_T_std = slow_data_today[curr_station]['apogee_targ_T_Std'].copy()
-                body_T_std = slow_data_today[curr_station]['apogee_body_T_Std'].copy()
+        if today == apogee_switch_date[curr_station].replace(hour=0, minute=0, second=0):
+            targ_T = slow_data_today['apogee_targ_T_Avg'].copy()
+            body_T = slow_data_today['apogee_body_T_Avg'].copy()
+            targ_T_std = slow_data_today['apogee_targ_T_Std'].copy()
+            body_T_std = slow_data_today['apogee_body_T_Std'].copy()
 
-                slow_data_today[curr_station]['apogee_targ_T_Avg'] = \
-                    np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             body_T,\
-                             targ_T)
-                slow_data_today[curr_station]['apogee_body_T_Avg'] = \
-                    np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             targ_T,\
-                             body_T)
+            slow_data_today['apogee_targ_T_Avg'] = \
+                np.where(slow_data_today.index < apogee_switch_date[curr_station],\
+                         body_T,\
+                         targ_T)
+            slow_data_today['apogee_body_T_Avg'] = \
+                np.where(slow_data_today.index < apogee_switch_date[curr_station],\
+                         targ_T,\
+                         body_T)
 
-                slow_data_today[curr_station]['apogee_targ_T_Std'] = \
-                    np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             body_T_std,\
-                             targ_T_std)
-                slow_data_today[curr_station]['apogee_body_T_Std'] = \
-                    np.where(slow_data_today[curr_station].index < apogee_switch_date[curr_station],\
-                             targ_T_std,\
-                             body_T_std)
+            slow_data_today['apogee_targ_T_Std'] = \
+                np.where(slow_data_today.index < apogee_switch_date[curr_station],\
+                         body_T_std,\
+                         targ_T_std)
+            slow_data_today['apogee_body_T_Std'] = \
+                np.where(slow_data_today.index < apogee_switch_date[curr_station],\
+                         targ_T_std,\
+                         body_T_std)
 
-            elif today < apogee_switch_date[curr_station]:
-                cs_targ_avg = slow_data_today[curr_station]['apogee_targ_T_Avg'] 
-                cs_body_avg = slow_data_today[curr_station]['apogee_body_T_Avg'] 
-                slow_data_today[curr_station]['apogee_targ_T_Avg'] = cs_body_avg
-                slow_data_today[curr_station]['apogee_body_T_Avg'] = cs_targ_avg
+        elif today < apogee_switch_date[curr_station]:
+            cs_targ_avg = slow_data_today['apogee_targ_T_Avg'] 
+            cs_body_avg = slow_data_today['apogee_body_T_Avg'] 
+            slow_data_today['apogee_targ_T_Avg'] = cs_body_avg
+            slow_data_today['apogee_body_T_Avg'] = cs_targ_avg
 
-                cs_targ_std = slow_data_today[curr_station]['apogee_targ_T_Std'] 
-                cs_body_std = slow_data_today[curr_station]['apogee_body_T_Std'] 
-                slow_data_today[curr_station]['apogee_targ_T_Std'] = cs_body_std
-                slow_data_today[curr_station]['apogee_body_T_Std'] = cs_targ_std
+            cs_targ_std = slow_data_today['apogee_targ_T_Std'] 
+            cs_body_std = slow_data_today['apogee_body_T_Std'] 
+            slow_data_today['apogee_targ_T_Std'] = cs_body_std
+            slow_data_today['apogee_body_T_Std'] = cs_targ_std
 
-        # #############################################################################
         # level1 qc/processing done write out level1 raw/'ingest' files to netcdf today
-        # ############################################################################# 
-        write_q_dict     = {} # queue used to retreive data for today
         today_empty_dict = {} # boolean keeper of if there was no data today
+
+        sdt   = slow_data_today
+        fdt   = fast_data_today
+        satts = slow_atts
+        fatts = fast_atts
+
+        if not sdt.empty or not fdt.empty: 
+            # run the threads for retreiving data
+            write_level1_netcdfs(sdt, satts, fdt, fatts, curr_station, today)
+        else:
+            print("... no data available for {} on {}".format(curr_station, today))
+
+        # process_station_days() ends here
+        day_q.put(True)
+        return 
+
+    nthreads_station = int(np.floor(nthreads/3)) # num of days we can throw into child procs before waiting
+
+    q_dict = {}  # setup queue storage
+    for curr_station in flux_stations: q_dict[curr_station] = []
+
+    # call processing by day then station (allows threading for processing a single days data)
+    for i_day, today in enumerate(day_series): # loop over the days in the processing range and get a list of files
+        tomorrow = today+day_delta
         for curr_station in flux_stations:
-            write_q_dict[curr_station] = Q()
+            slow_data_today = slow_data[curr_station][today:tomorrow]
 
-            sdt   = slow_data_today[curr_station]
-            fdt   = fast_data_today[curr_station]
-            satts = slow_atts
-            fatts = fast_atts
+            q_today = Q()
+            q_dict[curr_station].append(q_today)
+            P(target=process_station_day,
+              args=(curr_station, slow_data_today, q_today)).start()
 
-            if not sdt.empty or not fdt.empty: 
-                # run the threads for retreiving data
-                P(target=write_level1_netcdfs, \
-                  args=(sdt, satts, fdt, fatts, curr_station, today,\
-                        write_q_dict[curr_station])).start()
-                today_empty_dict[curr_station] = False
-            else:
-                today_empty_dict[curr_station] = True
-                print("... no data available for {} on {}".format(curr_station, today))
+            if nthreads < len(flux_stations): 
+                q_dict[curr_station][0].get()
+                q_dict[curr_station] = []
 
-        # apparently writes upsing netcdf/hdf5 aren't thread safe... if you don't wait for the thread to
-        # finish before calling write again, you'll get weird and random crashes. otherwise the code runs
-        # fine. thus, this loop is commented out and we wait for each write before starting another
-
-        #for curr_station in flux_stations: # wait for write threads to finish before moving on
-            if not today_empty_dict[curr_station]:
-                write_q_dict[curr_station].get()
-
-        # go get our frames from our threads and wait for them to finish beforer spawning more
-        if (i_day+1) % nthreads_station == 0 or today==day_series[-1]: 
-            for q in q_list: frame_list.append(q.get())
-            q_list = []; p_list = []# reset index/list
-
-        continue
+        if (i_day+1) % nthreads_station == 0 or today == day_series[-1]:
+            for curr_station in flux_stations:
+                for qq in q_dict[curr_station]: qq.get()
+                q_dict[curr_station] = []
 
     printline()
     print('All done! Netcdf output files can be found in: {}'.format(level1_dir))
     printline()
     print(version_msg)
     printline()
+
 
 # pulls in logger text files from sdcard data and returns a dataframe and a list of data attributes (units, etc)
 # qq returns the results from a threaded call and is of Queue class
@@ -430,19 +419,13 @@ def get_slow_data(station, start_time, end_time, qq):
     frame_list = [] # list of frames from files... to be concatted after loop
     data_atts, data_cols  = define_level1_slow()
 
-    # 'cause campbell is.... inconsistent
-    na_vals         = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"','']
-
-    # we're already in subprocesses for each station, so now we divide further
-    nthreads_station = int(np.floor(nthreads/3))
-    q_list = []; p_list = []
-    for file_i, data_file in enumerate(card_file_list):
-
-        if ((file_i) % 250 == 0) and file_i != 0:  
-            verboseprint("... at file {} of {} for slow data in {} ".format(file_i, len(card_file_list), searchdir))
+    # called in process/queue loop over card_file_list below
+    def read_slow_csv(dfile, file_q):
+        # 'cause campbell is.... inconsistent
+        na_vals = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"','']
 
         # count the columns in the first line and select the col headers out of asfs_data_definitions.py
-        with open(data_file) as ff: 
+        with open(dfile) as ff: 
             topline = ff.readline().rsplit(',')
             num_cols = len(topline)
             if num_cols > 8: # you dont have a header
@@ -450,37 +433,36 @@ def get_slow_data(station, start_time, end_time, qq):
             if num_cols == 8: # then the file has a header
                 num_cols = len(ff.readline().rsplit(',')) # so get the right number from the next line
                 first_time = ff.readline().rsplit(',')[3].strip('"')              
-                
+
         if num_cols == 99 and station == 'asfs30' and first_time > datetime(2020,4,12,16,22):
             cver = 1
-        else:
-            cver = 0
-            
-        cols = get_level1_col_headers(num_cols,cver)
+        else: cver = 0
 
-        #print(f"... threading read, does this work?? {file_i} -- {nthreads_station} {station}")
-        def thread_read(dfile, q):
-            #print(f"... reading file {dfile}")
-            frame = pd.read_csv(dfile, parse_dates=[0], sep=',', na_values=na_vals,\
-                                index_col=0, engine='c', names=cols)
-            q.put(frame)
+        cols  = get_level1_col_headers(num_cols, cver)
+        frame = pd.read_csv(dfile, parse_dates=[0], sep=',', na_values=na_vals,\
+                            index_col=0, engine='c', names=cols)
+        file_q.put(frame)
+        
+    # divide the files into pools and call thread_read() on the list of files in parallel
+    nthreads_station = int(np.floor(nthreads/3))
+    q_list = []
+    for file_i, data_file in enumerate(card_file_list):
+
+        if (file_i % 250 == 0) and file_i != 0:  
+            verboseprint("... at {} of {} for {} slow data".format(file_i, len(card_file_list),station))
 
         file_q = Q()
-        file_p = P(target=thread_read, args=(data_file, file_q)).start()
-
         q_list.append(file_q)
-        p_list.append(file_p)
+        P(target=read_slow_csv, args=(data_file, file_q)).start()
 
-        #print(q_list)
-        # go get our frames from our threads if we've maxed out or are done
         if (file_i+1) % nthreads_station == 0 or data_file == card_file_list[-1]:
-            #print(f"... threading read, does this work?? getting qq back {file_i}")
-            for each_q in q_list:
-                q_frame = each_q.get()
-                frame_list.append(q_frame)
-            q_list = []; p_list = []# reset index/list
+            for fq in q_list:
+                new_frame = fq.get()
+                frame_list.append(new_frame)
+            q_list = []
+            if trial and n_trial_files<file_i: break
 
-    print("... got all files read, got all threads back. now we concat")
+    print(f"... got all files read, got all threads back for {station}. now we concat")
     data_frame = pd.concat(frame_list) # is concat computationally efficient?    
     data_frame = data_frame.sort_index() # sort chronologically    
     data_frame.drop_duplicates(inplace=True) # get rid of duplicates
@@ -489,7 +471,11 @@ def get_slow_data(station, start_time, end_time, qq):
     # some sanity checks
     n_dupes = ~data_frame.duplicated().size
     if data_frame.empty: # 'fatal' is a print function defined at the bottom of this script that exits
-        fl.fatal("No {} data for requested time range {} ---> {} ?\n I'm sorry, I have to die".format(searchdir,start_time,end_time))
+        print("No {} data for requested time range {} ---> {} ?\n".format(searchdir,start_time,end_time))
+        print("... Im sorry... no data will be created for {}".format(station))
+        qq.put(data_frame)
+        return
+
     if n_dupes > 0 : fl.fatal("... there were {} duplicates for {} in this time range!!\n you got duped, dying".format(n_dupes, searchdir))
 
     # now, reindex for every second in range and fill with nans so that the we commplete record
@@ -580,7 +566,7 @@ def get_fast_file_list(station, qq):
 # ########################################################################################
 # sorry Chris, I hope this function isn't too incomprehensible/ugly. and if it is, then I
 # hope it just_works(tm) and you don't have to touch it.
-def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, qq): 
+def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station): 
 
     # get data cols/attributes from definitions file
     data_atts, data_cols = define_level1_fast()
@@ -603,8 +589,7 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, qq):
 
     if len(inds_to_use) == 0 :
         verboseprint("!!! NO FAST DATA FROM {} FOR DAY {} !!!".format(curr_station, date))
-        qq.put(pd.DataFrame(columns=data_cols))
-        return
+        return pd.DataFrame(columns=data_cols)
 
     frame_list  = [] # all the frames created from files from today
     for file_i in inds_to_use:
@@ -662,7 +647,7 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station, qq):
 
     verboseprint("... {}/1728000 fast entries on {} for {}, representing {}% data coverage"
                  .format(n_entries, date, curr_station, round((n_entries/1728000)*100.,2)))
-    qq.put(return_frame)
+    return return_frame
 
 # function that searches sitevisit dirs looking for SDcard directory and returns data file paths in a list
 def get_card_file_list(filestr, searchdir): # filestr is the name in the data file you want to get slow/fast/etc
@@ -680,7 +665,7 @@ def get_card_file_list(filestr, searchdir): # filestr is the name in the data fi
 
 # do the stuff to write out the level1 files, after finishing this it could probably just be one
 # function that is called separately for fast and slow... : \ maybe refactor someday.... mhm
-def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_station, date, qq):
+def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_station, date):
     l_site_names = { "asfs30" : "L2", "asfs40" : "L1", "asfs50" : "L3"}
 
     # some user feedback into the output
@@ -723,8 +708,7 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     # if there's no data, bale
     if all_missing_fast and all_missing_slow:
         print("!!! no data on day {} for {}, returning from write without writing".format(curr_station, date))
-        qq.put(False)
-        return 
+        return False
 
     print("... writing level1 for {} on {}, ~{}% of slow data is present".format(curr_station, date, 100-avg_missing_slow))
 
@@ -751,9 +735,16 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     netcdf_lev1_slow.createDimension('time', None)
     netcdf_lev1_fast.createDimension('time', None)
 
-    fms = slow_data.index[0]
+    try:
+        fms = slow_data.index[0]
+    except Exception as e:
+        print("\n\n\n!!! Something went wrong, there's fast data for today but no slow data")
+        print("... the code doesn't handle that currently")
+        raise e
+        
     # base_time, ARM spec, the difference between the time of the first data point and the BOT
     today_midnight = datetime(fms.year, fms.month, fms.day)
+    beginning_of_time = fms 
 
     # create the three 'bases' that serve for calculating the time arrays
     et = np.datetime64(epoch_time)
@@ -914,7 +905,7 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     if fast_data.empty:
         print("... no fast data... deleting file")
         os.remove(lev1_fast_name)
-    qq.put(True)
+    return True
 
 
 # this runs the function main as the main program... this is a hack that allows functions
