@@ -106,11 +106,11 @@ print(version_msg)
 def main(): # the main data crunching program
 
     global trial, n_trial_files
-    trial = True # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
+    trial = False # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
     n_trial_files = 3000
 
-    # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
-    global epoch_time, beginning_of_time
+    # the UNIX epoch... provides a common reference, used with base_time
+    global epoch_time
     epoch_time        = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
 
     global verboseprint  # defines a function that prints only if -v is used when running
@@ -758,7 +758,7 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
-                 'long_name' : 'Base time in Epoch',
+                 'long_name' : 'Base time since Epoch',
                  'units'     : 'seconds since {}'.format(et),
                  'ancillary_variables'  : 'time_offset',}
     for att_name, att_val in base_atts.items(): netcdf_lev1_slow['base_time'].setncattr(att_name,att_val)
@@ -772,16 +772,16 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
 
     t_atts_fast = t_atts_slow.copy()
     t_atts_fast['units']     = 'milliseconds since {}'.format(tm)
-    t_atts_fast['long_name'] = 'Time offset from midnight'
+    t_atts_fast['delta_t']   = '0000-00-00 00:01:00.001',
 
     bt_atts_slow   = {'units'     : 'seconds since {}'.format(bot),
                      'delta_t'   : '0000-00-00 00:01:00',
                      'long_name' : 'Time offset from base_time',
                      'calendar'  : 'standard',}
 
-    bt_atts_fast = t_atts_slow.copy()
-    bt_atts_fast['units']     = 'milliseconds since {}'.format(bot)
-    bt_atts_fast['long_name'] = 'Time offset from base_time'
+    bt_atts_fast           = t_atts_slow.copy()
+    bt_atts_fast['units']  = 'milliseconds since {}'.format(bot)
+    t_atts_fast['delta_t'] = '0000-00-00 00:01:00.001',
 
     slow_dti = pd.DatetimeIndex(slow_data.index.values)
     fast_dti = pd.DatetimeIndex(fast_data.index.values)
@@ -810,24 +810,22 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     bt_slow = netcdf_lev1_slow.createVariable('time_offset', 'u4','time') # seconds since
     bt_fast = netcdf_lev1_fast.createVariable('time_offset', 'u8','time')
 
-    while True:
-        try:
-            t_slow[:] = t_slow_ind.values
-            bt_slow[:] = bt_slow_ind.values
-            break # if no exception, continue as normal
-        except RuntimeError as re:
-            print("!!! there was an error creating slow time variable with netcdf/hd5 I cant debug !!!")
-            print("!!! {} !!!".format(re))
-            print("!!! sorry, trying again, it's not our fault I swear !!!")
-    while True:
-        try:
-            t_fast[:] = t_fast_ind.values
-            bt_fast[:] = bt_fast_ind.values
-            break # if no exception, continue as normal
-        except RuntimeError as re:
-            print("!!! there was an error creating fast time variable with netcdf/hd5 I cant debug !!!")
-            print("!!! {} !!!".format(re))
-            print("!!! sorry, trying again, it's not our fault I swear !!!")
+    # this try/except is vestigial, this bug should be fixed
+    try:
+        t_slow[:] = t_slow_ind.values
+        bt_slow[:] = bt_slow_ind.values
+    except RuntimeError as re:
+        print("!!! there was an error creating slow time variable with netcdf/hd5 I cant debug !!!")
+        print("!!! {} !!!".format(re))
+        raise re
+
+    try:
+        t_fast[:] = t_fast_ind.values
+        bt_fast[:] = bt_fast_ind.values
+    except RuntimeError as re:
+        print("!!! there was an error creating fast time variable with netcdf/hd5 I cant debug !!!")
+        print("!!! {} !!!".format(re))
+        raise re
 
     for att_name, att_val in t_atts_slow.items(): netcdf_lev1_slow['time'].setncattr(att_name,att_val)
     for att_name, att_val in t_atts_fast.items(): netcdf_lev1_fast['time'].setncattr(att_name,att_val)
