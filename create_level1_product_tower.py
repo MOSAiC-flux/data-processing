@@ -117,7 +117,11 @@ def main(): # the main data crunching program
     verboseprint = v_print
     
     # where do we get the data from
-    data_dir   = args.path #'./data/tower/0_level_raw/'
+    if args.path:
+        data_dir = args.path #'./data/tower/0_level_raw/'
+    else: # assume we are on PSD
+        data_dir = '/Projects/MOSAiC/'
+
     level1_dir = data_dir+'tower/1_level_ingest' #./processed_data/tower/level1/'  # where does level1 data go
     
     # QC params:

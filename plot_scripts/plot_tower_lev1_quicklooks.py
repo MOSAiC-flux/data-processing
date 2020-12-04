@@ -56,7 +56,7 @@ mpl.warnings.filterwarnings("ignore", category=UserWarning)
 
 def main(): # the main data crunching program
 
-    default_data_dir = '/psd3data/arctic/MOSAiC/' # give '-p your_directory' to the script if you don't like this
+    default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
 
     threaded_data    = True; nthreads = 16
     make_daily_plots = True
@@ -67,7 +67,7 @@ def main(): # the main data crunching program
     leg3_start = datetime(2020,3,2)
     leg4_start = datetime(2020,6,1)
     leg5_start = datetime(2020,8,15)
-    mosaic_end = datetime(2020,10,2)
+    mosaic_end = datetime(2020,9,20)
     leg_list   = [leg1_start,leg2_start,leg3_start,leg4_start,leg5_start,mosaic_end]
 
     global code_version # code_version is the *production* code and is pulled in from nc files later
