@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-   
 from tower_data_definitions import code_version
 code_version = code_version()
@@ -52,7 +52,18 @@ from tower_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl # functions written by the flux team for processing data
 
-import os, inspect, argparse, time, gc, re
+import os, inspect, argparse, time
+
+from multiprocessing import Process as P
+from multiprocessing import Queue   as Q
+
+import socket 
+
+global nthreads 
+if '.psd.' in socket.gethostname():
+    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
+else: nthreads = 6 # laptops don't tend to have 64 cores, set to 1 to debug
+
 import numpy  as np
 import pandas as pd
 
@@ -76,9 +87,10 @@ print('-------------------------------------------------------------------------
 
 def main(): # the main data crunching program
 
-    # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
-    global beginning_of_time
-    beginning_of_time    = datetime(1970,1,1,0,0,0) # Unix epoch, ARM convention
+    # the UNIX epoch... provides a common reference, used with base_time
+    global epoch_time
+    epoch_time        = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
+
     process_fast_data    = True
     calc_stats           = False # If False, stats are read from NOAA Services. If True calculated here.
     # should set to True normally because recalculating here accounts for coordinate rotations, QC, and the like
@@ -106,18 +118,18 @@ def main(): # the main data crunching program
     
     # where do we get the data from
     data_dir   = args.path #'./data/tower/0_level_raw/'
-    level1_dir = data_dir+'MOSAiC/tower/1_level_ingest' #./processed_data/tower/level1/'  # where does level1 data go
+    level1_dir = data_dir+'tower/1_level_ingest' #./processed_data/tower/level1/'  # where does level1 data go
     
     # QC params:
     apogee_switch_date = datetime(2019,11,12,10,21,29) # Nov. 12th, 10:21::29
 
     # these are subdirs of the data_dir
-    metek_bottom_dir = 'MOSAiC/tower/0_level_raw/Metek02m/'
-    metek_middle_dir = 'MOSAiC/tower/0_level_raw/Metek06m/'
-    metek_top_dir    = 'MOSAiC/tower/0_level_raw/Metek10m/'
-    metek_mast_dir   = 'MOSAiC/tower/0_level_raw/Metek30m/'
-    licor_dir        = 'MOSAiC/tower/0_level_raw/Licor02m/'
-    tower_logger_dir = 'MOSAiC/tower/0_level_raw/CR1000X/daily_files/'
+    metek_bottom_dir = 'tower/0_level_raw/Metek02m/'
+    metek_middle_dir = 'tower/0_level_raw/Metek06m/'
+    metek_top_dir    = 'tower/0_level_raw/Metek10m/'
+    metek_mast_dir   = 'tower/0_level_raw/Metek30m/'
+    licor_dir        = 'tower/0_level_raw/Licor02m/'
+    tower_logger_dir = 'tower/0_level_raw/CR1000X/daily_files/'
 
     # constants for calculations
     global nan, def_fill_int, def_fill_flt # make using nans look better
@@ -133,26 +145,24 @@ def main(): # the main data crunching program
         print('{}--------------------------------------------------------------------------------------------{}'
               .format(startline, endline))
 
-
-    start_time = beginning_of_time
+    start_time = epoch_time # initialize
     if args.start_time:
         start_time = datetime.strptime(args.start_time, '%Y%m%d')
     else:
         # make the data processing start yesterday! i.e. process only most recent full day of data
-        start_time = beginning_of_time.today() # any datetime object can provide current time
+        start_time = epoch_time.today() # any datetime object can provide current time
         start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
 
     if args.end_time:
         end_time = datetime.strptime(args.end_time, '%Y%m%d')
     else:
-        end_time = beginning_of_time.today() # any datetime object can provide current time
+        end_time = epoch_time.today() # any datetime object can provide current time
         end_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
         if start_time == end_time: # processing current days data, pull out of the dump dir
             tower_logger_dir = '/CR1000X/'
 
-    print('The first day of the experiment is:    %s' % beginning_of_time)
     print('The first day we process data is:      %s' % start_time)
-    print('The last day we will process data is:  %s' % end_time)
+    print('The last day we will process data is:  %s\n' % end_time)
     print('---------------------------------------------------------------------------------------------')
 
     # get the and fast raw data day by day, a little different than the stations, but the data is a bit different
@@ -161,12 +171,12 @@ def main(): # the main data crunching program
     day_series = pd.date_range(start_time, end_time)    # we're going to loop over these days
     day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
 
-    for today in day_series: # loop over the days in the processing range
-        tomorrow  = today+day_delta
+    def process_tower_day(today, day_q): 
+
+        tomorrow      = today+day_delta
         seconds_today = pd.date_range(today, tomorrow, freq='S')         
-
-        slow_data = get_slow_data(today)
-
+        slow_data     = get_slow_data(today)
+        
         n_entries   = slow_data.size
         if slow_data.empty: # 'fatal' is a print function defined at the bottom of this script that exits
             fl.warn('No logger data for date: {} '.format(today))
@@ -182,6 +192,11 @@ def main(): # the main data crunching program
         # correct apogee_body and apogee_target data, body & targ temperatures were reversed before this time
 
         # sort things out (this could/should be done in get_data function?)
+        if slow_data.empty:
+            print(f"!!! no logger today means we're doing nothing for {today}, moving on to next day...")
+            day_q.put(False) # we don't do anything with the return codes yet
+            return
+
         slow_data = slow_data.sort_index()
         slow_data = slow_data[:][today:tomorrow] 
 
@@ -190,8 +205,7 @@ def main(): # the main data crunching program
             slow_data = slow_data.reindex(labels=seconds_today, copy=False)
         except Exception as e:
             fl.warn("There were duplicates in your slow data for {}\n ".format(today))
-            
-
+        
         targ_T = slow_data['apogee_targ_T'].copy()
         body_T = slow_data['apogee_body_T'].copy() 
         slow_data['apogee_targ_T'] = np.where(slow_data.index < apogee_switch_date,\
@@ -297,16 +311,36 @@ def main(): # the main data crunching program
         rval_slow = write_level1_slow(slow_data, today)
         rval_fast = write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_bottom, today)
 
+        print(f"...leaving function")
+        # process_station_days() ends here
+        day_q.put(True)
+        return 
+
+    q_list = []  # setup queue storage
+    day_list = [] # for debugging
+    for i_day, today in enumerate(day_series): # loop over the days in the processing range and get a list of files
+
+        q_today = Q()
+        q_list.append(q_today)
+        day_list.append(today)
+        P(target=process_tower_day, args=(today, q_today,)).start()
+
+        if (i_day+1) % nthreads == 0 or today == day_series[-1]:
+            for iq, qq in enumerate(q_list):
+                print(f"... waiting for q on day {day_list[iq]}")
+                qq.get()
+            q_list = []
+
     print('---------------------------------------------------------------------------------------------')
     print('All done! Netcdf output files can be found in: {}'.format(level1_dir))
     print(version_msg)
     print('---------------------------------------------------------------------------------------------')
 
 def get_slow_data(date):
-    tower_subdir = 'MOSAiC/tower/0_level_raw/CR1000X/daily_files/'
+    tower_subdir = 'tower/0_level_raw/CR1000X/daily_files/'
     slow_data  = pd.DataFrame()
-    fuzzy_window = timedelta(2) # we look for files 2 days before and after because we didn't save even days...(?!)
-    # fuzzy_window>=2 required for the earlier days of MOSAiC where logger info is spread out across 'daily-ish' files
+    fuzzy_window = timedelta(5) # we look for files 2 days before and after because we didn't save even days...(?!)
+    # fuzzy_window>=5 required for days of MOSAiC where logger info is spread out across 'daily-ish' files -- "shutdown days"
 
     slow_atts, slow_vars = define_level1_slow()
     print('... getting slow logger data from: %s' % data_dir+tower_subdir)
@@ -351,7 +385,12 @@ def get_slow_data(date):
                                 #dtype=dtype_dict)
             logger_df_list.append(frame)
 
-    logger_df = pd.concat(logger_df_list, verify_integrity=False) # is concat computationally efficient?
+    try:
+        logger_df = pd.concat(logger_df_list, verify_integrity=False) # is concat computationally efficient?
+    except: 
+        print(f"!!! no logger data in {fuzzy_window} day window around day... is this reasonable?")
+        logger_df = pd.DataFrame()
+
     mast_gps_df_list = [] # mast gps dataframes to be concatted all at once
     for mast_gps_file in mast_gps_file_list:
         path  = data_dir+tower_subdir+'/'+mast_gps_file
@@ -492,8 +531,6 @@ def get_fast_data(subdir, date):
     metek_data = metek_data.sort_index()
     return metek_data
 
-# do the stuff to write out level1 fast files, we're going to write these out in a group for each instrument
-# I'm not sure if this is the best way, but it seems the most obvious right now.
 def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_bottom, date):
 
     # these keys are the names of the groups in the netcdf files and the
@@ -513,7 +550,7 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
 
     # if there's no data, bale (had to look up how to spell bale)
     if metek_bottom.empty and metek_middle.empty and metek_top.empty and metek_mast.empty and licor_bottom.empty:
-        print("!!! no data on day {}, returning from write without writing".format(date))
+        print("!!! no data on day {}, returning from fast write without writing".format(date))
         return False
 
     out_dir       = level1_dir
@@ -536,25 +573,64 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
         inst_str  = inst_dict[inst][0]
         inst_data = inst_dict[inst][1]
 
-        curr_group = netcdf_lev1_fast.createGroup(inst) 
+        #curr_group = netcdf_lev1_fast.createGroup(inst) 
 
-        # create time variable for this group with appropriate attributes, etc etc,
-        time_name = 'time'
-        curr_group.createDimension(time_name, None)
+        netcdf_lev1_fast.createDimension(f'time_{inst_str}', None)
 
-        time_atts_fast   = {'delta_t'   : '0000-00-00 00:01:00',
-                            'long_name' : 'Base time in Epoch',
-                            'units'     : 'milliseconds since {}'.format(beginning_of_time),
-                            'calendar'  : 'standard'}
-        bot             = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
-        fast_dti        = pd.DatetimeIndex(inst_data.index.values)
-        fast_delta_ints = np.floor((fast_dti - bot).total_seconds()*1000) # ms 
-        t_fast_ind      = pd.Int64Index(fast_delta_ints)
-        t_fast          = curr_group.createVariable(time_name, 'i8',time_name) # seconds since
-        t_fast[:]       = t_fast_ind.values
-        
-        for att_name, att_val in time_atts_fast.items(): curr_group[time_name].setncattr(att_name,att_val)
-        
+        fms = inst_data.index[0]
+        beginning_of_time = fms 
+
+        # base_time, ARM spec, the difference between the time of the first data point and the BOT
+        today_midnight = datetime(fms.year, fms.month, fms.day)
+        beginning_of_time = fms 
+
+        # create the three 'bases' that serve for calculating the time arrays
+        et  = np.datetime64(epoch_time)
+        bot = np.datetime64(beginning_of_time)
+        tm  =  np.datetime64(today_midnight)
+
+        # first write the int base_time, the temporal distance from the UNIX epoch
+        base_fast = netcdf_lev1_fast.createVariable(f'base_time_{inst_str}', 'u4') # seconds since
+        base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
+
+        base_atts = {'string'              : '{}'.format(bot),
+                     'long_name'           : 'Base time since Epoch',
+                     'units'               : 'seconds since {}'.format(et),
+                     'ancillary_variables' : 'time_offset',}
+
+        t_atts_fast   = {'units'     : 'milliseconds since {}'.format(tm),
+                         'delta_t'   : '0000-00-00 00:01:00.001',
+                         'long_name' : 'Time offset from midnight',
+                         'calendar'  : 'standard',}
+
+        bt_atts_fast   = {'units'    : 'milliseconds since {}'.format(bot),
+                          'delta_t'   : '0000-00-00 00:01:00.001',
+                          'long_name' : 'Time offset from base_time',
+                          'calendar'  : 'standard',}
+
+        bt_fast_dti = pd.DatetimeIndex(inst_data.index.values)   
+        fast_dti    = pd.DatetimeIndex(inst_data.index.values)
+
+        # set the time dimension and variable attributes to what's defined above
+        t_fast      = netcdf_lev1_fast.createVariable(f'time_{inst_str}', 'u4',f'time_{inst_str}') 
+        bt_fast     = netcdf_lev1_fast.createVariable(f'time_offset_{inst_str}', 'u4',f'time_{inst_str}') 
+
+        bt_fast_delta_ints = np.floor((bt_fast_dti - bot).total_seconds()*1000)      # milliseconds
+        fast_delta_ints    = np.floor((fast_dti - tm).total_seconds()*1000)      # milliseconds
+
+        bt_fast_ind = pd.Int64Index(bt_fast_delta_ints)
+        t_fast_ind  = pd.Int64Index(fast_delta_ints)
+
+        t_fast[:]   = t_fast_ind.values
+        bt_fast[:]  = bt_fast_ind.values
+
+        for att_name, att_val in t_atts_fast.items():
+            netcdf_lev1_fast[f'time_{inst_str}'].setncattr(att_name,att_val)
+        for att_name, att_val in base_atts.items():
+            netcdf_lev1_fast[f'base_time_{inst_str}'].setncattr(att_name,att_val)
+        for att_name, att_val in bt_atts_fast.items():
+            netcdf_lev1_fast[f'time_offset_{inst_str}'].setncattr(att_name,att_val)
+            
         used_vars = [] # used to sanity check and make sure no vars get left out of the file by using string ids
         for var_name, var_atts in fast_atts.items():
             if inst_str not in var_name: continue # check if this variable belongs to this instrument/group
@@ -577,7 +653,7 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
                 var_tmp   = inst_data[var_name].values
         
             try:
-                var_fast = curr_group.createVariable(var_name, var_dtype, time_name, zlib=True)
+                var_fast = netcdf_lev1_fast.createVariable(var_name, var_dtype, f'time_{inst_str}', zlib=True)
                 var_fast[:] = var_tmp # compress fast data via zlib=True
 
             except Exception as e:
@@ -587,24 +663,22 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
                 continue
 
             for att_name, att_desc in var_atts.items(): # write atts to the var now
-                curr_group[var_name].setncattr(att_name, att_desc)
+                netcdf_lev1_fast[var_name].setncattr(att_name, att_desc)
 
             # add a percent_missing attribute to give a first look at "data quality"
             perc_miss = fl.perc_missing(var_fast)
-            curr_group[var_name].setncattr('percent_missing', perc_miss)
-            curr_group[var_name].setncattr('missing_value'  , fill_val)
+            netcdf_lev1_fast[var_name].setncattr('percent_missing', perc_miss)
+            netcdf_lev1_fast[var_name].setncattr('missing_value'  , fill_val)
             used_vars.append(var_name)  # all done, move on to next variable
 
 
     netcdf_lev1_fast.close()
-    gc.collect() # manually call garbage collector after all that data shuffling
     return True
 
 def write_level1_slow(slow_data, date): 
     
     # some user feedback into the output
     slow_atts, slow_vars = define_level1_slow() 
-    time_name = list(slow_atts.keys())[0] # are slow atts and fast atts always going to be the same?
 
     all_missing_slow = True 
     first_loop       = True
@@ -616,7 +690,7 @@ def write_level1_slow(slow_data, date):
             if not 'mast_' in var_name and date < datetime(2020,4,20): # noodleville was born in april
                 verboseprint("... {} not in dataframe but in file, is this a problem?".format(var_name))
             continue
-        if var_name == time_name: continue
+        if var_name == 'time': continue
         perc_miss = fl.perc_missing(slow_data[var_name].values)
         if perc_miss < 100: all_missing_slow = False
         if first_loop: 
@@ -630,7 +704,7 @@ def write_level1_slow(slow_data, date):
 
     # if there's no data, bale
     if all_missing_slow:
-        print("!!! no data on day {}, returning from write without writing".format(date))
+        print("!!! no data on day {}, returning slow from write without writing".format(date))
         return False
 
     print("... writing level1 slow data {}, ~{}% of slow data is present".format(date, 100-avg_missing_slow))
@@ -642,33 +716,69 @@ def write_level1_slow(slow_data, date):
 
     global_atts_slow = define_global_atts("slow") # global atts for level 1 and level 2
 
-    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w', format='NETCDF4_CLASSIC')
+    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w')
 
     for att_name, att_val in global_atts_slow.items(): # write the global attributes to slow
         netcdf_lev1_slow.setncattr(att_name, att_val)
 
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev1_slow.createDimension('time', None)
-    time_atts_slow   = {'delta_t'   : '0000-00-00 00:01:00',
-                        'long_name' : 'Base time in Epoch',
-                        'units'     : 'seconds since {}'.format(beginning_of_time),
-                        'calendar'  : 'standard'}
-    bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
 
-    # create the arrays that are integer intervals from  'time since beginning of mosaic' for indexing netcdf files
+    fms = slow_data.index[0]
+    beginning_of_time = fms 
+
+    # base_time, ARM spec, the difference between the time of the first data point and the BOT
+    today_midnight = datetime(fms.year, fms.month, fms.day)
+    beginning_of_time = fms 
+
+    # create the three 'bases' that serve for calculating the time arrays
+    et  = np.datetime64(epoch_time)
     bot = np.datetime64(beginning_of_time)
-    slow_dti = pd.DatetimeIndex(slow_data.index.values)
-    slow_delta_ints = np.floor((slow_dti - bot).total_seconds())      # seconds
-    t_slow_ind = pd.Int64Index(slow_delta_ints)
-    t_slow = netcdf_lev1_slow.createVariable('time', 'i','time') # seconds since
-    t_slow[:] = t_slow_ind.values
+    tm  =  np.datetime64(today_midnight)
 
-    for att_name, att_val in time_atts_slow.items(): netcdf_lev1_slow['time'].setncattr(att_name,att_val)
+    # first write the int base_time, the temporal distance from the UNIX epoch
+    base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
+    base_slow = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
+
+    base_atts = {'string'     : '{}'.format(bot),
+                 'long_name' : 'Base time since Epoch',
+                 'units'     : 'seconds since {}'.format(et),
+                 'ancillary_variables'  : 'time_offset',}
+
+    t_atts_slow   = {'units'     : 'seconds since {}'.format(tm),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from midnight',
+                     'calendar'  : 'standard',}
+
+    bt_atts_slow   = {'units'    : 'seconds since {}'.format(bot),
+                      'delta_t'   : '0000-00-00 00:01:00',
+                      'long_name' : 'Time offset from base_time',
+                      'calendar'  : 'standard',}
+
+    bt_slow_dti        = pd.DatetimeIndex(slow_data.index.values)   
+    slow_dti           = pd.DatetimeIndex(slow_data.index.values)
+
+    # set the time dimension and variable attributes to what's defined above
+    t_slow             = netcdf_lev1_slow.createVariable('time', 'u4','time') 
+    bt_slow            = netcdf_lev1_slow.createVariable('time_offset', 'u4','time') 
+
+    bt_slow_delta_ints = np.floor((bt_slow_dti - bot).total_seconds())      # seconds
+    slow_delta_ints    = np.floor((slow_dti - tm).total_seconds())      # seconds
+
+    bt_slow_ind        = pd.Int64Index(bt_slow_delta_ints)
+    t_slow_ind         = pd.Int64Index(slow_delta_ints)
+
+    t_slow[:]  = t_slow_ind.values
+    bt_slow[:] = bt_slow_ind.values
+
+    for att_name, att_val in base_atts.items(): netcdf_lev1_slow['base_time'].setncattr(att_name,att_val)
+    for att_name, att_val in t_atts_slow.items(): netcdf_lev1_slow['time'].setncattr(att_name,att_val)
+    for att_name, att_val in bt_atts_slow.items(): netcdf_lev1_slow['time_offset'].setncattr(att_name,att_val)
 
     for var_name, var_atts in slow_atts.items():
         if var_name not in slow_data.columns:
             continue
-        if var_name == time_name: continue # already did that
+        if var_name == 'time': continue # already did that
 
         if var_name == 'mast_T' or var_name == 'mast_RH' or var_name == 'mast_P':
             print(slow_data[var_name])
@@ -698,7 +808,6 @@ def write_level1_slow(slow_data, date):
         netcdf_lev1_slow[var_name].setncattr('percent_missing', perc_miss)
         netcdf_lev1_slow[var_name].setncattr('missing_value'  , fill_val)
 
-    gc.collect() # maybe this helps with the random (rare) memory access crashes in the netcdf/hdf5 libs?
     netcdf_lev1_slow.close() # close and write files for today
     return True
 
