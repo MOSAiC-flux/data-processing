@@ -77,15 +77,16 @@ pd.options.mode.use_inf_as_na = True # no inf values anywhere, inf=nan
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
+# need to debug something? kills multithreading to step through function calls
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+
 import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 6 # laptops don't tend to have 64 cores
-
-# from threading import Thread
-# from queue     import Queue
+    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
+else: nthreads = 4 # laptops don't tend to have 64 cores
 
 from datetime  import datetime, timedelta
 from numpy     import sqrt
@@ -106,8 +107,8 @@ print(version_msg)
 def main(): # the main data crunching program
 
     global trial, n_trial_files
-    trial = False # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
-    n_trial_files = 3000
+    trial = True # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
+    n_trial_files = 2000
 
     # the UNIX epoch... provides a common reference, used with base_time
     global epoch_time
@@ -173,7 +174,7 @@ def main(): # the main data crunching program
     printline(endline="\n")
     print('The first day we  process data is:     %s' % str(start_time+timedelta(1)))
     print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
-    printline()
+    printline("\n")
     
     # program logic starts here, the logic flow goes like this:
     # #########################################################
@@ -198,7 +199,8 @@ def main(): # the main data crunching program
     # #####################################################################################
     # dataframes go in dicts with station keys, we parallellize data ingesting to save time.
     slow_data   = {}
-    slow_q_dict = {}
+    slow_q_dict = {}; slow_p_dict = {}
+    
     slow_atts, slow_vars = define_level1_slow()
     for curr_station in flux_stations:
         # try to save some time and multithread the reading
@@ -208,15 +210,18 @@ def main(): # the main data crunching program
                args=(curr_station, start_time, end_time, \
                      slow_q_dict[curr_station])).start()
 
-        
-    # wait to finish slow first, then get results from thread queue
-    for curr_station in  flux_stations:
-        slow_data[curr_station] = slow_q_dict[curr_station].get()
+        if nthreads < len(flux_stations):
+            slow_data[curr_station] = slow_q_dict[curr_station].get()
 
-        verboseprint("\n===================================================")
-        verboseprint("Data and observations provided by {}:".format(curr_station))
-        verboseprint('===================================================')
-        if verbose: slow_data[curr_station].info(verbose=True) # must be contained;
+    # wait to finish slow first, then get results from thread queue
+    if nthreads >= len(flux_stations):
+        for curr_station in  flux_stations:
+            slow_data[curr_station] = slow_q_dict[curr_station].get()
+
+            verboseprint("\n===================================================")
+            verboseprint("Data and observations provided by {}:".format(curr_station))
+            verboseprint('===================================================')
+            if verbose: slow_data[curr_station].info(verbose=True) # must be contained;
 
     print("\n... got all slow data from files, exiting for timing")
 
@@ -394,17 +399,17 @@ def main(): # the main data crunching program
                 q_dict[curr_station][0].get()
                 q_dict[curr_station] = []
 
-        if (i_day+1) % nthreads_station == 0 or today == day_series[-1]:
-            for curr_station in flux_stations:
-                for qq in q_dict[curr_station]: qq.get()
-                q_dict[curr_station] = []
+        if nthreads > 1: 
+            if (i_day+1) % nthreads_station == 0 or today == day_series[-1]:
+                for curr_station in flux_stations:
+                    for qq in q_dict[curr_station]: qq.get()
+                    q_dict[curr_station] = []
 
     printline()
     print('All done! Netcdf output files can be found in: {}'.format(level1_dir))
     printline()
     print(version_msg)
     printline()
-
 
 # pulls in logger text files from sdcard data and returns a dataframe and a list of data attributes (units, etc)
 # qq returns the results from a threaded call and is of Queue class
@@ -445,6 +450,7 @@ def get_slow_data(station, start_time, end_time, qq):
         
     # divide the files into pools and call thread_read() on the list of files in parallel
     nthreads_station = int(np.floor(nthreads/3))
+    if nthreads_station == 0 : nthreads_station=1
     q_list = []
     for file_i, data_file in enumerate(card_file_list):
 
@@ -461,7 +467,7 @@ def get_slow_data(station, start_time, end_time, qq):
                 frame_list.append(new_frame)
             q_list = []
             if trial and n_trial_files<file_i: break
-
+ 
     print(f"... got all files read, got all threads back for {station}. now we concat")
     data_frame = pd.concat(frame_list) # is concat computationally efficient?    
     data_frame = data_frame.sort_index() # sort chronologically    
@@ -754,8 +760,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     # first write the int base_time, the temporal distance from the UNIX epoch
     base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
     base_fast = netcdf_lev1_fast.createVariable('base_time', 'u4') # seconds since
-    base_slow = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
-    base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
+    base_slow = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds()).values[0]      # seconds
+    base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds()).values[0]      # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
                  'long_name' : 'Base time since Epoch',
@@ -901,10 +907,9 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     netcdf_lev1_slow.close() # close and write files for today
     netcdf_lev1_fast.close() 
     if fast_data.empty:
-        print("... no fast data... deleting file")
+        print(f"... no fast data for today but there was slow?? {curr_station } -- {tm}")
         os.remove(lev1_fast_name)
     return True
-
 
 # this runs the function main as the main program... this is a hack that allows functions
 # to come after the main code so it presents in a more logical, C-like, way

@@ -57,12 +57,16 @@ import os, inspect, argparse, time
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
+# need to debug something? kills multithreading to step through function calls
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+
 import socket 
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 6 # laptops don't tend to have 64 cores, set to 1 to debug
+    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
+else: nthreads = 4 # laptops don't tend to have 64 cores, set to 1 to debug
 
 import numpy  as np
 import pandas as pd
@@ -595,7 +599,7 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
 
         # first write the int base_time, the temporal distance from the UNIX epoch
         base_fast = netcdf_lev1_fast.createVariable(f'base_time_{inst_str}', 'u4') # seconds since
-        base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
+        base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds()).values[0] 
 
         base_atts = {'string'              : '{}'.format(bot),
                      'long_name'           : 'Base time since Epoch',
@@ -742,7 +746,7 @@ def write_level1_slow(slow_data, date):
 
     # first write the int base_time, the temporal distance from the UNIX epoch
     base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
-    base_slow = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds())      # seconds
+    base_slow = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds()).values[0] # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
                  'long_name' : 'Base time since Epoch',
