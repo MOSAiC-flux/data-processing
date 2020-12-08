@@ -25,22 +25,20 @@ def define_global_atts(file_type):
     cv = code_version()
     global_atts = {                # attributes to be written into the netcdf output file
         'date_created'     :'{}'.format(time.ctime(time.time())),
-        'contact'          :'University of Colorado, MOSAiC. matthew.shupe@colorado.edu, PI',
-        'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
-        'conventions'      :'cf convention variable naming as attribute whenever possible',
-        'title'            :'MOSAiC flux group data product ', # blank variables are specific to site characterization
-        'institution'      :'CIRES/NOAA',
+        'title'            :'MOSAiC flux group data product: ', # blank variables are specific to site characterization 
+        'contact'          :'Matthew Shupe, University of Colorado, matthew.shupe@colorado.edu',
+        'institution'      :'CIRES, University of Colorado and NOAA Physical Sciences Laboratory',
         'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
-        'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov',
-        'source'           :'Observations made during the MOSAiC drifting campaign',
-        'references'       :'A paper reference here at some point',
-        'Funding'          :'Funding sources: National Science Foundation (NSF) Award Number OPP1724551; NOAA Arctic Research Program (ARP)',
-        'acknowledgements' :'Dr. Ola Persson (CIRES)',
-        'license'          :'Creative Commons Attribution 4.0 License, CC 4.0', 
-        'disclaimer'       :'These data do not represent any determination, view, or policy of NOAA or the University of Colorado.',
-        'project'          :'PS-122 MOSAiC, ATMOS-MET Team: Thermodynamic and Dynamic Drivers of the Arctic sea ice mass budget at MOSAiC',
-        'comment'          :'Preliminary product under development and should not be used for analysis!',
-        'version'          : cv[0]+', '+cv[1],
+        'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
+        'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
+        'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
+        'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
+        'system'           :'11 m Flux Tower'
+        'references'       :'', 
+        'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
+        'conventions'      :'cf convention variable naming as attribute whenever possible',  
+        'history'          :'based on level 1 ingest files',
+        'version'          : cv[0]+', '+cv[1], 
     }
     # Some specifics for the tubulence file
     if file_type == "slow":
@@ -125,98 +123,95 @@ def define_level1_slow():
 
     lev1_slow_atts['TIMESTAMP']          .update({'long_name'  : 'timestamp from tower data logger',     
                                                   'instrument' : 'Campbell CR1000X',                     
-                                                  'methods'    : '',                                     
-                                                  'height'     : '0m',			                       
-                                                  'location'   : bottom_location_string,})               
+                                                  'methods'    : 'synched with GPS',                                     
+                                                  'height'     : 'N/A,			                       
+                                                  'location'   : 'logger box',})               
 
     lev1_slow_atts['RECORD']             .update({'long_name'  : 'record number from tower data logger',
                                                   'instrument' : 'Campbell CR1000X',
                                                   'methods'    : '',
-                                                  'height'     : '0m',			            
-                                                  'location'   : bottom_location_string,})               
+                                                  'height'     : 'N/A',			            
+                                                  'location'   : 'logger box',})               
 
     lev1_slow_atts['gps_lat_deg']        .update({'long_name'  : 'latitude from gps at tower',  
                                                   'instrument' : 'Hemisphere V102',		    
                                                   'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                  'height'     : '1m',			    
+                                                  'height'     : '2 m',			    
                                                   'location'   : bottom_location_string,})    	    
                                                                                                   
     lev1_slow_atts['gps_lat_min']        .update({'long_name'  : 'latitude from gps at tower',
                                                   'instrument' : 'Hemisphere V102',		    
                                                   'methods'    : 'GPRMC, GPGGA, GPGZDA',	      
-                                                  'height'     : '1m',			            
+                                                  'height'     : '2 m',			            
                                                   'location'   : bottom_location_string,})    
 
     lev1_slow_atts['gps_lon_deg']        .update({'long_name'  :'longitude from gps at tower', 
                                                   'instrument' : 'Hemisphere V102',		      
-                                                  'methods'    : '$GPRMC, $GPGGA, GPGZDA',	  
-                                                  'height'     : '1m',			              
+                                                  'methods'    : 'GPRMC, GPGGA, GPGZDA',	  
+                                                  'height'     : '2 m',			              
                                                   'location'   : bottom_location_string,})      
 
     lev1_slow_atts['gps_lon_min']        .update({'long_name'  :'longitude from gps at tower', 
                                                   'instrument' : 'Hemisphere V102',		      
-                                                  'methods'    : '$GPRMC, $GPGGA, GPGZDA',	  
-                                                  'height'     : '1m',			              
+                                                  'methods'    : 'GPRMC,  GPGGA, GPGZDA',	  
+                                                  'height'     : '2 m',			              
                                                   'location'   : bottom_location_string,})      
 
     lev1_slow_atts['gps_hdg']            .update({'long_name'  : 'heading from gps at tower', 
                                                   'instrument' : 'Hemisphere V102',		   
-                                                  'methods'    : '$HEHDT',			   
-                                                  'height'     : '1m',			   
+                                                  'methods'    : 'HEHDT',			   
+                                                  'height'     : '2 m',			   
                                                   'location'   : bottom_location_string,})     
 
     lev1_slow_atts['gps_alt']            .update({'long_name'  : 'altitude from gps at tower',
                                                   'instrument' : 'Hemisphere V102',		   
                                                   'methods'    : 'GPRMC, GPGGA, GPGZDA',	   
-                                                  'height'     : '1m',			   
+                                                  'height'     : '2 m',			   
                                                   'location'   : bottom_location_string,})     
 
-    lev1_slow_atts['gps_qc']             .update({'long_name'  : 'fix quality: 0 = invalid; 1 = gps fix (sps); 2 = dgps fix; 3 = pps fix; 4 = real time kinematic; 5 = float rtk; 6 = estimated (deck reckoning); 7 = manual input mode; 8 = simulation mode.',
+    lev1_slow_atts['gps_qc']             .update({'long_name'  : 'gps fix quality variable',
                                                   'instrument' : 'Hemisphere V102',
-                                                  'methods'    : 'GPRMC, GPGGA, GPGZDA',
-                                                  'height'     : '1m',
+                                                  'methods'    : 'GPGGA; fix quality: 0 = invalid; 1 = gps fix (sps); 2 = dgps fix; 3 = pps fix; 4 = real time kinematic; 5 = float rtk; 6 = estimated (deck reckoning); 7 = manual input mode; 8 = simulation mode',
+                                                  'height'     : '2 m',
                                                   'location'   : bottom_location_string,})
 
-    lev1_slow_atts['gps_nsat']           .update({'long_name'  : 'number of satellites available to gps', 
+    lev1_slow_atts['gps_nsat']           .update({'long_name'  : 'gps number of tracked satellites', 
                                                   'instrument' : 'Hemisphere V102',			       
-                                                  'methods'    : 'GPRMC, GPGGA, GPGZDA',		       
-                                                  'height'     : '1m',				       
+                                                  'methods'    : 'GPGGA',		       
+                                                  'height'     : '2 m',				       
                                                   'location'   : bottom_location_string,})
 
-    lev1_slow_atts['gps_hdop']           .update({'long_name'  : 'horizontal dilution of precision', 
+    lev1_slow_atts['gps_hdop']           .update({'long_name'  : 'gps Horizontal Dilution Of Precision (HDOP)', 
                                                   'instrument' : 'Hemisphere V102',			  
-                                                  'methods'    : 'GPRMC, GPGGA, GPGZDA',		  
-                                                  'height'     : '1m',				  
+                                                  'methods'    : 'GPGGA',		  
+                                                  'height'     : '2 m',				  
                                                   'location'   : bottom_location_string,})
 
-    lev1_slow_atts['PTemp']              .update({'long_name'  : 'CR1000X Panel Temp (box internal temp) in C*10',
+    lev1_slow_atts['PTemp']              .update({'long_name'  : 'logger electronics panel temperature',
                                                   'instrument' : 'Campbell CR1000X',
                                                   'methods'    : '',
-                                                  'height'     : '0m',			                       
-                                                  'location'   : bottom_location_string,})               
+                                                  'height'     : 'N/A',			                       
+                                                  'location'   : 'logger box',})               
 
-
-    lev1_slow_atts['batt_volt']          .update({'long_name'  : 'logger internal battery voltage', 
+    lev1_slow_atts['batt_volt']          .update({'long_name'  : 'voltage of the power source supplying the logger', 
                                                   'instrument' : 'Campbell CR1000X',                     
                                                   'methods'    : '',                                     
-                                                  'height'     : '0m',			                       
-                                                  'location'   : bottom_location_string,})               
+                                                  'height'     : 'N/A'			                       
+                                                  'location'   : 'logger box',})               
 
-
-    lev1_slow_atts['call_time_mainscan'] .update({'long_name'  : 'tower data logger maintain scan time duration', 
+    lev1_slow_atts['call_time_mainscan'] .update({'long_name'  : 'duration of the logger scan', 
                                                   'instrument' : 'Campbell CR1000X',                     
                                                   'methods'    : '',                                     
-                                                  'height'     : '0m',			                       
-                                                  'location'   : bottom_location_string,})               
+                                                  'height'     : 'N/A',			                       
+                                                  'location'   : 'logger box',})               
 
-
-    lev1_slow_atts['apogee_body_T']      .update({'long_name'  : 'instrument body temperature',   
+    lev1_slow_atts['apogee_body_T']      .update({'long_name'  : 'sensor body temperature',   
                                                   'instrument' : 'Apogee SI-4H1-SS IRT',	       
-                                                  'methods'    : 'digitally polled from instument',
-                                                  'height'     : '2m',			       
+                                                  'methods'    : 'infrared thermometer; SDI-12 protocol',
+                                                  'height'     : '2 m',			       
                                                   'location'   : bottom_location_string,})
 
-    lev1_slow_atts['apogee_targ_T']      .update({'long_name'  : 'Apogee IRT target 8-14 micron brightness temperature.',
+    lev1_slow_atts['apogee_targ_T']      .update({'long_name'  : 'sensor target 8-14 micron brightness temperature',
                                                   'instrument' : 'Apogee SI-4H1-SS IRT',
                                                   'methods'    : 'digitally polled from instument. No emmisivity correction. No correction for reflected incident.',
                                                   'height'     : 'surface',
@@ -225,67 +220,66 @@ def define_level1_slow():
     lev1_slow_atts['sr50_dist']          .update({'long_name'  : 'distance to surface from SR50; temperature compensation correction applied',
                                                   'instrument' : 'Campbell Scientific SR50A',
                                                   'methods'    : 'unheated, temperature correction applied',
-                                                  'height'     : '1.75m',
+                                                  'height'     : '2 m',
                                                   'location'   : bottom_location_string,})
-
 
     lev1_slow_atts['vaisala_RH_2m']      .update({'long_name'  : 'relative humidity wrt water',   
                                                   'instrument' : 'Vaisala PTU300',		       
-                                                  'methods'    : 'digitally polled from instument',
-                                                  'height'     : '2m',			       
+                                                  'methods'    : 'meteorology sensor, heated capacitive thin-film polymer; RS-485 protocol',
+                                                  'height'     : '2 m',			       
                                                   'location'   : bottom_location_string,})         
 
     lev1_slow_atts['vaisala_T_2m']       .update({'long_name'  : 'temperature',		       
                                                   'instrument' : 'Vaisala HMT330',		       
-                                                  'methods'    : 'digitally polled from instument',
-                                                  'height'     : '',			       
+                                                  'methods'    : 'meteorology sensor, PT100 RTD; RS-485 protocol',
+                                                  'height'     : '2 m',			       
                                                   'location'   : bottom_location_string,})         
 
-    lev1_slow_atts['vaisala_Td_2m']      .update({'long_name'  : 'dewpoint',		       
+    lev1_slow_atts['vaisala_Td_2m']      .update({'long_name'  : 'dewpoint temperature',		       
                                                   'instrument' : 'Vaisala PTU300',		       
-                                                  'methods'    : 'digitally polled from instument',
-                                                  'height'     : '2m',			       
+                                                  'methods'    : 'calculated by sensor electonics; RS-485 protocol',
+                                                  'height'     : '2 m',			       
                                                   'location'   : bottom_location_string,})         
 
-    lev1_slow_atts['vaisala_P_2m']       .update({'long_name'  : 'air pressure at 2m',	       
+    lev1_slow_atts['vaisala_P_2m']       .update({'long_name'  : 'air pressure at 2 m',	       
                                                   'instrument' : 'Vaisala PTU 300',		       
-                                                  'methods'    : 'digitally polled from instument',
-                                                  'height'     : '2m',			       
+                                                  'methods'    : 'meteorology sensor; RS-485 protocol',
+                                                  'height'     : '2 m',			       
                                                   'location'   : mast_location_string,})           
 
     lev1_slow_atts['vaisala_RH_6m']      .update({'long_name'  : 'relative humidity wrt water',   
                                                   'instrument' : 'Vaisala HMT330',		       
-                                                  'methods'    : 'digitally polled from instument',
+                                                  'methods'    : 'meteorology sensor, heated capacitive thin-film polymer; RS-485 protocol',
                                                   'height'     : '6m',			       
                                                   'location'   : middle_location_string,})         
 
     lev1_slow_atts['vaisala_T_6m']       .update({'long_name'  : 'temperature',				
                                                   'instrument' : 'Vaisala HMT330',				
-                                                  'methods'    : 'digitally polled from instument',		
+                                                  'methods'    : 'meteorology sensor, PT100 RTD; RS-485 protocol',		
                                                   'height'     : '',					
                                                   'location'   : middle_location_string,})                  
 
-    lev1_slow_atts['vaisala_Td_6m']      .update({'long_name'  : 'dewpoint',				
+    lev1_slow_atts['vaisala_Td_6m']      .update({'long_name'  : 'dewpoint temperature',				
                                                   'instrument' : 'Vaisala HMT330',				
-                                                  'methods'    : 'digitally polled from instument',		
+                                                  'methods'    : 'calculated by sensor electonics; RS-485 protocol',		
                                                   'height'     : '6m',					
                                                   'location'   : middle_location_string,})                  
 
     lev1_slow_atts['vaisala_RH_10m']     .update({'long_name'  : 'relative humidity wrt water',	     
                                                   'instrument' : 'Vaisala HMT330',			     
-                                                  'methods'    : 'digitally polled from instument',	     
+                                                  'methods'    : 'meteorology sensor, heated capacitive thin-film polymer; RS-485 protocol',	     
                                                   'height'     : '10m',				     
                                                   'location'   : top_location_string,})                  
 
     lev1_slow_atts['vaisala_T_10m']      .update({'long_name'  : 'temperature',			     
                                                   'instrument' : 'Vaisala HMT330',			     
-                                                  'methods'    : 'digitally polled from instument',	     
+                                                  'methods'    : 'meteorology sensor, PT100 RTD; RS-485 protocol',	     
                                                   'height'     : '',				     
                                                   'location'   : top_location_string,})                  
 
-    lev1_slow_atts['vaisala_Td_10m']     .update({'long_name'  : 'dewpoint',			     
+    lev1_slow_atts['vaisala_Td_10m']     .update({'long_name'  : 'dewpoint temperature',			     
                                                   'instrument' : 'Vaisala HMT330',			     
-                                                  'methods'    : 'digitally polled from instument',	     
+                                                  'methods'    : 'calculated by sensor electonics; RS-485 protocol',	     
                                                   'height'     : '10m',				     
                                                   'location'   : top_location_string,})                  
 
@@ -293,36 +287,36 @@ def define_level1_slow():
                                                   'instrument' : 'Hukseflux HFP01',			
                                                   'methods'    : 'analog voltage read by CR1000X',	
                                                   'height'     : '',				
-                                                  'location'   : '10m south of tower at met city',})
+                                                  'location'   : 'near base of flux tower',})
 
     lev1_slow_atts['fp_A_Wm2']           .update({'long_name'  : 'conductive flux from plate A',	   
                                                   'instrument' : 'Hukseflux HFP01',			   
                                                   'methods'    : 'Sensitivity 63.00/1000 [mV/(W/m2)]', 
                                                   'height'     : '',				   
-                                                  'location'   : '10m south of tower at met city',})   
+                                                  'location'   : 'near base of flux tower',})   
 
     lev1_slow_atts['fp_B_mV']            .update({'long_name'  : 'voltage from Hukseflux plate B',	     
                                                   'instrument' : 'Hukseflux HFP01',			     
                                                   'methods'    : 'analog voltage read by CR1000X',	     
                                                   'height'     : '',				     
-                                                  'location'   : 'under Apogee and SR50 at tower base',})
+                                                  'location'   : 'near base of flux tower',})
 
     lev1_slow_atts['fp_B_Wm2']           .update({'long_name'  : 'conductive flux from plate B',	     
                                                   'instrument' : 'Hukseflux HFP01',			     
                                                   'methods'    : 'Sensitivity 63.91/1000 [mV/(W/m2)]',   
                                                   'height'     : '',				     
-                                                  'location'   : 'under Apogee and SR50 at tower base',})
+                                                  'location'   : 'near base of flux tower',})
 
     lev1_slow_atts['mast_T']             .update({'long_name'  : 'temperature',			      
                                                   'instrument' : 'Vaisala WXT530',			      
-                                                  'methods'    : 'digitally polled from instument',	      
-                                                  'height'     : '',				      
+                                                  'methods'    : 'meteorology sensor, PT1000 RTD; SDI-12 protocol',	      
+                                                  'height'     : 'variable',				      
                                                   'location'   : mast_location_string,})                  
 
     lev1_slow_atts['mast_RH']            .update({'long_name'  : 'relative humidity wrt water',	      
                                                   'instrument' : 'Vaisala WXT530',			      
                                                   'methods'    : 'digitally polled from instument',	      
-                                                  'height'     : 'variable 23-30m',			      
+                                                  'height'     : 'variable',			      
                                                   'location'   : mast_location_string,})                  
 
     lev1_slow_atts['mast_P']             .update({'long_name'  : 'air pressure',				
@@ -332,88 +326,88 @@ def define_level1_slow():
                                                   'location'   : mast_location_string,})
 
     lev1_slow_atts['licor_ball_mV']      .update({'long_name'  : 'licor heating mv',
-                                                  'instrument' : '',
-                                                  'methods'    : 'digitally polled from instument',		
-                                                  'height'     : '',				
+                                                  'instrument' : 'extended-lead thermocouple',
+                                                  'methods'    : 'uncalibrated diagnostic, relative tracking to prevent overheating',		
+                                                  'height'     : 'variable',				
                                                   'location'   : licor_location,})
 
     # noodleville stuff
     lev1_slow_atts['mast_RECORD']             .update({'long_name'  : 'record number from tower data logger',
                                                        'instrument' : 'Campbell CR1000X',                     
                                                        'methods'    : '',
-                                                       'height'     : '0m',				
+                                                       'height'     : 'N/A',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_lat_deg_Avg']    .update({'long_name'  : 'latitude from gps at noodleville',  
+    lev1_slow_atts['mast_gps_lat_deg_Avg']    .update({'long_name'  : 'latitude degrees from gps at mast',  
                                                        'instrument' : 'Hemisphere V102',		    
                                                        'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'height'     : '0.5 m',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_lat_min_Avg']    .update({'long_name'  : 'licor heating mv',
+    lev1_slow_atts['mast_gps_lat_min_Avg']    .update({'long_name'  : 'latitude minutes from gps at mast',
                                                        'instrument' : 'Hemisphere V102',		    
                                                        'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'height'     : '0.5 m',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_lon_deg_Avg']    .update({'long_name'  : 'licor heating mv',
+    lev1_slow_atts['mast_gps_lon_deg_Avg']    .update({'long_name'  : 'longitude degrees from gps at mast',
                                                        'instrument' : 'Hemisphere V102',		    
                                                        'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'height'     : '0.5 m',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_lon_min_Avg']    .update({'long_name'  : 'licor heating mv',
+    lev1_slow_atts['mast_gps_lon_min_Avg']    .update({'long_name'  : 'longitude minutes from gps at mast',
                                                        'instrument' : 'Hemisphere V102',		    
                                                        'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'height'     : '0.5 m',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_hdg_Avg']        .update({'long_name'  : 'licor heating mv',
+    lev1_slow_atts['mast_gps_hdg_Avg']        .update({'long_name'  : 'heading from gps at mast',
+                                                       'instrument' : 'Hemisphere V102',		    
+                                                       'methods'    : 'HEHDT',	    
+                                                       'height'     : '0.5 m',				
+                                                       'location'   : noodleville_location_string,})
+    
+    lev1_slow_atts['mast_gps_alt_Avg']        .update({'long_name'  : 'altitude from gps at mast',
                                                        'instrument' : 'Hemisphere V102',		    
                                                        'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'height'     : '0.5 m',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_alt_Avg']        .update({'long_name'  : 'licor heating mv',
+    lev1_slow_atts['mast_gps_qc']             .update({'long_name'  : 'gps fix quality variable',
                                                        'instrument' : 'Hemisphere V102',		    
-                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'methods'    : 'GPGGA; fix quality: 0 = invalid; 1 = gps fix (sps); 2 = dgps fix; 3 = pps fix; 4 = real time kinematic; 5 = float rtk; 6 = estimated (deck reckoning); 7 = manual input mode; 8 = simulation mode.',	    
+                                                       'height'     : '0.5 m',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_qc']             .update({'long_name'  : 'licor heating mv',
+    lev1_slow_atts['mast_gps_hdop_Avg']       .update({'long_name'  : 'gps Horizontal Dilution Of Precision (HDOP)',
                                                        'instrument' : 'Hemisphere V102',		    
-                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'methods'    : 'GPGGA',	    
+                                                       'height'     : '0.5 m',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_hdop_Avg']       .update({'long_name'  : 'licor heating mv',
+    lev1_slow_atts['mast_gps_nsat_Avg']       .update({'long_name'  : 'gps number of tracked satellites',
                                                        'instrument' : 'Hemisphere V102',		    
-                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
+                                                       'methods'    : 'GPGGA',	    
+                                                       'height'     : 'N/A',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_gps_nsat_Avg']       .update({'long_name'  : 'licor heating mv',
-                                                       'instrument' : 'Hemisphere V102',		    
-                                                       'methods'    : 'GPRMC, GPGGA, GPGZDA',	    
-                                                       'height'     : '1m',				
-                                                       'location'   : noodleville_location_string,})
-    
-    lev1_slow_atts['mast_PTemp']              .update({'long_name'  : 'CR1000X Panel Temp (box internal temp) in C*10',
+    lev1_slow_atts['mast_PTemp']              .update({'long_name'  : 'logger electronics panel temperature',
                                                        'instrument' : 'Campbell CR1000X',
                                                        'methods'    : '',
-                                                       'height'     : '0m',				
+                                                       'height'     : 'N/A',				
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_batt_volt']          .update({'long_name'  : 'logger internal battery voltage', 
+    lev1_slow_atts['mast_batt_volt']          .update({'long_name'  : 'voltage of the power source supplying the logger', 
                                                        'instrument' : 'Campbell CR1000X',           
                                                        'methods'    : '',                           
-                                                       'height'     : '0m',			    
+                                                       'height'     : 'N/A',			    
                                                        'location'   : noodleville_location_string,})
     
-    lev1_slow_atts['mast_call_time_mainscan'] .update({'long_name'  : 'noodleville data logger maintain scan time duration', 
+    lev1_slow_atts['mast_call_time_mainscan'] .update({'long_name'  : 'duration of the logger scan', 
                                                        'instrument' : 'Campbell CR1000X',                     
                                                        'methods'    : '',                                     
-                                                       'height'     : '0m',			                       
+                                                       'height'     : 'N/A',			                       
                                                        'location'   : noodleville_location_string,})
 
 
@@ -425,11 +419,11 @@ def define_level1_slow():
 # of the processing code in the level2 create file. it's annoying, maybe not the best design choice.
 def define_level1_fast():
 
-    licor_location         = 'first level on met city tower'
-    bottom_location_string = 'first level on met city tower'
-    middle_location_string = 'second level on met city tower'
-    top_location_string    = 'third level on met city tower'
-    mast_location_string   = 'top of radio mast at met city'
+    licor_location         = 'first level on flux tower'
+    bottom_location_string = 'first level on flux tower'
+    middle_location_string = 'second level on flux tower'
+    top_location_string    = 'third level on flux tower'
+    mast_location_string   = 'top of radio mast'
     
     lev1_fast_atts = OrderedDict()
 
@@ -443,8 +437,8 @@ def define_level1_fast():
     lev1_fast_atts['metek_2m_y']           = {'units' : 'm/s'     }
     lev1_fast_atts['metek_2m_z']           = {'units' : 'm/s'     }
     lev1_fast_atts['metek_2m_T']           = {'units' : 'C'       }
-    lev1_fast_atts['metek_2m_hspd']        = {'units' : 'int'     }
-    lev1_fast_atts['metek_2m_ts']          = {'units' : 'int'     }
+    lev1_fast_atts['metek_2m_hspd']        = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_2m_ts']          = {'units' : 'deg'     }
     lev1_fast_atts['metek_2m_incx']        = {'units' : 'deg'     }
     lev1_fast_atts['metek_2m_incy']        = {'units' : 'deg'     }
 
@@ -454,8 +448,8 @@ def define_level1_fast():
     lev1_fast_atts['metek_6m_y']           = {'units' : 'm/s'     }
     lev1_fast_atts['metek_6m_z']           = {'units' : 'm/s'     }
     lev1_fast_atts['metek_6m_T']           = {'units' : 'C'       }
-    lev1_fast_atts['metek_6m_hspd']        = {'units' : 'int'     }
-    lev1_fast_atts['metek_6m_ts']          = {'units' : 'int'     }
+    lev1_fast_atts['metek_6m_hspd']        = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_6m_ts']          = {'units' : 'deg'     }
     lev1_fast_atts['metek_6m_incx']        = {'units' : 'deg'     }
     lev1_fast_atts['metek_6m_incy']        = {'units' : 'deg'     }
 
@@ -465,8 +459,8 @@ def define_level1_fast():
     lev1_fast_atts['metek_10m_y']          = {'units' : 'm/s'     }
     lev1_fast_atts['metek_10m_z']          = {'units' : 'm/s'     }
     lev1_fast_atts['metek_10m_T']          = {'units' : 'C'       }
-    lev1_fast_atts['metek_10m_hspd']       = {'units' : 'int'     }
-    lev1_fast_atts['metek_10m_ts']         = {'units' : 'int'     }
+    lev1_fast_atts['metek_10m_hspd']       = {'units' : 'm/s'     }
+    lev1_fast_atts['metek_10m_ts']         = {'units' : 'deg'     }
     lev1_fast_atts['metek_10m_incx']       = {'units' : 'deg'     }
     lev1_fast_atts['metek_10m_incy']       = {'units' : 'deg'     }
  
@@ -476,10 +470,10 @@ def define_level1_fast():
     lev1_fast_atts['metek_mast_z']         = {'units' : 'm/s'     }
     lev1_fast_atts['metek_mast_T']         = {'units' : 'C'       }
 
-    lev1_fast_atts['licor_TIMESTAMP']      = {'units' : 'g/kg'    }
+    lev1_fast_atts['licor_TIMESTAMP']      = {'units' : 'time'    }
     lev1_fast_atts['licor_diag']           = {'units' : 'int'     }
-    lev1_fast_atts['licor_co2']            = {'units' : 'g/kg'    }
-    lev1_fast_atts['licor_h2o']            = {'units' : 'g/kg'    }
+    lev1_fast_atts['licor_co2']            = {'units' : 'mmol/m3' }
+    lev1_fast_atts['licor_h2o']            = {'units' : 'mmol/m3' }
     lev1_fast_atts['licor_T']              = {'units' : 'deg C'   }
     lev1_fast_atts['licor_pr']             = {'units' : 'hPa'     }
     lev1_fast_atts['licor_co2_str']        = {'units' : 'percent' }
@@ -487,272 +481,268 @@ def define_level1_fast():
     lev1_fast_atts['licor_dt']             = {'units' : 'boolean' }
     lev1_fast_atts['licor_ct']             = {'units' : 'boolean' }
 
-    lev1_fast_atts['metek_2m_TIMESTAMP']   .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_TIMESTAMP']   .update({'long_name'     : 'time stamp of receipt of sensor message',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,}) 
 
-    lev1_fast_atts['metek_2m_x']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_x']           .update({'long_name'     : 'wind velocity in x',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_y']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_y']           .update({'long_name'     : 'wind velocity in y',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_z']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_z']           .update({'long_name'     : 'wind velocity in z',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_T']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_T']           .update({'long_name'     : 'acoustic temperature',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_heatstatus']  .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_heatstatus']  .update({'long_name'     : 'sensor diagnostics code',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_hspd']        .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_hspd']        .update({'long_name'     : 'horizontal wind speed',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_ts']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_ts']          .update({'long_name'     : 'wind direction',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_incx']        .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_incx']        .update({'long_name'     : 'sensor inclinometer pitch angle',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-    lev1_fast_atts['metek_2m_incy']        .update({'long_name'     : '',
+    lev1_fast_atts['metek_2m_incy']        .update({'long_name'     : 'sensor inclinometer roll angle',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
+                                                    'height'        : '2 m',
                                                     'location'      : bottom_location_string,})
 
-
-    lev1_fast_atts['metek_6m_TIMESTAMP']   .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_TIMESTAMP']   .update({'long_name'     : 'time stamp of receipt of sensor message',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,}) 
 
-    lev1_fast_atts['metek_6m_x']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_x']           .update({'long_name'     : 'wind velocity in x',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_y']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_y']           .update({'long_name'     : 'wind velocity in y',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_z']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_z']           .update({'long_name'     : 'wind velocity in z',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_T']           .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_T']           .update({'long_name'     : 'acoustic temperature',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_heatstatus']  .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_heatstatus']  .update({'long_name'     : 'sensor diagnostics code',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_hspd']        .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_hspd']        .update({'long_name'     : 'horizontal wind speed',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_ts']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_ts']          .update({'long_name'     : 'wind direction',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_incx']        .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_incx']        .update({'long_name'     : 'sensor inclinometer pitch angle',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev1_fast_atts['metek_6m_incy']        .update({'long_name'     : '',
+    lev1_fast_atts['metek_6m_incy']        .update({'long_name'     : 'sensor inclinometer roll angle',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '6m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
+                                                    'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-
-    lev1_fast_atts['metek_10m_TIMESTAMP']  .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_TIMESTAMP']  .update({'long_name'     : 'time stamp of receipt of sensor message',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,}) 
 
-    lev1_fast_atts['metek_10m_x']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_x']          .update({'long_name'     : 'wind velocity in x',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_y']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_y']          .update({'long_name'     : 'wind velocity in y',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_z']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_z']          .update({'long_name'     : 'wind velocity in z',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_T']          .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_T']          .update({'long_name'     : 'acoustic temperature',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_heatstatus'] .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_heatstatus'] .update({'long_name'     : 'sensor diagnostics code',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_hspd']       .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_hspd']       .update({'long_name'     : 'horizontal wind speed',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_ts']         .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_ts']         .update({'long_name'     : 'wind direction',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_incx']       .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_incx']       .update({'long_name'     : 'sensor inclinometer pitch angle',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_10m_incy']       .update({'long_name'     : '',
+    lev1_fast_atts['metek_10m_incy']       .update({'long_name'     : 'sensor inclinometer roll angle',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
-                                                    'height'        : '10m',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
+                                                    'height'        : '10 m',
                                                     'location'      : top_location_string,})
 
-    lev1_fast_atts['metek_mast_TIMESTAMP'] .update({'long_name'     : '',
+    lev1_fast_atts['metek_mast_TIMESTAMP'] .update({'long_name'     : 'time stamp of receipt of sensor message',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                     'height'        : 'mast',
                                                     'location'      : mast_location_string,}) 
 
-    lev1_fast_atts['metek_mast_x']         .update({'long_name'     : '',
+    lev1_fast_atts['metek_mast_x']         .update({'long_name'     : 'wind velocity in x',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                     'height'        : 'mast',
                                                     'location'      : mast_location_string,})
 
-    lev1_fast_atts['metek_mast_y']         .update({'long_name'     : '',
+    lev1_fast_atts['metek_mast_y']         .update({'long_name'     : 'wind velocity in y',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                     'height'        : 'mast',
                                                     'location'      : mast_location_string,})
 
-    lev1_fast_atts['metek_mast_z']         .update({'long_name'     : '',
+    lev1_fast_atts['metek_mast_z']         .update({'long_name'     : 'wind velocity in z',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                     'height'        : 'mast',
                                                     'location'      : mast_location_string,})
 
-    lev1_fast_atts['metek_mast_T']         .update({'long_name'     : '',
+    lev1_fast_atts['metek_mast_T']         .update({'long_name'     : 'acoustic temperature',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : '',
+                                                    'methods'       : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                     'height'        : 'mast',
                                                     'location'      : mast_location_string,})
 
-
-    lev1_fast_atts['licor_diag']           .update({'long_name'     : '',
+    lev1_fast_atts['licor_diag']           .update({'long_name'     : 'bit-packed diagnostic integer',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol; bits 0-3 = signal strength; bit 5 = PLL; bit 6 = detector temp; bit 7 = chopper temp',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
 
-    lev1_fast_atts['licor_co2']            .update({'long_name'     : '',
+    lev1_fast_atts['licor_co2']            .update({'long_name'     : 'CO2 gas density',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
 
-    lev1_fast_atts['licor_h2o']            .update({'long_name'     : '',
+    lev1_fast_atts['licor_h2o']            .update({'long_name'     : 'water vapor density',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
-
     
-    lev1_fast_atts['licor_pr']             .update({'long_name'     : '',
+    lev1_fast_atts['licor_pr']             .update({'long_name'     : 'air pressure',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
 
-    lev1_fast_atts['licor_T']             .update({'long_name'     : '',
-                                                   'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
-                                                   'height'        : '2m',
-                                                   'location'      : licor_location,})
-
-    lev1_fast_atts['licor_co2_str']        .update({'long_name'     : '',
+    lev1_fast_atts['licor_T']              .update({'long_name'     : 'temperature at strut',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
 
-    lev1_fast_atts['licor_pll']        .update({'long_name'     : '',
+    lev1_fast_atts['licor_co2_str']        .update({'long_name'     : 'CO2 signal strength diagnostic',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; raw co2 reference signal relative to expected value',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
 
-    lev1_fast_atts['licor_dt']        .update({'long_name'     : '',
+    lev1_fast_atts['licor_pll']            .update({'long_name'     : 'phase lock loop',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = optical filter wheel rotating at correct rate',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
 
-    lev1_fast_atts['licor_ct']        .update({'long_name'     : '',
+    lev1_fast_atts['licor_dt']             .update({'long_name'     : 'detector temperature',
                                                     'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : '',
-                                                    'height'        : '2m',
+                                                    'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
+                                                    'height'        : '2 m',
+                                                    'location'      : licor_location,})
+
+    lev1_fast_atts['licor_ct']             .update({'long_name'     : 'chopper temperature',
+                                                    'instrument'    : 'Licor 7500-DS',
+                                                    'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
+                                                    'height'        : '2 m',
                                                     'location'      : licor_location,})
 
     return lev1_fast_atts, list(lev1_fast_atts.keys()).copy() 
@@ -878,21 +868,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '1m',
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['tower_lon']                  .update({'long_name'    :'longitude from gps at the tower',
                                                     'cf_name'       :'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
-                                                    'height'        : '2 m',
+                                                    'height'        : 'N/A'
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['tower_heading']              .update({'long_name'    : 'heading from gps at the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
-                                                    'height'        : '2 m',
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['tower_ice_alt']              .update({'long_name'    : 'altitude from gps at the tower corrected to altitude of ice top surface',
@@ -906,91 +896,91 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '2 m',
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['mast_lon']                  .update({'long_name'     :'longitude from gps at the mast',
-                                                    'cf_name'       :'longitude',
+    lev2_atts['mast_lon']                  .update({'long_name'     : 'longitude from gps at the mast',
+                                                    'cf_name'       : 'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
-                                                    'height'        : '2 m',
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['mast_heading']              .update({'long_name'     : 'heading from gps at the mast',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
-                                                    'height'        : '2 m',
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
     
     lev2_atts['mast_ice_alt']              .update({'long_name'     : 'altitude from gps at the mast corrected to altitude of ice top surface',
                                                     'cf_name'       : 'altitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '2 m',
+                                                    'height'        : '',
                                                     'location'      : bottom_location_string,})  
     
     lev2_atts['sza_true']                  .update({ 'long_name'    : 'true solar zenith angle',
                                                      'cf_name'      : '',
                                                      'instrument'   : 'Hemisphere V102',
                                                      'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
-                                                     'height'       : '2 m',
+                                                     'height'       : 'N/A',
                                                     'location'      : bottom_location_string,})
     
     lev2_atts['sza_app']                   .update({ 'long_name'    : 'estimated apprarent solar zenith angle due to atmospheric refraction',
                                                      'cf_name'      : '',
                                                      'instrument'   : 'Hemisphere V102',
                                                      'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
-                                                     'height'       : '2 m',
+                                                     'height'       : 'N/A',
                                                      'location'     : bottom_location_string,})
     
     lev2_atts['azimuth']                   .update({ 'long_name'    : 'apprarent solar azimuth angle',
                                                      'cf_name'      : '',
                                                      'instrument'   : 'Hemisphere V102',
                                                      'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
-                                                     'height'       : '2 m',
+                                                     'height'       : 'N/A',
                                                      'location'     : bottom_location_string,})
     
     lev2_atts['ship_bearing']              .update({'long_name'     : 'absolute bearing (rel. to true north) of ship from the position of the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102 & Polarstern Leica GPS',
                                                     'methods'       : '',
-                                                    'height'        : '2 m',
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
     
     lev2_atts['ship_distance']             .update({'long_name'     : 'distance between the ship and the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102 & Polarstern Leica GPS',
                                                     'methods'       : '',
-                                                    'height'        : '2 m',
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})  
 
     lev2_atts['sr50_dist']                 .update({'long_name'     : 'distance to surface from SR50; temperature compensation correction applied',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Campbell Scientific SR50A',
                                                     'methods'       : 'unheated, temperature correction applied',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_vaisala_2m']           .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_vaisala_6m']           .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['temp_vaisala_10m']          .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_emperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['temp_vaisala_mast']         .update({'long_name'     : 'temperature',
@@ -1004,21 +994,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'dew_point_temperature',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['dewpoint_vaisala_6m']       .update({'long_name'     : 'dewpoint',
                                                     'cf_name'       : 'dew_point_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['dewpoint_vaisala_10m']       .update({'long_name'     : 'dewpoint',
                                                      'cf_name'       : 'dew_point_temperature',
                                                      'instrument'    : 'Vaisala HMT330',
                                                      'methods'       : 'digitally polled from instument',
-                                                     'height'        : '10 m',
+                                                     'height'        : sonic_10m,
                                                      'location'      : top_location_string,})
 
     lev2_atts['dewpoint_vaisala_mast']     .update({'long_name'     : 'dewpoint',
@@ -1032,21 +1022,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'relative_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['rel_humidity_vaisala_6m']   .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['rel_humidity_vaisala_10m']  .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '1 0m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['rel_humidity_vaisala_mast'] .update({'long_name'     : 'relative humidity wrt water',
@@ -1060,7 +1050,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'air_pressure',
                                                     'instrument'    : 'Vaisala PTU 300',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : mast_location_string,})
 
     lev2_atts['mast_pressure']             .update({'long_name'     : 'air pressure',
@@ -1074,7 +1064,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['surface_T_IRT']             .update({'long_name'     : 'Apogee IRT target 8-14 micron brightness temperature.',
@@ -1088,7 +1078,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hukseflux HFP01',
                                                     'methods'       : 'analog voltage read by CR1000X',
-                                                    'height'        : '',
+                                                    'height'        : 'subsurface, variable',
                                                     'location'      : '10m south of tower at met city',})
 
     lev2_atts['flux_plate_B_mv']           .update({'long_name'     : 'voltage from Hukseflux plate B',
@@ -1123,21 +1113,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['MR_vaisala_6m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['MR_vaisala_10m']            .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['MR_vaisala_mast']           .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
@@ -1151,21 +1141,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['RHi_vaisala_6m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['RHi_vaisala_10m']           .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['RHi_vaisala_mast']          .update({'long_name'     : 'ice RH derived using T/P/RH',
@@ -1179,21 +1169,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['pw_vaisala_6m']             .update({'long_name'     : 'vapor pressure',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['pw_vaisala_10m']            .update({'long_name'     : 'vapor pressure',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['pw_vaisala_mast']           .update({'long_name'     : 'vapor pressure',
@@ -1207,21 +1197,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['wind_speed_metek_6m']       .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['wind_speed_metek_10m']      .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['wind_speed_metek_mast']     .update({'long_name'     : 'average metek wind speed',
@@ -1236,21 +1226,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['wind_direction_metek_6m']   .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['wind_direction_metek_10m']  .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['wind_direction_metek_mast'] .update({'long_name'     : 'average metek wind direction',
@@ -1264,24 +1254,24 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['temp_variance_metek_6m']    .update({'long_name'     : 'metek sonic temperature obs variance',
+    lev2_atts['temp_variance_metek_6m']    .update({'long_name'     : 'acoustic temperature obs variance',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['temp_variance_metek_10m']   .update({'long_name'     : 'metek sonic temperature obs variance',
+    lev2_atts['temp_variance_metek_10m']   .update({'long_name'     : 'acoustic temperature obs variance',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['temp_variance_metek_mast']  .update({'long_name'     : 'metek sonic temperature obs variance',
+    lev2_atts['temp_variance_metek_mast']  .update({'long_name'     : 'acoustic temperature obs variance',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
@@ -1320,21 +1310,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['u_metek_6m']                .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['u_metek_10m']               .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['u_metek_mast']              .update({'long_name'     : 'Metek u-component',
@@ -1349,21 +1339,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['v_metek_6m']                .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['v_metek_10m']               .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['v_metek_mast']              .update({'long_name'     : 'Metek v-component',
@@ -1378,7 +1368,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['w_metek_6m']                .update({'long_name'     : 'Metek w-component',
@@ -1392,7 +1382,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['w_metek_mast']              .update({'long_name'     : 'Metek w-component',
@@ -1406,21 +1396,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['temp_metek_6m']             .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['temp_metek_10m']            .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['temp_metek_mast']           .update({'long_name'     : 'Metek sonic temperature',
@@ -1434,84 +1424,84 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_v_metek_2m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive west in right-hand coordinate system',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_w_metek_2m']         .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_T_metek_2m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '2 m',
+                                                    'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['stddev_u_metek_6m']         .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_v_metek_6m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_w_metek_6m']         .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_T_metek_6m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '6 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['stddev_u_metek_10m']        .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_6m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_v_metek_10m']        .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_w_metek_10m']        .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_T_metek_10m']        .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : '10 m',
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['stddev_u_metek_mast']       .update({'long_name'     : 'u metek obs standard deviation',
@@ -1561,11 +1551,11 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z):
     mast_sonic_height = str(mast_sonic_height)
     licor_z = str(licor_z)
     
-    licor_location = 'first level on met city tower'
-    bottom_location_string = 'first level on met city tower'
-    middle_location_string = 'second level on met city tower'
-    top_location_string    = 'third level on met city tower'
-    mast_location_string   = 'top of radio mast at met city'
+    licor_location = 'first level on flux tower'
+    bottom_location_string = 'first level on flux tower'
+    middle_location_string = 'second level on flux tower'
+    top_location_string    = 'third level on flux tower'
+    mast_location_string   = 'top of radio mast'
 
     turb_atts = OrderedDict()
 

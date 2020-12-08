@@ -31,25 +31,20 @@ def define_global_atts(station_name, file_type):
     # global attributes to be written into the netcdf output file
     global_atts = {
         'date_created'     :'{}'.format(time.ctime(time.time())),
-        'station'          :'data taken at remote flux station {}'.format(station_name),
-        'contact'          :'University of Colorado, MOSAiC. matthew.shupe@colorado.edu, PI',
+        'title'            :'MOSAiC flux group data product: ', # blank variables are specific to site characterization 
+        'contact'          :'Matthew Shupe, University of Colorado, matthew.shupe@colorado.edu',
+        'institution'      :'CIRES, University of Colorado and NOAA Physical Sciences Laboratory',
+        'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
+        'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
+        'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
+        'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
+        'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
+        'system'           :'{}'.format(station_name)
+        'references'       :'', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
-        'conventions'      :'cf convention variable naming as attribute whenever possible',
-        'title'            :'MOSAiC flux group data product ', # blank variables are specific to site characterization
-        'institution'      :'CIRES/NOAA',
-        'file_creator'     :'Michael R. Gallagher; Christopher J. Cox, Ola Persson ',
-        'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov; ola.persson@noaa.gov',
-        'source'           :'Observations made during the MOSAiC drifting campaign',
-        'references'       :'A paper reference here at some point',
-        'Funding'          :'Funding sources: National Science Foundation (NSF) Award Number OPP1724551; NOAA Arctic Research Program (ARP)',
-        'acknowledgements' :'',
-        'license'          :'Creative Commons Attribution 4.0 License, CC 4.0',
-        'disclaimer'       :'These data do not represent any determination, view, or policy of NOAA or the University of Colorado.',
-        'project'          :'PS-122 MOSAiC, ATMOS Flux Team: Thermodynamic and Dynamic Drivers of the Arctic sea ice mass budget at MOSAiC',
-        'comment'          :'Preliminary product under development and should not be used for analysis without consultation!',
-        'version'          :'{}'.format(np.str(cv[0])+', '+np.str(cv[1])),
-        # !! matlab reads this as UNSUPPORTED DATA TYPE. No idea why. this was true before when it was just a string
-        # !! as well for some reason and the beta isnt the reason.
+        'conventions'      :'cf convention variable naming as attribute whenever possible',  
+        'history'          :'based on level 1 ingest files',
+        'version'          : cv[0]+', '+cv[1], 
     }
 
     if file_type == "slow":
@@ -183,8 +178,8 @@ def define_level1_slow():
     lev1_slow_atts['licor_co2_Std']                = {'units' : 'mg/m3'}
     lev1_slow_atts['licor_h2o_Avg']                = {'units' : 'g/m3'}
     lev1_slow_atts['licor_h2o_Std']                = {'units' : 'g/m3'}
-    lev1_slow_atts['licor_co2_str_out_Avg']        = {'units' : '0-100'}
-    lev1_slow_atts['licor_co2_str_out_Std']        = {'units' : '0-100'}
+    lev1_slow_atts['licor_co2_str_out_Avg']        = {'units' : '%'}
+    lev1_slow_atts['licor_co2_str_out_Std']        = {'units' : '%'}
     lev1_slow_atts['sr30_swu_fantach_Avg']         = {'units' : 'Hz'}
     lev1_slow_atts['sr30_swu_heatA_Avg']           = {'units' : 'mA'}
     lev1_slow_atts['sr30_swd_fantach_Avg']         = {'units' : 'Hz'}
@@ -201,7 +196,7 @@ def define_level1_slow():
     lev1_slow_atts['sr30_swu_tilt_Avg']            = {'units' : 'deg'}
     lev1_slow_atts['sr30_swd_tilt_Avg']            = {'units' : 'deg'}
 
-    lev1_slow_atts['TIMESTAMP']                    .update({'long_name'     : 'measurement time',
+    lev1_slow_atts['TIMESTAMP']                    .update({'long_name'     : 'time of measurement',
                                                             'instrument'    : 'CR1000X',
                                                             'methods'       : 'synched to GPS',
                                                             'height'        : 'N/A',
@@ -245,7 +240,7 @@ def define_level1_slow():
 
     lev1_slow_atts['gps_qc']                       .update({'long_name'     : 'gps fix quality variable',
                                                             'instrument'    : 'Hemisphere V102',
-                                                            'methods'       : 'GPGGA',
+                                                            'methods'       : 'GPGGA; fix quality: 0 = invalid; 1 = gps fix (sps); 2 = dgps fix; 3 = pps fix; 4 = real time kinematic; 5 = float rtk; 6 = estimated (deck reckoning); 7 = manual input mode; 8 = simulation mode',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
@@ -261,543 +256,543 @@ def define_level1_slow():
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['metek_InclX_Avg']              .update({'long_name'     : 'Metek inclinometer pitch angle',
+    lev1_slow_atts['metek_InclX_Avg']              .update({'long_name'     : 'sensor inclinometer pitch angle',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : '',
+                                                            'methods'       : 'inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['metek_InclY_Avg']              .update({'long_name'     : 'Metek inclinometer roll angle',
+    lev1_slow_atts['metek_InclY_Avg']              .update({'long_name'     : 'sensor inclinometer roll angle',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : '',
+                                                            'methods'       : 'inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['PTemp_Avg']                    .update({'long_name'     : 'Temperature of the logger panel',
-                                                            'instrument'    : 'CR1000X',
-                                                            'methods'       : '',
-                                                            'height'        : 'N/A',
-                                                            'location'      : '',})
-
-    lev1_slow_atts['batt_volt_Avg']                .update({'long_name'     : 'Voltage of the power source supplying the logger',
-                                                            'instrument'    : 'CR1000X',
-                                                            'methods'       : '',
-                                                            'height'        : 'N/A',
-                                                            'location'      : '',})
-
-    lev1_slow_atts['counts_main_Tot']              .update({'long_name'     : 'Number of completed cycles of the main scan during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
-                                                            'methods'       : '',
-                                                            'height'        : 'N/A',
-                                                            'location'      : '',})
-
-    lev1_slow_atts['call_time_mainscan_Max']       .update({'long_name'     : 'Duration of the longest scan during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
+    lev1_slow_atts['PTemp_Avg']                    .update({'long_name'     : 'logger electronics panel temperature',
+                                                            'instrument'    : 'Campbell CR1000X',
                                                             'methods'       : '',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['call_time_modbus_sr301_Max']   .update({'long_name'     : 'Duration of the longest scan up to the first SR30 call during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
+    lev1_slow_atts['batt_volt_Avg']                .update({'long_name'     : 'voltage of the power source supplying the logger',
+                                                            'instrument'    : 'CCampbell CR1000X',
                                                             'methods'       : '',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['call_time_modbus_sr302_Max']   .update({'long_name'     : 'Duration of the longest scan up to the second SR30 call during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
+    lev1_slow_atts['counts_main_Tot']              .update({'long_name'     : 'number of completed cycles of the main scan during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell CR1000X',
                                                             'methods'       : '',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['call_time_modbus_vaisala_Max'] .update({'long_name'     : 'Duration of the longest scan up to the Vaisala call during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
+    lev1_slow_atts['call_time_mainscan_Max']       .update({'long_name'     : 'duration of the longest scan during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell CR1000X',
                                                             'methods'       : '',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['call_time_sdi1_Max']           .update({'long_name'     : 'Duration of the longest scan up to the first SDI-12 call during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
+    lev1_slow_atts['call_time_modbus_sr301_Max']   .update({'long_name'     : 'duration of the longest scan up to the first SR30 call during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell CR1000X',
                                                             'methods'       : '',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['call_time_sdi2_Max']           .update({'long_name'     : 'Duration of the longest scan up to the second SDI-12 call during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
+    lev1_slow_atts['call_time_modbus_sr302_Max']   .update({'long_name'     : 'duration of the longest scan up to the second SR30 call during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell CR1000X',
                                                             'methods'       : '',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['call_time_efoy_Max']           .update({'long_name'     : 'Duration of the longest scan up to the EFOY call during the 1 min averaging interval',
-                                                            'instrument'    : 'CR1000X',
+    lev1_slow_atts['call_time_modbus_vaisala_Max'] .update({'long_name'     : 'duration of the longest scan up to the Vaisala call during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell R1000X',
                                                             'methods'       : '',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['sr30_swu_DegC_Avg']            .update({'long_name'     : 'Average case temperature of the downward-facing (SWU) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['call_time_sdi1_Max']           .update({'long_name'     : 'duration of the longest scan up to the first SDI-12 call during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell CR1000X',
+                                                            'methods'       : '',
+                                                            'height'        : 'N/A',
+                                                            'location'      : 'logger box',})
+
+    lev1_slow_atts['call_time_sdi2_Max']           .update({'long_name'     : 'duration of the longest scan up to the second SDI-12 call during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell CR1000X',
+                                                            'methods'       : '',
+                                                            'height'        : 'N/A',
+                                                            'location'      : 'logger box',})
+
+    lev1_slow_atts['call_time_efoy_Max']           .update({'long_name'     : 'duration of the longest scan up to the EFOY call during the 1 min averaging interval',
+                                                            'instrument'    : 'Campbell CR1000X',
+                                                            'methods'       : '',
+                                                            'height'        : 'N/A',
+                                                            'location'      : 'logger box',})
+
+    lev1_slow_atts['sr30_swu_DegC_Avg']            .update({'long_name'     : 'average case temperature of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swu_DegC_Std']            .update({'long_name'     : 'Standard deviation of the case of the downward-facing (SWU) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swu_DegC_Std']            .update({'long_name'     : 'standard deviation of the case of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swu_Irr_Avg']             .update({'long_name'     : 'Average irradiance of the downward-facing (SWU) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swu_Irr_Avg']             .update({'long_name'     : 'average irradiance of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'thermopile pyranometer; RS-485 protocol',
                                                             'methods'       : 'RS-485',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swu_Irr_Std']             .update({'long_name'     : 'Standard deviation of the irradiance of the downward-facing (SWU) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swu_Irr_Std']             .update({'long_name'     : 'standard deviation of the irradiance of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swu_IrrC_Avg']            .update({'long_name'     : 'Average irradiance of the downward-facing (SWU) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swu_IrrC_Avg']            .update({'long_name'     : 'average irradiance of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swu_IrrC_Std']            .update({'long_name'     : 'Standard deviation of the temperature-corrected irradiance of the downward-facing (SWU) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swu_IrrC_Std']            .update({'long_name'     : 'standard deviation of the temperature-corrected irradiance of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_DegC_Avg']            .update({'long_name'     : 'Average case temperature of the upward-facing (SWD) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swd_DegC_Avg']            .update({'long_name'     : 'average case temperature of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_DegC_Std']            .update({'long_name'     : 'Standard deviation of the case of the upward-facing (SWD) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swd_DegC_Std']            .update({'long_name'     : 'standard deviation of the case of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_Irr_Avg']             .update({'long_name'     : 'Average irradiance of the upward-facing (SWD) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swd_Irr_Avg']             .update({'long_name'     : 'average irradiance of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_Irr_Std']             .update({'long_name'     : 'Standard deviation of the irradiance of the upward-facing (SWD) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swd_Irr_Std']             .update({'long_name'     : 'standard deviation of the irradiance of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_IrrC_Avg']            .update({'long_name'     : 'Average irradiance of the upward-facing (SWD) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swd_IrrC_Avg']            .update({'long_name'     : 'average irradiance of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_IrrC_Std']            .update({'long_name'     : 'Standard deviation of the temperature-corrected irradiance of the upward-facing (SWD) pyranometer during the 1 min averaging interval',
+    lev1_slow_atts['sr30_swd_IrrC_Std']            .update({'long_name'     : 'standard deviation of the temperature-corrected irradiance of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['apogee_body_T_Avg']            .update({'long_name'     : 'Average of the infrared thermometer body temperature during the 1 min averaging interval',
+    lev1_slow_atts['apogee_body_T_Avg']            .update({'long_name'     : 'average of the sensor body temperature during the 1 min averaging interval',
                                                             'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                             'methods'       : 'infrared thermometer; SDI-12 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['apogee_body_T_Std']            .update({'long_name'     : 'Standard deviation of the infrared thermometer body temperature during the 1 min averaging interval',
+    lev1_slow_atts['apogee_body_T_Std']            .update({'long_name'     : 'standard deviation of the infrared thermometer body temperature during the 1 min averaging interval',
                                                             'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                             'methods'       : 'infrared thermometer; SDI-12 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['apogee_targ_T_Avg']            .update({'long_name'     : 'Average of the infrared thermometer target brightness temperature during the 1 min averaging interval',
+    lev1_slow_atts['apogee_targ_T_Avg']            .update({'long_name'     : 'average of the sensor target 8-14 micron brightness temperature during the 1 min averaging interval',
                                                             'instrument'    : 'Apogee SI-4H1-SS IRT',
-                                                            'methods'       : 'infrared thermometer; SDI-12 protocol',
+                                                            'methods'       : 'thermopile infrared thermometer; SDI-12 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['apogee_targ_T_Std']            .update({'long_name'     : 'Standard deviation of the infrared thermometer target brightness temperature during the 1 min averaging interval',
+    lev1_slow_atts['apogee_targ_T_Std']            .update({'long_name'     : 'standard deviation of the the sensor target 8-14 micron brightness temperature during the 1 min averaging interval',
                                                             'instrument'    : 'Apogee SI-4H1-SS IRT',
-                                                            'methods'       : 'infrared thermometer; SDI-12 protocol',
+                                                            'methods'       : 'thermopile infrared thermometer; SDI-12 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr50_dist_Avg']                .update({'long_name'     : 'Average of the uncorrected distance between the sensor and the surface during the 1 min averaging interval',
+    lev1_slow_atts['sr50_dist_Avg']                .update({'long_name'     : 'average of the uncorrected distance between the sensor and the surface during the 1 min averaging interval',
                                                             'instrument'    : 'SR50A',
                                                             'methods'       : 'acoustic ranger; SDI-12 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr50_dist_Std']                .update({'long_name'     : 'Standard deviation of the uncorrected distance between the sensor and the surface during the 1 min averaging interval',
+    lev1_slow_atts['sr50_dist_Std']                .update({'long_name'     : 'standard deviation of the uncorrected distance between the sensor and the surface during the 1 min averaging interval',
                                                             'instrument'    : 'SR50A',
                                                             'methods'       : 'acoustic ranger; SDI-12 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr50_qc_Avg']                  .update({'long_name'     : 'Quality number of the distance measurement',
+    lev1_slow_atts['sr50_qc_Avg']                  .update({'long_name'     : 'quality number of the distance measurement',
                                                             'instrument'    : 'SR50A',
                                                             'methods'       : 'acoustic ranger; SDI-12 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['vaisala_RH_Avg']               .update({'long_name'     : 'Average of the relative humidity during the 1 min averaging interval',
+    lev1_slow_atts['vaisala_RH_Avg']               .update({'long_name'     : 'average of the relative humidity during the 1 min averaging interval',
+                                                            'instrument'    : 'Vaisala PTU300',
+                                                            'methods'       : 'meteorology sensor, heated capacitive thin-film polymer; RS-485 protocol',
+                                                            'height'        : '2 m',
+                                                            'location'      : inst_boom_location_string,})
+
+    lev1_slow_atts['vaisala_RH_Std']               .update({'long_name'     : 'standard deviation of the relative humidity during the 1 min averaging interval',
+                                                            'instrument'    : 'Vaisala PTU300',
+                                                            'methods'       : 'meteorology sensor, heated capacitive thin-film polymer; RS-485 protocol',
+                                                            'height'        : '2 m',
+                                                            'location'      : inst_boom_location_string,})
+
+    lev1_slow_atts['vaisala_T_Avg']                .update({'long_name'     : 'average of the air temperature during the 1 min averaging interval',
+                                                            'instrument'    : 'Vaisala PTU300',
+                                                            'methods'       : 'meteorology sensor, PT100 RTD; RS-485 protocol',
+                                                            'height'        : '2 m',
+                                                            'location'      : inst_boom_location_string,})
+
+    lev1_slow_atts['vaisala_T_Std']                .update({'long_name'     : 'standard deviation of the air temperature during the 1 min averaging interval',
+                                                            'instrument'    : 'Vaisala PTU300',
+                                                            'methods'       : 'meteorology sensor, PT100 RTD; RS-485 protocol',
+                                                            'height'        : '2 m',
+                                                            'location'      : inst_boom_location_string,})
+
+    lev1_slow_atts['vaisala_Td_Avg']               .update({'long_name'     : 'average of the dewpoint temperature during the 1 min averaging interval',
+                                                            'instrument'    : 'Vaisala PTU300',
+                                                            'methods'       : 'calculated by sensor electonics; RS-485 protocol',
+                                                            'height'        : '2 m',
+                                                            'location'      : inst_boom_location_string,})
+
+    lev1_slow_atts['vaisala_Td_Std']               .update({'long_name'     : 'standard deviation of the dewpoint temperature during the 1 min averaging interval',
+                                                            'instrument'    : 'Vaisala PTU300',
+                                                            'methods'       : 'calculated by sensor electronics; RS-485 protocol',
+                                                            'height'        : '2 m',
+                                                            'location'      : inst_boom_location_string,})
+
+    lev1_slow_atts['vaisala_P_Avg']                .update({'long_name'     : 'average of the atmospheric pressure during the 1 min averaging interval',
                                                             'instrument'    : 'Vaisala PTU300',
                                                             'methods'       : 'meteorology sensor; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['vaisala_RH_Std']               .update({'long_name'     : 'Standard deviation of the relative humidity during the 1 min averaging interval',
+    lev1_slow_atts['vaisala_P_Std']                .update({'long_name'     : 'standard deviation of the atmospheric pressure during the 1 min averaging interval',
                                                             'instrument'    : 'Vaisala PTU300',
                                                             'methods'       : 'meteorology sensor; RS-485 protocol',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['vaisala_T_Avg']                .update({'long_name'     : 'Average of the air temperature during the 1 min averaging interval',
-                                                            'instrument'    : 'Vaisala PTU300',
-                                                            'methods'       : 'meteorology sensor; RS-485 protocol',
-                                                            'height'        : '2 m',
-                                                            'location'      : inst_boom_location_string,})
-
-    lev1_slow_atts['vaisala_T_Std']                .update({'long_name'     : 'Standard deviation of the air temperature during the 1 min averaging interval',
-                                                            'instrument'    : 'Vaisala PTU300',
-                                                            'methods'       : 'meteorology sensor; RS-485 protocol',
-                                                            'height'        : '2 m',
-                                                            'location'      : inst_boom_location_string,})
-
-    lev1_slow_atts['vaisala_Td_Avg']               .update({'long_name'     : 'Average of the dewpoint temperature during the 1 min averaging interval',
-                                                            'instrument'    : 'Vaisala PTU300',
-                                                            'methods'       : 'meteorology sensor; RS-485 protocol',
-                                                            'height'        : '2 m',
-                                                            'location'      : inst_boom_location_string,})
-
-    lev1_slow_atts['vaisala_Td_Std']               .update({'long_name'     : 'Standard deviation of the dewpoint temperature during the 1 min averaging interval',
-                                                            'instrument'    : 'Vaisala PTU300',
-                                                            'methods'       : 'meteorology sensor; RS-485 protocol',
-                                                            'height'        : '2 m',
-                                                            'location'      : inst_boom_location_string,})
-
-    lev1_slow_atts['vaisala_P_Avg']                .update({'long_name'     : 'Average of the atmospheric pressure during the 1 min averaging interval',
-                                                            'instrument'    : 'Vaisala PTU300',
-                                                            'methods'       : 'meteorology sensor; RS-485 protocol',
-                                                            'height'        : '2 m',
-                                                            'location'      : inst_boom_location_string,})
-
-    lev1_slow_atts['vaisala_P_Std']                .update({'long_name'     : 'Standard deviation of the atmospheric pressure during the 1 min averaging interval',
-                                                            'instrument'    : 'Vaisala PTU300',
-                                                            'methods'       : 'meteorology sensor; RS-485 protocol',
-                                                            'height'        : '2 m',
-                                                            'location'      : inst_boom_location_string,})
-
-    lev1_slow_atts['metek_x_Avg']                  .update({'long_name'     : 'Average wind velocity in x during the 1 min averaging interval',
+    lev1_slow_atts['metek_x_Avg']                  .update({'long_name'     : 'average wind velocity in x during the 1 min averaging interval',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-232',
+                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['metek_x_Std']                  .update({'long_name'     : 'Standard deviation of the wind velocity in x during the 1 min averaging interval',
+    lev1_slow_atts['metek_x_Std']                  .update({'long_name'     : 'standard deviation of the wind velocity in x during the 1 min averaging interval',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-232',
+                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['metek_y_Avg']                  .update({'long_name'     : 'Average wind velocity in y during the 1 min averaging interval',
+    lev1_slow_atts['metek_y_Avg']                  .update({'long_name'     : 'average wind velocity in y during the 1 min averaging interval',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-232',
+                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['metek_y_Std']                  .update({'long_name'     : 'Standard deviation of the wind velocity in y during the 1 min averaging interval',
+    lev1_slow_atts['metek_y_Std']                  .update({'long_name'     : 'standard deviation of the wind velocity in y during the 1 min averaging interval',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-232',
+                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['metek_z_Avg']                  .update({'long_name'     : 'Average wind velocity in z during the 1 min averaging interval',
+    lev1_slow_atts['metek_z_Avg']                  .update({'long_name'     : 'average wind velocity in z during the 1 min averaging interval',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-232',
+                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['metek_z_Std']                  .update({'long_name'     : 'Standard deviation of the wind velocity in z during the 1 min averaging interval',
+    lev1_slow_atts['metek_z_Std']                  .update({'long_name'     : 'standard deviation of the wind velocity in z during the 1 min averaging interval',
                                                             'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-232',
+                                                            'methods'       : 'sonic anemometer, source data reported at 20 Hz; protocol RS-422',
                                                             'height'        : '3.3 m',
                                                             'location'      : metek_location,})
 
-    lev1_slow_atts['ir20_lwu_mV_Avg']              .update({'long_name'     : 'Average thermopile voltage of the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_mV_Avg']              .update({'long_name'     : 'average thermopile voltage of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; differential voltage',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_mV_Std']              .update({'long_name'     : 'Standard deviation of the thermopile voltage of the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_mV_Std']              .update({'long_name'     : 'standard deviation of the thermopile voltage of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; differential voltage',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_Case_R_Avg']          .update({'long_name'     : 'Average resistance of the case thermistor of the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_Case_R_Avg']          .update({'long_name'     : 'average resistance of the case thermistor of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_Case_R_Std']          .update({'long_name'     : 'Standard deviation of the resistance of the case thermistor of the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_Case_R_Std']          .update({'long_name'     : 'standard deviation of the resistance of the case thermistor of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_DegC_Avg']            .update({'long_name'     : 'Average case temperature of the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_DegC_Avg']            .update({'long_name'     : 'average case temperature of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor; Steinhart-Hart A=0.0010295, B=0.0002391, C=0.0000001568',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_DegC_Std']            .update({'long_name'     : 'Standard deviation of the case temperature of the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_DegC_Std']            .update({'long_name'     : 'standard deviation of the case temperature of the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor; Steinhart-Hart A=0.0010295, B=0.0002391, C=0.0000001568',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_Wm2_Avg']             .update({'long_name'     : 'Average flux from the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_Wm2_Avg']             .update({'long_name'     : 'average flux from the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; preliminary calibration: uses thermopile sensitvity but not temperature dependence',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_Wm2_Std']             .update({'long_name'     : 'Standard deviation of the flux from the downward-facing (LWU) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwu_Wm2_Std']             .update({'long_name'     : 'standard deviation of the flux from the downward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; preliminary calibration: uses thermopile sensitvity but not temperature dependence',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_mV_Avg']              .update({'long_name'     : 'Average thermopile voltage of the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_mV_Avg']              .update({'long_name'     : 'average thermopile voltage of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; differential voltage',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_mV_Std']              .update({'long_name'     : 'Standard deviation of the thermopile voltage of the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_mV_Std']              .update({'long_name'     : 'standard deviation of the thermopile voltage of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; differential voltage',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_Case_R_Avg']          .update({'long_name'     : 'Average resistance of the case thermistor of the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_Case_R_Avg']          .update({'long_name'     : 'average resistance of the case thermistor of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_Case_R_Std']          .update({'long_name'     : 'Standard deviation of the resistance of the case thermistor of the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_Case_R_Std']          .update({'long_name'     : 'standard deviation of the resistance of the case thermistor of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_DegC_Avg']            .update({'long_name'     : 'Average case temperature of the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_DegC_Avg']            .update({'long_name'     : 'average case temperature of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor; Steinhart-Hart A=0.0010295, B=0.0002391, C=0.0000001568',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_DegC_Std']            .update({'long_name'     : 'Standard deviation of the case temperature of the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_DegC_Std']            .update({'long_name'     : 'standard deviation of the case temperature of the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; analog; half-bridge, 100kOhm 0.01% ref resistor; Steinhart-Hart A=0.0010295, B=0.0002391, C=0.0000001568',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_Wm2_Avg']             .update({'long_name'     : 'Average flux from the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_Wm2_Avg']             .update({'long_name'     : 'average flux from the upward-facing sensor during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; preliminary calibration: uses thermopile sensitvity but not temperature dependence',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_Wm2_Std']             .update({'long_name'     : 'Standard deviation of the flux from the upward-facing (LWD) pyrgeometer during the 1 min averaging interval',
+    lev1_slow_atts['ir20_lwd_Wm2_Std']             .update({'long_name'     : 'standard deviation of the flux from the sensor pyrgeometer during the 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux IR20',
                                                             'methods'       : 'thermopile pyrgeometer; preliminary calibration: uses thermopile sensitvity but not temperature dependence',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_A_mV_Avg']                  .update({'long_name'     : 'Average thermopile voltage in flux plate A during 1 min averaging interval',
+    lev1_slow_atts['fp_A_mV_Avg']                  .update({'long_name'     : 'average thermopile voltage during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_A_mV_Std']                  .update({'long_name'     : 'Standard deviation of the thermopile voltage in flux plate A during 1 min averaging interval',
+    lev1_slow_atts['fp_A_mV_Std']                  .update({'long_name'     : 'standard deviation of the thermopile voltage during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_A_Wm2_Avg']                 .update({'long_name'     : 'Average flux in flux plate A during 1 min averaging interval',
+    lev1_slow_atts['fp_A_Wm2_Avg']                 .update({'long_name'     : 'average flux during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_A_Wm2_Std']                 .update({'long_name'     : 'Standard deviation of the flux in flux plate A during 1 min averaging interval',
+    lev1_slow_atts['fp_A_Wm2_Std']                 .update({'long_name'     : 'standard deviation of the flux during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_B_mV_Avg']                  .update({'long_name'     : 'Average thermopile voltage in flux plate B during 1 min averaging interval',
+    lev1_slow_atts['fp_B_mV_Avg']                  .update({'long_name'     : 'average thermopile voltage during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_B_mV_Std']                  .update({'long_name'     : 'Standard deviation of the thermopile voltage in flux plate A during 1 min averaging interval',
+    lev1_slow_atts['fp_B_mV_Std']                  .update({'long_name'     : 'standard deviation of the thermopile voltage during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_B_Wm2_Avg']                 .update({'long_name'     : 'Average flux in flux plate B during 1 min averaging interval',
+    lev1_slow_atts['fp_B_Wm2_Avg']                 .update({'long_name'     : 'average flux during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['fp_B_Wm2_Std']                 .update({'long_name'     : 'Standard deviation of the flux in flux plate A during 1 min averaging interval',
+    lev1_slow_atts['fp_B_Wm2_Std']                 .update({'long_name'     : 'standard deviation of the flux during 1 min averaging interval',
                                                             'instrument'    : 'Hukseflux HFP01',
                                                             'methods'       : 'thermopile conductive flux plate; analog; differential voltage',
                                                             'height'        : 'subsurface, variable depth',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['licor_co2_Avg']                .update({'long_name'     : 'Average CO2 gas density during 1 min averaging interval',
+    lev1_slow_atts['licor_co2_Avg']                .update({'long_name'     : 'average CO2 gas density during 1 min averaging interval',
                                                             'instrument'    : 'Licor 7500-DS',
-                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
+                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; protocol TCP/IP',
                                                             'height'        : '3.3 m',
                                                             'location'      : licor_location,})
 
-    lev1_slow_atts['licor_co2_Std']                .update({'long_name'     : 'Standard deviation of the CO2 gas density during 1 min averaging interval',
+    lev1_slow_atts['licor_co2_Std']                .update({'long_name'     : 'standard deviation of the CO2 gas density during 1 min averaging interval',
                                                             'instrument'    : 'Licor 7500-DS',
-                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
+                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; protocol TCP/IP',
                                                             'height'        : '3.3 m',
                                                             'location'      : licor_location,})
 
-    lev1_slow_atts['licor_h2o_Avg']                .update({'long_name'     : 'Average water vapor density during 1 min averaging interval',
+    lev1_slow_atts['licor_h2o_Avg']                .update({'long_name'     : 'average water vapor density during 1 min averaging interval',
                                                             'instrument'    : 'Licor 7500-DS',
-                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
+                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; protocol TCP/IP',
                                                             'height'        : '3.3 m',
                                                             'location'      : licor_location,})
 
-    lev1_slow_atts['licor_h2o_Std']                .update({'long_name'     : 'Standard deviation of the water vapor density during 1 min averaging interval',
+    lev1_slow_atts['licor_h2o_Std']                .update({'long_name'     : 'standard deviation of the water vapor density during 1 min averaging interval',
                                                             'instrument'    : 'Licor 7500-DS',
-                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
+                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; protocol TCP/IP',
                                                             'height'        : '3.3 m',
                                                             'location'      : licor_location,})
 
-    lev1_slow_atts['licor_co2_str_out_Avg']        .update({'long_name'     : 'Average CO2 signal strength diagnostic during 1 min averaging interval',
+    lev1_slow_atts['licor_co2_str_out_Avg']        .update({'long_name'     : 'average CO2 signal strength diagnostic during 1 min averaging interval',
                                                             'instrument'    : 'Licor 7500-DS',
-                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
+                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; protocol TCP/IP',
                                                             'height'        : '3.3 m',
                                                             'location'      : licor_location,})
 
-    lev1_slow_atts['licor_co2_str_out_Std']        .update({'long_name'     : 'Standard deviation of the CO2 signal strength diagnostic during 1 min averaging interval',
+    lev1_slow_atts['licor_co2_str_out_Std']        .update({'long_name'     : 'standard deviation of the CO2 signal strength diagnostic during 1 min averaging interval',
                                                             'instrument'    : 'Licor 7500-DS',
-                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
+                                                            'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz; protocol TCP/IP',
                                                             'height'        : '3.3 m',
                                                             'location'      : licor_location,})
 
-    lev1_slow_atts['sr30_swu_fantach_Avg']         .update({'long_name'     : 'Average fan speed of the downward-facing (SWU) pyranometer during 1 min averaging period',
+    lev1_slow_atts['sr30_swu_fantach_Avg']         .update({'long_name'     : 'average fan speed of the downward-facing (SWU) pyranometer during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
-                                                            'methods'       : 'RS-485',
+                                                            'methods'       : 'thermopile pyranometer case fan; RS-485',
                                                             'height'        : '3.3 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swu_heatA_Avg']           .update({'long_name'     : 'Average case heating current of the downward-facing (SWU) pyranometer during 1 min averaging period',
+    lev1_slow_atts['sr30_swu_heatA_Avg']           .update({'long_name'     : 'average case heating current of the downward-facing sensor during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
-                                                            'methods'       : 'thermopile pyranometer; RS-485 protocol',
+                                                            'methods'       : 'thermopile pyranometer case heater; RS-485 protocol',
                                                             'height'        : '3.3 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_fantach_Avg']         .update({'long_name'     : 'Average fan speed of the upward-facing (SWD) pyranometer during 1 min averaging period',
+    lev1_slow_atts['sr30_swd_fantach_Avg']         .update({'long_name'     : 'average fan speed of the upward-facing sensor during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
-                                                            'methods'       : 'thermopile pyranometer; RS-485 protocol',
+                                                            'methods'       : 'thermopile pyranometer case fan; RS-485 protocol',
                                                             'height'        : '3.3 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_heatA_Avg']           .update({'long_name'     : 'Average case heating current of the upward-facing (SWD) pyranometer during 1 min averaging period',
+    lev1_slow_atts['sr30_swd_heatA_Avg']           .update({'long_name'     : 'average case heating current of the upward-facing sensor during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
-                                                            'methods'       : 'thermopile pyranometer; RS-485 protocol',
+                                                            'methods'       : 'thermopile pyranometer case heater; RS-485 protocol',
                                                             'height'        : '3.3 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwu_fan_Avg']             .update({'long_name'     : 'Average fan voltage status signal of the downward-facing (LWD) pyrgeometer ventilator during the 1 min averaging period',
+    lev1_slow_atts['ir20_lwu_fan_Avg']             .update({'long_name'     : 'average fan voltage status signal of the downward-facing ventilator during the 1 min averaging period',
                                                             'instrument'    : 'Hukseflux VU01',
-                                                            'methods'       : 'analog',
+                                                            'methods'       : 'ventilator fan; analog',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['ir20_lwd_fan_Avg']             .update({'long_name'     : 'Average fan voltage status signal of the upward-facing (LWU) pyrgeometer ventilator during the 1 min averaging period',
+    lev1_slow_atts['ir20_lwd_fan_Avg']             .update({'long_name'     : 'average fan voltage status signal of the upward-facing ventilator during the 1 min averaging period',
                                                             'instrument'    : 'Hukseflux VU01',
-                                                            'methods'       : 'analog',
+                                                            'methods'       : 'ventilator fan; analog',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['efoy_Error_Max']               .update({'long_name'     : 'Error code reported by the EFOY',
+    lev1_slow_atts['efoy_Error_Max']               .update({'long_name'     : 'error code reported by the EFOY',
                                                             'instrument'    : 'EFOY',
                                                             'methods'       : 'Direct Methanol Fuel Cell (DFMC) power supply; MODBUS RS-232 protocol',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['efoy_FuellSt_Avg']             .update({'long_name'     : 'EFOY mixing tank fluid level',
+    lev1_slow_atts['efoy_FuellSt_Avg']             .update({'long_name'     : 'mixing tank fluid level',
                                                             'instrument'    : 'EFOY',
                                                             'methods'       : 'Direct Methanol Fuel Cell (DFMC) power supply; MODBUS RS-232 protocol',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['efoy_Ubat_Avg']                .update({'long_name'     : 'Battery voltage',
+    lev1_slow_atts['efoy_Ubat_Avg']                .update({'long_name'     : 'battery voltage',
                                                             'instrument'    : 'EFOY',
                                                             'methods'       : 'Direct Methanol Fuel Cell (DFMC) power supply; MODBUS RS-232 protocol',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['efoy_Laus_Avg']                .update({'long_name'     : 'EFOY charging current',
+    lev1_slow_atts['efoy_Laus_Avg']                .update({'long_name'     : 'battery charging current',
                                                             'instrument'    : 'EFOY',
                                                             'methods'       : 'Direct Methanol Fuel Cell (DFMC) power supply; MODBUS RS-232 protocol',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['efoy_Tst_Avg']                 .update({'long_name'     : 'EFOY stack temperature',
+    lev1_slow_atts['efoy_Tst_Avg']                 .update({'long_name'     : 'stack temperature',
                                                             'instrument'    : 'EFOY',
                                                             'methods'       : 'Direct Methanol Fuel Cell (DFMC) power supply; MODBUS RS-232 protocol',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['efoy_Tint_Avg']                .update({'long_name'     : 'EFOY internal temperature',
+    lev1_slow_atts['efoy_Tint_Avg']                .update({'long_name'     : 'internal temperature',
                                                             'instrument'    : 'EFOY',
                                                             'methods'       : 'Direct Methanol Fuel Cell (DFMC) power supply; MODBUS RS-232 protocol',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['efoy_Twt_Avg']                 .update({'long_name'     : 'EFOY heat exchanger temperature',
+    lev1_slow_atts['efoy_Twt_Avg']                 .update({'long_name'     : 'heat exchanger temperature',
                                                             'instrument'    : 'EFOY',
                                                             'methods'       : 'Direct Methanol Fuel Cell (DFMC) power supply; MODBUS RS-232 protocol',
                                                             'height'        : 'N/A',
                                                             'location'      : 'logger box',})
 
-    lev1_slow_atts['sr30_swu_tilt_Avg']            .update({'long_name'     : 'Horizontal tilt of the downward-facing (SWU) pyranometer',
+    lev1_slow_atts['sr30_swu_tilt_Avg']            .update({'long_name'     : 'horizontal tilt of the downward-facing sensor',
                                                             'instrument'    : 'Hukseflux SR30',
-                                                            'methods'       : 'thermopile pyranometer; RS-485 protocol',
+                                                            'methods'       : 'thermopile pyranometer case level; RS-485 protocol; level defined as 180 deg',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
-    lev1_slow_atts['sr30_swd_tilt_Avg']            .update({'long_name'     : 'Horizontal tilt of the upward-facing (SWD) pyranometer',
+    lev1_slow_atts['sr30_swd_tilt_Avg']            .update({'long_name'     : 'horizontal tilt of the upward-facing sensor',
                                                             'instrument'    : 'Hukseflux SR30',
-                                                            'methods'       : 'thermopile pyranometer; RS-485 protocol',
+                                                            'methods'       : 'thermopile pyranometer case level; RS-485 protocol; level defined as 0 deg',
                                                             'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
@@ -825,8 +820,8 @@ def define_level1_fast():
     lev1_fast_atts['metek_T']             = {'units' : 'C'       }
     lev1_fast_atts['metek_heatstatus']    = {'units' : 'int'     }
     lev1_fast_atts['metek_senspathstate'] = {'units' : 'int'     }
-    lev1_fast_atts['licor_co2']           = {'units' : 'g/kg'    }
-    lev1_fast_atts['licor_h2o']           = {'units' : 'g/kg'    }
+    lev1_fast_atts['licor_co2']           = {'units' : 'g/m3'    }
+    lev1_fast_atts['licor_h2o']           = {'units' : 'mg/m3'   }
     lev1_fast_atts['licor_pr']            = {'units' : 'hPa'     }
     lev1_fast_atts['licor_diag']          = {'units' : 'int'     }
     lev1_fast_atts['licor_co2_str']       = {'units' : 'percent' }
@@ -839,67 +834,67 @@ def define_level1_fast():
 
     lev1_fast_atts['metek_x']             .update({'long_name'     : 'wind velocity in x',
                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : 'sonic anemometer; RS-422 protocol',
+                                                   'methods'       : 'sonic anemometer; data reported at 20 Hz; protocol RS-422',
                                                    'height'        : '3.3 m',
                                                    'location'      : metek_location,})
 
     lev1_fast_atts['metek_y']             .update({'long_name'     : 'wind velocity in y',
                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : 'sonic anemometer; RS-422 protocol',
+                                                   'methods'       : 'sonic anemometer; data reported at 20 Hz; protocol RS-422',
                                                    'height'        : '3.3 m',
                                                    'location'      : metek_location,})
 
     lev1_fast_atts['metek_z']             .update({'long_name'     : 'wind velocity in z',
                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : 'sonic anemometer; RS-422 protocol',
+                                                   'methods'       : 'sonic anemometer; data reported at 20 Hz; protocol RS-422',
                                                    'height'        : '3.3 m',
                                                    'location'      : metek_location,})
 
     lev1_fast_atts['metek_T']             .update({'long_name'     : 'acoustic temperature',
                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : 'sonic anemometer; RS-422 protocol',
+                                                   'methods'       : 'sonic anemometer; data reported at 20 Hz; protocol RS-422',
                                                    'height'        : '3.3 m',
                                                    'location'      : metek_location,})
 
     lev1_fast_atts['metek_heatstatus']    .update({'long_name'     : 'transducer heating status code',
                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
+                                                   'methods'       : 'sonic anemometer; data reported at 20 Hz; protocol RS-422',
                                                    'height'        : '3.3 m',
                                                    'location'      : metek_location,})
 
     lev1_fast_atts['metek_senspathstate'] .update({'long_name'     : 'number (of 9) of unusable paths',
                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                   'methods'       : '',
+                                                   'methods'       : 'sonic anemometer; data reported at 20 Hz; protocol RS-422',
                                                    'height'        : '3.3 m',
                                                    'location'      : metek_location,})
 
     lev1_fast_atts['licor_diag']          .update({'long_name'     : 'bit-packed diagnostic integer',
                                                    'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
+                                                   'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol; bits 0-3 = signal strength; bit 5 = PLL; bit 6 = detector temp; bit 7 = chopper temp',
                                                    'height'        : '3.3 m',
                                                    'location'      : licor_location,})
 
     lev1_fast_atts['licor_co2']           .update({'long_name'     : 'CO2 gas density',
                                                    'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
+                                                   'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
                                                    'height'        : '3.3 m',
                                                    'location'      : licor_location,})
 
     lev1_fast_atts['licor_h2o']           .update({'long_name'     : 'Water vapor density',
                                                    'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
+                                                   'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
                                                    'height'        : '3.3 m',
                                                    'location'      : licor_location,})
 
     lev1_fast_atts['licor_co2_str']       .update({'long_name'     : 'CO2 signal strength diagnostic',
                                                    'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
+                                                   'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol; raw co2 reference signal relative to expected value',
                                                    'height'        : '3.3 m',
                                                    'location'      : licor_location,})
 
-    lev1_fast_atts['licor_pr']            .update({'long_name'     : 'Air pressure',
+    lev1_fast_atts['licor_pr']            .update({'long_name'     : 'air pressure',
                                                    'instrument'    : 'Licor 7500-DS',
-                                                   'methods'       : '',
+                                                   'methods'       : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol; air pressure measured in electronics box',
                                                    'height'        : '3.3 m',
                                                    'location'      : licor_location,})
 
@@ -960,14 +955,14 @@ def define_level2_variables():
     lev2_atts['station_lon']          .update({ 'long_name'     : 'longitude from gps at station',
                                                 'cf_name'       : 'longitude',
                                                 'instrument'    : 'Hemisphere V102',
-                                                'methods'       : '$GPRMC, $GPGGA, GPGZDA',
+                                                'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
     lev2_atts['station_heading']      .update({ 'long_name'     : 'heading from gps at station',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hemisphere V102',
-                                                'methods'       : '$HEHDT',
+                                                'methods'       : 'HEHDT',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
@@ -1027,35 +1022,35 @@ def define_level2_variables():
                                                 'height'        : 'N/A',
                                                 'location'      : 'at base of station under SR50',})
 
-    lev2_atts['press_vaisala']        .update({ 'long_name'     : 'air pressure',
+    lev2_atts['press_vaisala']        .update({ 'long_name'     : 'atmospheric pressure',
                                                 'cf_name'       : 'air_pressure',
                                                 'instrument'    : 'Vaisala PTU 300',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['temp_vaisala']         .update({ 'long_name'     : 'temperature',
+    lev2_atts['temp_vaisala']         .update({ 'long_name'     : 'air temperature',
                                                 'cf_name'       : 'air_temperature',
                                                 'instrument'    : 'Vaisala HMT330',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['rel_humidity_vaisala'] .update({ 'long_name'     : 'relative humidity wrt water',
+    lev2_atts['rel_humidity_vaisala'] .update({ 'long_name'     : 'relative humidity',
                                                 'cf_name'       : 'relative_humidity',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['dewpoint_vaisala']     .update({ 'long_name'     : 'dewpoint',
+    lev2_atts['dewpoint_vaisala']     .update({ 'long_name'     : 'dewpoint temperature',
                                                 'cf_name'       : 'dew_point_temperature',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'digitally polled from instument',
-                                                'height'        : ' 2m',
+                                                'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['MR_vaisala']           .update({ 'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
+    lev2_atts['MR_vaisala']           .update({ 'long_name'     : 'mixing ratio',
                                                 'cf_name'       : 'specific_humidity',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'calculated from measured variables following Wexler (1976)',
@@ -1076,21 +1071,21 @@ def define_level2_variables():
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['RHi_vaisala']          .update({ 'long_name'     : 'ice RH derived using T/P/RH',
+    lev2_atts['RHi_vaisala']          .update({ 'long_name'     : 'relative humidity wrt ice',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['body_T_IRT']           .update({ 'long_name'     : 'instrument body temperature',
+    lev2_atts['body_T_IRT']           .update({ 'long_name'     : 'sensor body temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['surface_T_IRT']        .update({ 'long_name'     : 'Apogee IRT target 8-14 micron brightness temperature.',
+    lev2_atts['surface_T_IRT']        .update({ 'long_name'     : 'sensor target 8-14 micron brightness temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                 'methods'       : 'digitally polled from instument. No emmisivity correction. No correction for reflected incident.',
@@ -1104,7 +1099,7 @@ def define_level2_variables():
                                                 'height'        : 'surface',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['flux_plate_A_Wm2']     .update({ 'long_name'     : 'conductive flux from plate A',
+    lev2_atts['flux_plate_A_Wm2']     .update({ 'long_name'     : 'conductive flux',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hukseflux HFP01',
                                                 'methods'       : 'Sensitivity 63.00/1000 [mV/(W/m2)]',
@@ -1112,7 +1107,7 @@ def define_level2_variables():
                                                 'location'      : '10m south of station at met city',})
 
     lev2_atts['flux_plate_B_Wm2']      .update({'units'         : 'Wm2',
-                                                'long_name'     : 'conductive flux from plate B',
+                                                'long_name'     : 'conductive flux',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hukseflux HFP01',
                                                 'methods'       : 'Sensitivity 63.91/1000 [mV/(W/m2)]',
@@ -1134,7 +1129,7 @@ def define_level2_variables():
                                                 'location'      : inst_boom_location_string,})
 
 
-    lev2_atts['temp_metek']           .update({ 'long_name'     : 'Metek sonic temperature',
+    lev2_atts['temp_metek']           .update({ 'long_name'     : 'acoustic temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                 'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
