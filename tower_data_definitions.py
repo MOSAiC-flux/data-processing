@@ -33,7 +33,7 @@ def define_global_atts(file_type):
         'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
         'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
         'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
-        'system'           :'11 m Flux Tower'
+        'system'           :'11 m Flux Tower',
         'references'       :'', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
@@ -124,7 +124,7 @@ def define_level1_slow():
     lev1_slow_atts['TIMESTAMP']          .update({'long_name'  : 'timestamp from tower data logger',     
                                                   'instrument' : 'Campbell CR1000X',                     
                                                   'methods'    : 'synched with GPS',                                     
-                                                  'height'     : 'N/A,			                       
+                                                  'height'     : 'N/A',
                                                   'location'   : 'logger box',})               
 
     lev1_slow_atts['RECORD']             .update({'long_name'  : 'record number from tower data logger',
@@ -196,7 +196,7 @@ def define_level1_slow():
     lev1_slow_atts['batt_volt']          .update({'long_name'  : 'voltage of the power source supplying the logger', 
                                                   'instrument' : 'Campbell CR1000X',                     
                                                   'methods'    : '',                                     
-                                                  'height'     : 'N/A'			                       
+                                                  'height'     : 'N/A',
                                                   'location'   : 'logger box',})               
 
     lev1_slow_atts['call_time_mainscan'] .update({'long_name'  : 'duration of the logger scan', 
@@ -875,7 +875,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       :'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
-                                                    'height'        : 'N/A'
+                                                    'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['tower_heading']              .update({'long_name'    : 'heading from gps at the tower',

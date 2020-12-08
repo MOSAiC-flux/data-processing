@@ -39,7 +39,7 @@ def define_global_atts(station_name, file_type):
         'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
         'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
         'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
-        'system'           :'{}'.format(station_name)
+        'system'           :'{}'.format(station_name),
         'references'       :'', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
