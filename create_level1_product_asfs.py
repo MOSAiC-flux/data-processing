@@ -86,7 +86,7 @@ import socket
 global nthreads 
 if '.psd.' in socket.gethostname():
     nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 4 # laptops don't tend to have 64 cores
+else: nthreads = 3 # laptops don't tend to have 64 cores
 
 from datetime  import datetime, timedelta
 from numpy     import sqrt
@@ -107,7 +107,7 @@ print(version_msg)
 def main(): # the main data crunching program
 
     global trial, n_trial_files
-    trial = True # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
+    trial = False # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
     n_trial_files = 2000
 
     # the UNIX epoch... provides a common reference, used with base_time
@@ -760,8 +760,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     # first write the int base_time, the temporal distance from the UNIX epoch
     base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
     base_fast = netcdf_lev1_fast.createVariable('base_time', 'u4') # seconds since
-    base_slow = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds()).values[0]      # seconds
-    base_fast = np.floor((pd.DatetimeIndex([bot]) - et).total_seconds()).values[0]      # seconds
+    base_slow[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
+    base_fast[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
                  'long_name' : 'Base time since Epoch',
