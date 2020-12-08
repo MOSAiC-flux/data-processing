@@ -440,6 +440,8 @@ def get_slow_data(date):
         #slow_data = pd.concat([logger_df, mast_gps_df], axis=1) # is concat computationally efficient?  
     else:
         slow_data = logger_df
+
+    slow_data.index = slow_data.index-pd.Timedelta(1,unit='sec') 
     return slow_data.sort_index() # sort logger data (when copied, you lose the file create ordering...)
 
 
