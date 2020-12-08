@@ -319,7 +319,6 @@ def main(): # the main data crunching program
         rval_slow = write_level1_slow(slow_data, today)
         rval_fast = write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_bottom, today)
 
-        print(f"...leaving function")
         # process_station_days() ends here
         day_q.put(True)
         return 
@@ -335,7 +334,6 @@ def main(): # the main data crunching program
 
         if (i_day+1) % nthreads == 0 or today == day_series[-1]:
             for iq, qq in enumerate(q_list):
-                print(f"... waiting for q on day {day_list[iq]}")
                 qq.get()
             q_list = []
 
