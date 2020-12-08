@@ -65,7 +65,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 3 # laptops don't tend to have 64 cores, set to 1 to debug
 
 import numpy  as np
@@ -748,7 +748,7 @@ def write_level1_slow(slow_data, date):
 
     # first write the int base_time, the temporal distance from the UNIX epoch
     base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
-    base_slow = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0]) # seconds
+    base_slow[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0]) # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
                  'long_name' : 'Base time since Epoch',
