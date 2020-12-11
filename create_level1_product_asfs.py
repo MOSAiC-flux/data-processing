@@ -80,7 +80,7 @@ global nthreads
 if '.psd.' in socket.gethostname():
     nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 3 # laptops don't tend to have 64 cores
-nthreads=1
+
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
