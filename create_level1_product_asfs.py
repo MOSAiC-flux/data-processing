@@ -80,7 +80,7 @@ global nthreads
 if '.psd.' in socket.gethostname():
     nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 3 # laptops don't tend to have 64 cores
-
+nthreads=1
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
@@ -121,7 +121,7 @@ def main(): # the main data crunching program
 
     global data_dir, level1_dir
 
-    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties
+    flux_stations = ['asfs30']#, 'asfs40', 'asfs50'] # our beauties
     apogee_switch_date = {}
     apogee_switch_date['asfs30'] = datetime(2019,12,13,11,9,0) # 
     apogee_switch_date['asfs40'] = datetime(2019,12,13,11,9,0) # 
@@ -441,6 +441,8 @@ def get_slow_data(station, start_time, end_time, qq):
                 first_time = ff.readline().rsplit(',')[3].strip('"')              
 
         if num_cols == 99 and station == 'asfs30' and first_time > datetime(2020,4,12,16,22):
+            cver = 1
+        elif num_cols == 89 and station == 'asfs30' and first_time > datetime(2020,5,5,0,0):     
             cver = 1
         else: cver = 0
 
