@@ -444,6 +444,8 @@ def get_slow_data(station, start_time, end_time, qq):
             cver = 1
         elif num_cols == 89 and station == 'asfs30' and first_time > datetime(2020,5,5,0,0):     
             cver = 1
+        elif num_cols == 97 and first_time > datetime(2020,5,14,0,0):   
+            cver = 1
         else: cver = 0
 
         cols  = get_level1_col_headers(num_cols, cver)
