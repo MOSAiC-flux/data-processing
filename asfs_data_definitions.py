@@ -906,74 +906,69 @@ def define_level2_variables():
 
     lev2_atts = OrderedDict()
 
-    lev2_atts['station_lat']          = {'units' : 'degrees_north'}
-    lev2_atts['station_lon']          = {'units' : 'degrees_east'}
-    lev2_atts['station_heading']      = {'units' : 'degrees_true'}
-    lev2_atts['sza_true']             = {'units' : 'degrees'}
-    lev2_atts['sza_app']              = {'units' : 'degrees'}
+    lev2_atts['lat']          = {'units' : 'degrees_north'}
+    lev2_atts['lon']          = {'units' : 'degrees_east'}
+    lev2_atts['heading']      = {'units' : 'degrees_true'}
+    lev2_atts['zenith_true']             = {'units' : 'degrees'}
+    lev2_atts['zenith_apparent']              = {'units' : 'degrees'}
     lev2_atts['azimuth']              = {'units' : 'degrees'}
-    lev2_atts['ice_alt']              = {'units' : 'meters'}
     lev2_atts['ship_distance']        = {'units' : 'meters'}
     lev2_atts['ship_bearing']         = {'units' : 'degrees'}
     lev2_atts['sr50_dist']            = {'units' : 'meters'}
     lev2_atts['snow_depth']           = {'units' : 'cm'}
-    lev2_atts['press_vaisala']        = {'units' : 'hPa'}
-    lev2_atts['temp_vaisala']         = {'units' : 'deg C'}
-    lev2_atts['rel_humidity_vaisala'] = {'units' : 'percent'}
-    lev2_atts['dewpoint_vaisala']     = {'units' : 'deg C'}
-    lev2_atts['MR_vaisala']           = {'units' : 'g/kg'}
-    lev2_atts['abs_humidity_vaisala'] = {'units' : 'g/m3'}
-    lev2_atts['pw_vaisala']           = {'units' : 'Pa'}
-    lev2_atts['RHi_vaisala']          = {'units' : 'percent'}
-    lev2_atts['body_T_IRT']           = {'units' : 'deg C'}
-    lev2_atts['surface_T_IRT']        = {'units' : 'deg C'}
-    lev2_atts['surface_skin_T']       = {'units' : 'deg C'}
-    lev2_atts['flux_plate_A_Wm2']     = {'units' : 'Wm2'}
-    lev2_atts['flux_plate_B_Wm2']     = {'units' : 'Wm2'}
-    lev2_atts['wind_speed_metek']     = {'units' : 'm/s'}
-    lev2_atts['wind_direction_metek'] = {'units' : 'degC'}
-    lev2_atts['temp_metek']           = {'units' : 'deg C'}
-    lev2_atts['temp_variance_metek']  = {'units' : '(deg C)^2'}
-    lev2_atts['H2O_licor']            = {'units' : 'g/m3'}
-    lev2_atts['CO2_licor']            = {'units' : 'mg/m3'}
-    lev2_atts['co2_signal_licor']     = {'units' : 'percent'}
-    lev2_atts['radiation_LWd']        = {'units' : 'Wm2'}
-    lev2_atts['radiation_SWd']        = {'units' : 'Wm2'}
-    lev2_atts['radiation_LWu']        = {'units' : 'Wm2'}
-    lev2_atts['radiation_SWu']        = {'units' : 'Wm2'}
-    lev2_atts['radiation_net']        = {'units' : 'Wm2'}
+    lev2_atts['atmos_pressure']        = {'units' : 'hPa'}
+    lev2_atts['temp']         = {'units' : 'deg C'}
+    lev2_atts['rh'] = {'units' : 'percent'}
+    lev2_atts['dew_point']     = {'units' : 'deg C'}
+    lev2_atts['mixing_ratio']           = {'units' : 'g/kg'}
+    lev2_atts['vapor_pressure']           = {'units' : 'Pa'}
+    lev2_atts['rhi']          = {'units' : 'percent'}
+    lev2_atts['brightness_temp_surface']        = {'units' : 'deg C'}
+    lev2_atts['skin_temp_surface']       = {'units' : 'deg C'}
+    lev2_atts['subsurface_heat_flux_A']     = {'units' : 'Wm2'}
+    lev2_atts['subsurface_heat_flux_B']     = {'units' : 'Wm2'}
+    lev2_atts['wspd_vec_mean']     = {'units' : 'm/s'}
+    lev2_atts['wdir_vec_mean'] = {'units' : 'degC'}
+    lev2_atts['acoustic_temp']           = {'units' : 'deg C'}
+    lev2_atts['h2o_licor']            = {'units' : 'g/m3'}
+    lev2_atts['co2_licor']            = {'units' : 'mg/m3'}
+    lev2_atts['down_long_hemisp']        = {'units' : 'Wm2'}
+    lev2_atts['down_short_hemisp']        = {'units' : 'Wm2'}
+    lev2_atts['up_long_hemisp']        = {'units' : 'Wm2'}
+    lev2_atts['up_short_hemisp']        = {'units' : 'Wm2'}
+    lev2_atts['net_radiation']        = {'units' : 'Wm2'}
 
     # add everything else to the variable NetCDF attributes
     # #########################################################################################################
-    lev2_atts['station_lat']          .update({ 'long_name'     : 'latitude from gps at station',
+    lev2_atts['lat']          .update({ 'long_name'     : 'latitude from gps at station',
                                                 'cf_name'       : 'latitude',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['station_lon']          .update({ 'long_name'     : 'longitude from gps at station',
+    lev2_atts['lon']          .update({ 'long_name'     : 'longitude from gps at station',
                                                 'cf_name'       : 'longitude',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['station_heading']      .update({ 'long_name'     : 'heading from gps at station',
+    lev2_atts['heading']      .update({ 'long_name'     : 'heading from gps at station',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'HEHDT',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['sza_true']             .update({ 'long_name'     : 'true solar zenith angle',
+    lev2_atts['zenith_true']             .update({ 'long_name'     : 'true solar zenith angle',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['sza_app']             .update({ 'long_name'      : 'estimated apprarent solar zenith angle due to atmospheric refraction',
+    lev2_atts['zenith_apparent']             .update({ 'long_name'      : 'estimated apprarent solar zenith angle due to atmospheric refraction',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
@@ -984,13 +979,6 @@ def define_level2_variables():
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
-                                                'height'        : '2 m',
-                                                'location'      : inst_boom_location_string,})
-
-    lev2_atts['ice_alt']              .update({ 'long_name'     : 'altitude from gps at station corrected to altitude of ice top surface',
-                                                'cf_name'       : 'altitude',
-                                                'instrument'    : 'Hemisphere V102',
-                                                'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
@@ -1022,91 +1010,77 @@ def define_level2_variables():
                                                 'height'        : 'N/A',
                                                 'location'      : 'at base of station under SR50',})
 
-    lev2_atts['press_vaisala']        .update({ 'long_name'     : 'atmospheric pressure',
+    lev2_atts['atmos_pressure']        .update({ 'long_name'     : 'atmospheric pressure',
                                                 'cf_name'       : 'air_pressure',
                                                 'instrument'    : 'Vaisala PTU 300',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['temp_vaisala']         .update({ 'long_name'     : 'air temperature',
+    lev2_atts['temp']         .update({ 'long_name'     : 'air temperature',
                                                 'cf_name'       : 'air_temperature',
                                                 'instrument'    : 'Vaisala HMT330',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['rel_humidity_vaisala'] .update({ 'long_name'     : 'relative humidity',
+    lev2_atts['rh'] .update({ 'long_name'     : 'relative humidity',
                                                 'cf_name'       : 'relative_humidity',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['dewpoint_vaisala']     .update({ 'long_name'     : 'dewpoint temperature',
+    lev2_atts['dew_point']     .update({ 'long_name'     : 'dewpoint temperature',
                                                 'cf_name'       : 'dew_point_temperature',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['MR_vaisala']           .update({ 'long_name'     : 'mixing ratio',
+    lev2_atts['mixing_ratio']           .update({ 'long_name'     : 'mixing ratio',
                                                 'cf_name'       : 'specific_humidity',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['abs_humidity_vaisala'] .update({ 'long_name'     : 'absolute humidity',
-                                                'cf_name'       : 'absolute_humidity',
-                                                'instrument'    : 'Vaisala PTU300',
-                                                'methods'       : 'digitally polled from instument',
-                                                'height'        : '2 m',
-                                                'location'      : inst_boom_location_string,})
-
-    lev2_atts['pw_vaisala']           .update({ 'long_name'     : 'vapor pressure',
+    lev2_atts['vapor_pressure']           .update({ 'long_name'     : 'vapor pressure',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['RHi_vaisala']          .update({ 'long_name'     : 'relative humidity wrt ice',
+    lev2_atts['rhi']          .update({ 'long_name'     : 'relative humidity wrt ice',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['body_T_IRT']           .update({ 'long_name'     : 'sensor body temperature',
-                                                'cf_name'       : '',
-                                                'instrument'    : 'Apogee SI-4H1-SS IRT',
-                                                'methods'       : 'digitally polled from instument',
-                                                'height'        : '2 m',
-                                                'location'      : inst_boom_location_string,})
-
-    lev2_atts['surface_T_IRT']        .update({ 'long_name'     : 'sensor target 8-14 micron brightness temperature',
+    lev2_atts['brightness_temp_surface']        .update({ 'long_name'     : 'sensor target 8-14 micron brightness temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                 'methods'       : 'digitally polled from instument. No emmisivity correction. No correction for reflected incident.',
                                                 'height'        : 'surface',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['surface_skin_T']       .update({ 'long_name'     : 'surface radiometric skin temperature assummed emissivity, corrected for IR reflection',
+    lev2_atts['skin_temp_surface']       .update({ 'long_name'     : 'surface radiometric skin temperature assummed emissivity, corrected for IR reflection',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Apogee SI-4H1-SS IRT, IR20 LWu, LWd',
                                                 'methods'       : 'Eq.(2.2) Persson et al. (2002) https://www.doi.org/10.1029/2000JC000705; emis = 0.985',
                                                 'height'        : 'surface',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['flux_plate_A_Wm2']     .update({ 'long_name'     : 'conductive flux',
+    lev2_atts['subsurface_heat_flux_A']     .update({ 'long_name'     : 'conductive flux',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hukseflux HFP01',
                                                 'methods'       : 'Sensitivity 63.00/1000 [mV/(W/m2)]',
                                                 'height'        : 'subsurface, variable',
                                                 'location'      : '10m south of station at met city',})
 
-    lev2_atts['flux_plate_B_Wm2']      .update({'units'         : 'Wm2',
+    lev2_atts['subsurface_heat_flux_B']      .update({'units'         : 'Wm2',
                                                 'long_name'     : 'conductive flux',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hukseflux HFP01',
@@ -1114,14 +1088,14 @@ def define_level2_variables():
                                                 'height'        : 'subsurface, variable',
                                                 'location'      : 'under Apogee and SR50 at station base',})
 
-    lev2_atts['wind_speed_metek']     .update({ 'long_name'     : 'average metek wind speed',
+    lev2_atts['wspd_vec_mean']     .update({ 'long_name'     : 'average metek wind speed',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                 'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                 'height'        : '3.3 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['wind_direction_metek'] .update({ 'long_name'     : 'average metek wind direction',
+    lev2_atts['wdir_vec_mean'] .update({ 'long_name'     : 'average metek wind direction',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                 'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
@@ -1129,70 +1103,56 @@ def define_level2_variables():
                                                 'location'      : inst_boom_location_string,})
 
 
-    lev2_atts['temp_metek']           .update({ 'long_name'     : 'acoustic temperature',
+    lev2_atts['acoustic_temp']           .update({ 'long_name'     : 'acoustic temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                 'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                 'height'        : '3.3 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['temp_variance_metek']  .update({ 'long_name'     : 'metek sonic temperature obs variance',
-                                                'cf_name'       : '',
-                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                'height'        : '3.3 m',
-                                                'location'      : inst_boom_location_string,})
-
-    lev2_atts['H2O_licor']            .update({ 'long_name'     : 'Licor water vapor mass density',
+    lev2_atts['h2o_licor']            .update({ 'long_name'     : 'Licor water vapor mass density',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Licor 7500-DS',
                                                 'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
                                                 'height'        : '3.3 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['CO2_licor']            .update({ 'long_name'     : 'Licor CO2 gas density',
+    lev2_atts['co2_licor']            .update({ 'long_name'     : 'Licor CO2 gas density',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Licor 7500-DS',
                                                 'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
                                                 'height'        : '3.3 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['co2_signal_licor']     .update({ 'long_name'     : 'Licor CO2 signal strength diagnostic',
-                                                'cf_name'       : '',
-                                                'instrument'    : 'Licor 7500-DS',
-                                                'methods'       : 'signal strength [0-100%] is a measure of attenuation of the optics (e.g., by salt residue or ice) that applies to both co2 and h2o observations',
-                                                'height'        : '3.3 m',
-                                                'location'      : inst_boom_location_string,})
-
-    lev2_atts['radiation_LWd']        .update({ 'long_name'     : 'net downward longwave flux',
+    lev2_atts['down_long_hemisp']        .update({ 'long_name'     : 'net downward longwave flux',
                                                 'cf_name'       : 'surface_net_downward_longwave_flux',
                                                 'instrument'    : 'Hukseflux IR20 pyrgeometer',
                                                 'methods'       : 'hemispheric longwave radiation',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['radiation_SWd']        .update({ 'long_name'     : 'net downward shortwave flux',
+    lev2_atts['down_short_hemisp']        .update({ 'long_name'     : 'net downward shortwave flux',
                                                 'cf_name'       : 'surface_net_downward_shortwave_flux',
                                                 'instrument'    : 'Hukseflux SR30 pyranometer',
                                                 'methods'       : 'hemispheric shortwave radiation',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['radiation_LWu']        .update({ 'long_name'     : 'net upward longwave flux',
+    lev2_atts['up_long_hemisp']        .update({ 'long_name'     : 'net upward longwave flux',
                                                 'cf_name'       : 'surface_net_upward_longwave_flux',
                                                 'instrument'    : 'Hukseflux IR20 pyrgeometer',
                                                 'methods'       : 'hemispheric longwave radiation',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['radiation_SWu']        .update({ 'long_name'     : 'net upward shortwave flux',
+    lev2_atts['up_short_hemisp']        .update({ 'long_name'     : 'net upward shortwave flux',
                                                 'cf_name'       : 'surface_net_upward_shortwave_flux',
                                                 'instrument'    : 'Hukseflux SR30 pyranometer',
                                                 'methods'       : 'hemispheric shortwave radiation',
                                                 'height'        : '2 m',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['radiation_net']        .update({ 'long_name'     : 'cumulative surface radiative flux',
+    lev2_atts['net_radiation']        .update({ 'long_name'     : 'cumulative surface radiative flux',
                                                 'cf_name'       : 'surface_net_radiative_flux',
                                                 'instrument'    : 'SR30 and IR20 radiometers',
                                                 'methods'       : 'combined hemispheric radiation measurements',

@@ -380,6 +380,11 @@ def main(): # the main data crunching program
         day_q.put(True)
         return 
 
+    # ######################################################################################
+    # here's where we actually call the data crunching function for each day for each station
+    # we add threads in groups of nstations so that the stations progress forward together in
+    # time. you could also process all days for each station on after the other and it might
+    # make more sense... something something technical debt
     nthreads_station = int(np.floor(nthreads/3)) # num of days we can throw into child procs before waiting
 
     q_dict = {}  # setup queue storage

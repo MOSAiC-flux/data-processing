@@ -23,8 +23,7 @@ import re
 
 def main(): 
 
-    asfs_files  = ("asfs_data_definitions.py", "create_level1_product_asfs.py", "create_level2_product_asfs.py",
-                   "plot_scripts/plot_asfs_lev2_quicklooks.py","plot_scripts/plot_asfs_lev1_quicklooks.py")
+    asfs_files  = ("asfs_data_definitions.py", "create_level1_product_asfs.py", "create_level2_product_asfs.py", "qc_level2_asfs.py")
     tower_files = ("tower_data_definitions.py", "create_level1_product_tower.py", "create_level2_product_tower.py",
                    "plot_scripts/plot_asfs_lev2_quicklooks.py","plot_scripts/plot_asfs_lev1_quicklooks.py")
 
@@ -119,10 +118,11 @@ def main():
             yn_question = "!!! ARE YOU SURE YOU WANT TO CHANGE THESE LINES ??? (y/n)".format(bcolors.BOLD, old_str, bcolors.ENDC, \
                                                                                              bcolors.BOLD, new_str, bcolors.ENDC)
             
-            if not ask_yn(yn_question): 
+            if ask_yn(yn_question): 
+                break
+            else: 
                 printline()
-                if ask_yn("Would you like to start from the beginning?"): continue
-            else: break
+                if ask_yn("Would you like to start from the beginning?"): break
 
         for i_file, code_file in enumerate(code_files):
             file_in    = open(code_file, "rt")

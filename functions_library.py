@@ -1854,7 +1854,7 @@ def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
     #       - Climatological Configurable LWD vs LWU (LWD
 
     # Constants and Setup
-    mu0 = np.cos(np.deg2rad(df['sza_true']))
+    mu0 = np.cos(np.deg2rad(df['zenith_true']))
     mu0.loc[mu0 < 0] = 0
     au = 1
     Sa  = 1368/au**2
@@ -1865,23 +1865,23 @@ def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
     #
     
     # (1) PPL
-    df['radiation_SWd'].mask( (df['radiation_SWd']<sw_range[0]) | (df['radiation_SWd']>sw_range[1]) , inplace=True)
-    df['radiation_SWu'].mask( (df['radiation_SWu']<sw_range[0]) | (df['radiation_SWu']>sw_range[1]) , inplace=True)
+    df['down_short_hemisp'].mask( (df['down_short_hemisp']<sw_range[0]) | (df['down_short_hemisp']>sw_range[1]) , inplace=True)
+    df['up_short_hemisp'].mask( (df['up_short_hemisp']<sw_range[0]) | (df['up_short_hemisp']>sw_range[1]) , inplace=True)
 
     # (2) Rayleigh Limit
-    RL = 209.3*mu0 - 708.3*mu0**2 + 1128.7*mu0**3 - 911.2*mu0**4 + 287.85*mu0**5 + 0.046725*mu0*df['press_vaisala'].mean()
-    df['radiation_SWd'].mask( df['radiation_SWd'] < RL, inplace=True)
+    RL = 209.3*mu0 - 708.3*mu0**2 + 1128.7*mu0**3 - 911.2*mu0**4 + 287.85*mu0**5 + 0.046725*mu0*df['atmos_pressure'].mean()
+    df['down_short_hemisp'].mask( df['down_short_hemisp'] < RL, inplace=True)
     
     # (3) CCL
     ccswdH2 = Sa*D1*mu0**1.2 + 55
     ccswuH2 = Sa*D5*mu0**1.2 + 55
-    df['radiation_SWd'].mask( df['radiation_SWd'] > ccswdH2, inplace=True)
-    df['radiation_SWu'].mask( df['radiation_SWu'] > ccswuH2, inplace=True)
+    df['down_short_hemisp'].mask( df['down_short_hemisp'] > ccswdH2, inplace=True)
+    df['up_short_hemisp'].mask( df['up_short_hemisp'] > ccswuH2, inplace=True)
      
     # (4) Albedo
-    albs_abs = np.abs(df['radiation_SWu']/df['radiation_SWd'])
-    df['radiation_SWd'].mask( albs_abs > A0, inplace=True) 
-    df['radiation_SWu'].mask( albs_abs > A0, inplace=True) 
+    albs_abs = np.abs(df['up_short_hemisp']/df['down_short_hemisp'])
+    df['down_short_hemisp'].mask( albs_abs > A0, inplace=True) 
+    df['up_short_hemisp'].mask( albs_abs > A0, inplace=True) 
 
 
     #
@@ -1889,22 +1889,22 @@ def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
     #
      
     # (1) PPL
-    df['radiation_LWd'].mask( (df['radiation_LWd']<lw_range[0]) | (df['radiation_LWd']>lw_range[1]) , inplace=True)
-    df['radiation_LWu'].mask( (df['radiation_LWu']<lw_range[0]) | (df['radiation_LWu']>lw_range[1]) , inplace=True) 
+    df['down_long_hemisp'].mask( (df['down_long_hemisp']<lw_range[0]) | (df['down_long_hemisp']>lw_range[1]) , inplace=True)
+    df['up_long_hemisp'].mask( (df['up_long_hemisp']<lw_range[0]) | (df['up_long_hemisp']>lw_range[1]) , inplace=True) 
      
     # (2) Tair
-    Tair = (df['temp_vaisala']+273.15).interpolate()
+    Tair = (df['temp']+273.15).interpolate()
     tair_lwd_lo = D11 * sb*(Tair)**4 
     tair_lwd_hi = sb*Tair**4 + D12
     tair_lwu_lo = sb*(Tair-D13)**4
     tair_lwu_hi = sb*(Tair+D14)**4
-    df['radiation_LWd'].mask( (df['radiation_LWd']<tair_lwd_lo) | (df['radiation_LWd']>tair_lwd_hi) , inplace=True)
-    df['radiation_LWu'].mask( (df['radiation_LWu']<tair_lwu_lo) | (df['radiation_LWu']>tair_lwu_hi) , inplace=True)
+    df['down_long_hemisp'].mask( (df['down_long_hemisp']<tair_lwd_lo) | (df['down_long_hemisp']>tair_lwd_hi) , inplace=True)
+    df['up_long_hemisp'].mask( (df['up_long_hemisp']<tair_lwu_lo) | (df['up_long_hemisp']>tair_lwu_hi) , inplace=True)
     
     # (3) LWU <-> LWD 
-    lwd_lwu_lo = df['radiation_LWu'] - D15
-    lwd_lwu_hi = df['radiation_LWu'] + D16
-    df['radiation_LWd'].mask( (df['radiation_LWd']<lwd_lwu_lo) | (df['radiation_LWd']>lwd_lwu_hi) , inplace=True)
+    lwd_lwu_lo = df['up_long_hemisp'] - D15
+    lwd_lwu_hi = df['up_long_hemisp'] + D16
+    df['down_long_hemisp'].mask( (df['down_long_hemisp']<lwd_lwu_lo) | (df['down_long_hemisp']>lwd_lwu_hi) , inplace=True)
     
     
     # return screened values
