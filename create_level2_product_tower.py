@@ -416,11 +416,9 @@ def main(): # the main data crunching program
         licor_index = 0 
         for li, ld in enumerate(licor_dates) :
             if today >= ld:
-                print(f"{today_str} >>> {ld}")
                 licor_index = li
                 break
         licor_z = licor_heights[licor_index]
-        print(f"{licor_index} -- {today_str}")
 
         # has the mast moved today?
         mast_index = 0 
