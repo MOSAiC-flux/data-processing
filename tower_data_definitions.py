@@ -765,169 +765,145 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
 
     lev2_atts = OrderedDict()
 
-    lev2_atts['tower_lat']                 = {'units'         : 'degrees_north'}
-    lev2_atts['tower_lon']                 = {'units'         : 'degrees_east'}
-    lev2_atts['tower_heading']             = {'units'         : 'degrees_true'}
-    lev2_atts['tower_ice_alt']             = {'units'         : 'meters'}
-    lev2_atts['mast_heading']              = {'units'         : 'deg'}
-    lev2_atts['mast_lat']                  = {'units'         : 'min'}
-    lev2_atts['mast_lon']                  = {'units'         : 'deg'}
-    lev2_atts['mast_ice_alt']              = {'units'         : 'm'}
-    lev2_atts['sza_true']                  = {'units'         : 'degrees'}
-    lev2_atts['sza_app']                   = {'units'         : 'degrees'}
-    lev2_atts['azimuth']                   = {'units'         : 'degrees'}
-    lev2_atts['ship_bearing']              = {'units'         : 'degrees'}
-    lev2_atts['ship_distance']             = {'units'         : 'meters'}
-    lev2_atts['sr50_dist']                 = {'units'         : 'meters'}
-    lev2_atts['temp_vaisala_2m']           = {'units'         : 'deg C'}
-    lev2_atts['temp_vaisala_6m']           = {'units'         : 'deg C'}
-    lev2_atts['temp_vaisala_10m']          = {'units'         : 'deg C'}
-    lev2_atts['temp_vaisala_mast']         = {'units'         : 'deg C'}
-    lev2_atts['dewpoint_vaisala_2m']       = {'units'         : 'deg C'}
-    lev2_atts['dewpoint_vaisala_6m']       = {'units'         : 'deg C'}
-    lev2_atts['dewpoint_vaisala_10m']      = {'units'         : 'deg C'}
-    lev2_atts['dewpoint_vaisala_mast']     = {'units'         : 'deg C'}
-    lev2_atts['rel_humidity_vaisala_2m']   = {'units'         : 'percent'}
-    lev2_atts['rel_humidity_vaisala_6m']   = {'units'         : 'percent'}
-    lev2_atts['rel_humidity_vaisala_10m']  = {'units'         : 'percent'}
-    lev2_atts['rel_humidity_vaisala_mast'] = {'units'         : 'percent'}
-    lev2_atts['pressure_vaisala_2m']       = {'units'         : 'hPa'}
-    lev2_atts['mast_pressure']             = {'units'         : 'hPa'}
-    lev2_atts['body_T_IRT']                = {'units'         : 'deg C'}
-    lev2_atts['surface_T_IRT']             = {'units'         : 'deg C'}
-    lev2_atts['flux_plate_A_mv']           = {'units'         : 'mv'}
-    lev2_atts['flux_plate_B_mv']           = {'units'         : 'mv'}
-    lev2_atts['flux_plate_A_Wm2']          = {'units'         : 'Wm2'}
-    lev2_atts['flux_plate_B_Wm2']          = {'units'         : 'Wm2'}
-    lev2_atts['snow_depth']                = {'units'         : 'cm'}
-    lev2_atts['MR_vaisala_2m']             = {'units'         : 'g/kg'}
-    lev2_atts['MR_vaisala_6m']             = {'units'         : 'g/kg'}
-    lev2_atts['MR_vaisala_10m']            = {'units'         : 'g/kg'}
-    lev2_atts['MR_vaisala_mast']           = {'units'         : 'g/kg'}
-    lev2_atts['RHi_vaisala_2m']            = {'units'         : 'percent'}
-    lev2_atts['RHi_vaisala_6m']            = {'units'         : 'percent'}
-    lev2_atts['RHi_vaisala_10m']           = {'units'         : 'percent'}
-    lev2_atts['RHi_vaisala_mast']          = {'units'         : 'percent'}
-    lev2_atts['pw_vaisala_2m']             = {'units'         : 'Pa'}
-    lev2_atts['pw_vaisala_6m']             = {'units'         : 'Pa'}
-    lev2_atts['pw_vaisala_10m']            = {'units'         : 'Pa'}
-    lev2_atts['pw_vaisala_mast']           = {'units'         : 'Pa'}
-    lev2_atts['wind_speed_metek_2m']       = {'units'         : 'm/s'}
-    lev2_atts['wind_speed_metek_6m']       = {'units'         : 'm/s'}
-    lev2_atts['wind_speed_metek_10m']      = {'units'         : 'm/s'}
-    lev2_atts['wind_speed_metek_mast']     = {'units'         : 'm/s'}
-    lev2_atts['wind_direction_metek_2m']   = {'units'         : 'deg true'}
-    lev2_atts['wind_direction_metek_6m']   = {'units'         : 'deg true'}
-    lev2_atts['wind_direction_metek_10m']  = {'units'         : 'deg true'}
-    lev2_atts['wind_direction_metek_mast'] = {'units'         : 'deg true'}
-    lev2_atts['temp_variance_metek_2m']    = {'units'         : '(deg C)^2'}
-    lev2_atts['temp_variance_metek_6m']    = {'units'         : '(deg C)^2'}
-    lev2_atts['temp_variance_metek_10m']   = {'units'         : '(deg C)^2'}
-    lev2_atts['temp_variance_metek_mast']  = {'units'         : '(deg C)^2'}
-    lev2_atts['H2O_licor']                 = {'units'         : 'mmol/m3'}
-    lev2_atts['CO2_licor']                 = {'units'         : 'mmol/m3'}
-    lev2_atts['temp_licor']                = {'units'         : 'deg C'}
-    lev2_atts['pr_licor']                  = {'units'         : 'hPa'}
-    lev2_atts['u_metek_2m']                = {'units'         : 'm/s'}
-    lev2_atts['u_metek_6m']                = {'units'         : 'm/s'}
-    lev2_atts['u_metek_10m']               = {'units'         : 'm/s'}
-    lev2_atts['u_metek_mast']              = {'units'         : 'm/s'}
-    lev2_atts['v_metek_2m']                = {'units'         : 'm/s'}
-    lev2_atts['v_metek_6m']                = {'units'         : 'm/s'}
-    lev2_atts['v_metek_10m']               = {'units'         : 'm/s'}
-    lev2_atts['v_metek_mast']              = {'units'         : 'm/s'}
-    lev2_atts['w_metek_2m']                = {'units'         : 'm/s'}
-    lev2_atts['w_metek_6m']                = {'units'         : 'm/s'}
-    lev2_atts['w_metek_10m']               = {'units'         : 'm/s'}
-    lev2_atts['w_metek_mast']              = {'units'         : 'm/s'}
-    lev2_atts['temp_metek_2m']             = {'units'         : 'deg C'}
-    lev2_atts['temp_metek_6m']             = {'units'         : 'deg C'}
-    lev2_atts['temp_metek_10m']            = {'units'         : 'deg C'}
-    lev2_atts['temp_metek_mast']           = {'units'         : 'deg C'}
-    lev2_atts['stddev_u_metek_2m']         = {'units'         : 'm/s'}
-    lev2_atts['stddev_v_metek_2m']         = {'units'         : 'm/s'}
-    lev2_atts['stddev_w_metek_2m']         = {'units'         : 'm/s'}
-    lev2_atts['stddev_T_metek_2m']         = {'units'         : 'deg C'}
-    lev2_atts['stddev_u_metek_6m']         = {'units'         : 'm/s'}
-    lev2_atts['stddev_v_metek_6m']         = {'units'         : 'm/s'}
-    lev2_atts['stddev_w_metek_6m']         = {'units'         : 'm/s'}
-    lev2_atts['stddev_T_metek_6m']         = {'units'         : 'deg C'}
-    lev2_atts['stddev_u_metek_10m']        = {'units'         : 'm/s'}
-    lev2_atts['stddev_v_metek_10m']        = {'units'         : 'm/s'}
-    lev2_atts['stddev_w_metek_10m']        = {'units'         : 'm/s'}
-    lev2_atts['stddev_T_metek_10m']        = {'units'         : 'deg C'}
-    lev2_atts['stddev_u_metek_mast']       = {'units'         : 'm/s'}
-    lev2_atts['stddev_v_metek_mast']       = {'units'         : 'm/s'}
-    lev2_atts['stddev_w_metek_mast']       = {'units'         : 'm/s'}
-    lev2_atts['stddev_T_metek_mast']       = {'units'         : 'deg C'}
-    lev2_atts['co2_signal_licor']          = {'units'         : 'percent'}
+    lev2_atts['lat_tower']               = {'units' : 'degrees_north'}
+    lev2_atts['lon_tower']               = {'units' : 'degrees_east'}
+    lev2_atts['heading_tower']           = {'units' : 'degrees_true'}
+    lev2_atts['heading_mast']            = {'units' : 'deg'}
+    lev2_atts['lat_mast']                = {'units' : 'min'}
+    lev2_atts['lon_mast']                = {'units' : 'deg'}
+    lev2_atts['zenith_true']             = {'units' : 'degrees'}
+    lev2_atts['zenith_apparent']         = {'units' : 'degrees'}
+    lev2_atts['azimuth']                 = {'units' : 'degrees'}
+    lev2_atts['ship_bearing']            = {'units' : 'degrees'}
+    lev2_atts['ship_distance']           = {'units' : 'meters'}
+    lev2_atts['sr50_dist']               = {'units' : 'meters'}
+    lev2_atts['temp_2m']                 = {'units' : 'deg C'}
+    lev2_atts['temp_6m']                 = {'units' : 'deg C'}
+    lev2_atts['temp_10m']                = {'units' : 'deg C'}
+    lev2_atts['temp_mast']               = {'units' : 'deg C'}
+    lev2_atts['dew_point_2m']            = {'units' : 'deg C'}
+    lev2_atts['dew_point_6m']            = {'units' : 'deg C'}
+    lev2_atts['dew_point_10m']           = {'units' : 'deg C'}
+    lev2_atts['dew_point_mast']          = {'units' : 'deg C'}
+    lev2_atts['rh_2m']                   = {'units' : 'percent'}
+    lev2_atts['rh_6m']                   = {'units' : 'percent'}
+    lev2_atts['rh_10m']                  = {'units' : 'percent'}
+    lev2_atts['rh_mast']                 = {'units' : 'percent'}
+    lev2_atts['atmos_pressure_2m']       = {'units' : 'hPa'}
+    lev2_atts['atmos_pressure_mast']     = {'units' : 'hPa'}
+    lev2_atts['brightness_temp_surface'] = {'units' : 'deg C'}
+    lev2_atts['subsurface_heat_flux_A']  = {'units' : 'Wm2'}
+    lev2_atts['subsurface_heat_flux_B']  = {'units' : 'Wm2'}
+    lev2_atts['snow_depth']              = {'units' : 'cm'}
+    lev2_atts['mixing_ratio_2m']         = {'units' : 'g/kg'}
+    lev2_atts['mixing_ratio_6m']         = {'units' : 'g/kg'}
+    lev2_atts['mixing_ratio_10m']        = {'units' : 'g/kg'}
+    lev2_atts['mixing_ratio_mast']       = {'units' : 'g/kg'}
+    lev2_atts['rhi_2m']                  = {'units' : 'percent'}
+    lev2_atts['rhi_6m']                  = {'units' : 'percent'}
+    lev2_atts['rhi_10m']                 = {'units' : 'percent'}
+    lev2_atts['rhi_mast']                = {'units' : 'percent'}
+    lev2_atts['vapor_pressure_2m']       = {'units' : 'Pa'}
+    lev2_atts['vapor_pressure_6m']       = {'units' : 'Pa'}
+    lev2_atts['vapor_pressure_10m']      = {'units' : 'Pa'}
+    lev2_atts['vapor_pressure_mast']     = {'units' : 'Pa'}
+    lev2_atts['wspd_vec_mean_2m']        = {'units' : 'm/s'}
+    lev2_atts['wspd_vec_mean_6m']        = {'units' : 'm/s'}
+    lev2_atts['wspd_vec_mean_10m']       = {'units' : 'm/s'}
+    lev2_atts['wspd_vec_mean_mast']      = {'units' : 'm/s'}
+    lev2_atts['wdir_vec_mean_2m']        = {'units' : 'deg true'}
+    lev2_atts['wdir_vec_mean_6m']        = {'units' : 'deg true'}
+    lev2_atts['wdir_vec_mean_10m']       = {'units' : 'deg true'}
+    lev2_atts['wdir_vec_mean_mast']      = {'units' : 'deg true'}
+    lev2_atts['h2o_licor']               = {'units' : 'mmol/m3'}
+    lev2_atts['co2_licor']               = {'units' : 'mmol/m3'}
+    lev2_atts['temp_licor']              = {'units' : 'deg C'}
+    lev2_atts['pressure_licor']          = {'units' : 'hPa'}
+    lev2_atts['wspd_u_mean_2m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_u_mean_6m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_u_mean_10m']         = {'units' : 'm/s'}
+    lev2_atts['wspd_u_mean_mast']        = {'units' : 'm/s'}
+    lev2_atts['wspd_v_mean_2m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_v_mean_6m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_v_mean_10m']         = {'units' : 'm/s'}
+    lev2_atts['wspd_v_mean_mast']        = {'units' : 'm/s'}
+    lev2_atts['wspd_w_mean_2m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_w_mean_6m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_w_mean_10m']         = {'units' : 'm/s'}
+    lev2_atts['wspd_w_mean_mast']        = {'units' : 'm/s'}
+    lev2_atts['temp_acoustic_mean_2m']   = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic_mean_6m']   = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic_mean_10m']  = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic_mean_mast'] = {'units' : 'deg C'}
+    lev2_atts['wspd_u_std_2m']           = {'units' : 'm/s'}
+    lev2_atts['wspd_v_std_2m']           = {'units' : 'm/s'}
+    lev2_atts['wspd_w_std_2m']           = {'units' : 'm/s'}
+    lev2_atts['acoustic_temp_std_2m']    = {'units' : 'deg C'}
+    lev2_atts['wspd_u_std_6m']           = {'units' : 'm/s'}
+    lev2_atts['wspd_v_std_6m']           = {'units' : 'm/s'}
+    lev2_atts['wspd_w_std_6m']           = {'units' : 'm/s'}
+    lev2_atts['acoustic_temp_std_6m']    = {'units' : 'deg C'}
+    lev2_atts['wspd_u_std_10m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_v_std_10m']          = {'units' : 'm/s'}
+    lev2_atts['wspd_w_std_10m']          = {'units' : 'm/s'}
+    lev2_atts['acoustic_temp_std_10m']   = {'units' : 'deg C'}
+    lev2_atts['wspd_u_std_mast']         = {'units' : 'm/s'}
+    lev2_atts['wspd_v_std_mast']         = {'units' : 'm/s'}
+    lev2_atts['wspd_w_std_mast']         = {'units' : 'm/s'}
+    lev2_atts['acoustic_temp_std_mast']  = {'units' : 'deg C'}
     
     # add the other important things to the data variable NetCDF attributes
     # #########################################################################################################
-    lev2_atts['tower_lat']                  .update({'long_name'    : 'latitude from gps at the tower',
+    lev2_atts['lat_tower']                  .update({'long_name'    : 'latitude from gps at the tower',
                                                     'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                     'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_lon']                  .update({'long_name'    :'longitude from gps at the tower',
+    lev2_atts['lon_tower']                  .update({'long_name'    :'longitude from gps at the tower',
                                                     'cf_name'       :'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
                                                     'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_heading']              .update({'long_name'    : 'heading from gps at the tower',
+    lev2_atts['heading_tower']              .update({'long_name'    : 'heading from gps at the tower',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
                                                     'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['tower_ice_alt']              .update({'long_name'    : 'altitude from gps at the tower corrected to altitude of ice top surface',
-                                                    'cf_name'       : 'altitude',
-                                                    'instrument'    : 'Hemisphere V102',
-                                                    'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '',
-                                                    'location'      : bottom_location_string,})
-    
-    lev2_atts['mast_lat']                  .update({'long_name'     : 'latitude from gps at the mast',
+    lev2_atts['lat_mast']                  .update({'long_name'     : 'latitude from gps at the mast',
                                                     'cf_name'       : 'latitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                     'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['mast_lon']                  .update({'long_name'     : 'longitude from gps at the mast',
+    lev2_atts['lon_mast']                  .update({'long_name'     : 'longitude from gps at the mast',
                                                     'cf_name'       : 'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
                                                     'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['mast_heading']              .update({'long_name'     : 'heading from gps at the mast',
+    lev2_atts['heading_mast']              .update({'long_name'     : 'heading from gps at the mast',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
                                                     'height'        : 'N/A',
                                                     'location'      : bottom_location_string,})
     
-    lev2_atts['mast_ice_alt']              .update({'long_name'     : 'altitude from gps at the mast corrected to altitude of ice top surface',
-                                                    'cf_name'       : 'altitude',
-                                                    'instrument'    : 'Hemisphere V102',
-                                                    'methods'       : 'GPRMC, GPGGA, GPGZDA',
-                                                    'height'        : '',
-                                                    'location'      : bottom_location_string,})  
-    
-    lev2_atts['sza_true']                  .update({ 'long_name'    : 'true solar zenith angle',
+    lev2_atts['zenith_true']                  .update({ 'long_name'    : 'true solar zenith angle',
                                                      'cf_name'      : '',
                                                      'instrument'   : 'Hemisphere V102',
                                                      'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
                                                      'height'       : 'N/A',
                                                     'location'      : bottom_location_string,})
     
-    lev2_atts['sza_app']                   .update({ 'long_name'    : 'estimated apprarent solar zenith angle due to atmospheric refraction',
+    lev2_atts['zenith_apparent']                   .update({ 'long_name'    : 'estimated apprarent solar zenith angle due to atmospheric refraction',
                                                      'cf_name'      : '',
                                                      'instrument'   : 'Hemisphere V102',
                                                      'methods'      : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
@@ -962,140 +938,119 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['temp_vaisala_2m']           .update({'long_name'     : 'temperature',
+    lev2_atts['temp_2m']           .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['temp_vaisala_6m']           .update({'long_name'     : 'temperature',
+    lev2_atts['temp_6m']           .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['temp_vaisala_10m']          .update({'long_name'     : 'temperature',
+    lev2_atts['temp_10m']          .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_emperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_2m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['temp_vaisala_mast']         .update({'long_name'     : 'temperature',
+    lev2_atts['temp_mast']         .update({'long_name'     : 'temperature',
                                                     'cf_name'       : 'air_temperature',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['dewpoint_vaisala_2m']       .update({'long_name'     : 'dewpoint',
+    lev2_atts['dew_point_2m']       .update({'long_name'     : 'dewpoint',
                                                     'cf_name'       : 'dew_point_temperature',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['dewpoint_vaisala_6m']       .update({'long_name'     : 'dewpoint',
+    lev2_atts['dew_point_6m']       .update({'long_name'     : 'dewpoint',
                                                     'cf_name'       : 'dew_point_temperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['dewpoint_vaisala_10m']       .update({'long_name'     : 'dewpoint',
+    lev2_atts['dew_point_10m']       .update({'long_name'     : 'dewpoint',
                                                      'cf_name'       : 'dew_point_temperature',
                                                      'instrument'    : 'Vaisala HMT330',
                                                      'methods'       : 'digitally polled from instument',
                                                      'height'        : sonic_10m,
                                                      'location'      : top_location_string,})
 
-    lev2_atts['dewpoint_vaisala_mast']     .update({'long_name'     : 'dewpoint',
+    lev2_atts['dew_point_mast']     .update({'long_name'     : 'dewpoint',
                                                     'cf_name'       : 'dew_point_temperatre',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['rel_humidity_vaisala_2m']   .update({'long_name'     : 'relative humidity wrt water',
+    lev2_atts['rh_2m']   .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['rel_humidity_vaisala_6m']   .update({'long_name'     : 'relative humidity wrt water',
+    lev2_atts['rh_6m']   .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['rel_humidity_vaisala_10m']  .update({'long_name'     : 'relative humidity wrt water',
+    lev2_atts['rh_10m']  .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['rel_humidity_vaisala_mast'] .update({'long_name'     : 'relative humidity wrt water',
+    lev2_atts['rh_mast'] .update({'long_name'     : 'relative humidity wrt water',
                                                     'cf_name'       : 'relative humidity',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['pressure_vaisala_2m']       .update({'long_name'     : 'air pressure at 2m',
+    lev2_atts['atmos_pressure_2m']       .update({'long_name'     : 'air pressure at 2m',
                                                     'cf_name'       : 'air_pressure',
                                                     'instrument'    : 'Vaisala PTU 300',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : sonic_2m,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['mast_pressure']             .update({'long_name'     : 'air pressure',
+    lev2_atts['atmos_pressure_mast']             .update({'long_name'     : 'air pressure',
                                                     'cf_name'       : 'air_pressure',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['body_T_IRT']                .update({'long_name'     : 'instrument body temperature',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Apogee SI-4H1-SS IRT',
-                                                    'methods'       : 'digitally polled from instument',
-                                                    'height'        : sonic_2m,
-                                                    'location'      : bottom_location_string,})
-
-    lev2_atts['surface_T_IRT']             .update({'long_name'     : 'Apogee IRT target 8-14 micron brightness temperature.',
+    lev2_atts['brightness_temp_surface']             .update({'long_name'     : 'Apogee IRT target 8-14 micron brightness temperature.',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                     'methods'       : 'digitally polled from instument. No emmisivity correction. No correction for reflected incident.',
                                                     'height'        : 'surface',
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['flux_plate_A_mv']           .update({'long_name'     : 'voltage from Hukseflux plate A',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Hukseflux HFP01',
-                                                    'methods'       : 'analog voltage read by CR1000X',
-                                                    'height'        : 'subsurface, variable',
-                                                    'location'      : '10m south of tower at met city',})
-
-    lev2_atts['flux_plate_B_mv']           .update({'long_name'     : 'voltage from Hukseflux plate B',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Hukseflux HFP01',
-                                                    'methods'       : 'analog voltage read by CR1000X',
-                                                    'height'        : 'subsurface, variable',
-                                                    'location'      : 'under Apogee and SR50 at tower base',})
-
-    lev2_atts['flux_plate_A_Wm2']          .update({'long_name'     : 'conductive flux from plate A',
+    lev2_atts['subsurface_heat_flux_A']          .update({'long_name'     : 'conductive flux from plate A',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hukseflux HFP01',
                                                     'methods'       : 'Sensitivity 63.00/1000 [mV/(W/m2)]',
                                                     'height'        : 'subsurface, variable',
                                                     'location'      : '10m south of tower at met city',})
 
-    lev2_atts['flux_plate_B_Wm2']          .update({'long_name'     : 'conductive flux from plate B',
+    lev2_atts['subsurface_heat_flux_B']          .update({'long_name'     : 'conductive flux from plate B',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hukseflux HFP01',
                                                     'methods'       : 'Sensitivity 63.91/1000 [mV/(W/m2)]',
@@ -1109,112 +1064,112 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'height'        : '',
                                                     'location'      : 'at base of tower under SR50',})
 
-    lev2_atts['MR_vaisala_2m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
+    lev2_atts['mixing_ratio_2m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['MR_vaisala_6m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
+    lev2_atts['mixing_ratio_6m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['MR_vaisala_10m']            .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
+    lev2_atts['mixing_ratio_10m']            .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : sonic_10m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['MR_vaisala_mast']           .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
+    lev2_atts['mixing_ratio_mast']           .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['RHi_vaisala_2m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
+    lev2_atts['rhi_2m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['RHi_vaisala_6m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
+    lev2_atts['rhi_6m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['RHi_vaisala_10m']           .update({'long_name'     : 'ice RH derived using T/P/RH',
+    lev2_atts['rhi_10m']           .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['RHi_vaisala_mast']          .update({'long_name'     : 'ice RH derived using T/P/RH',
+    lev2_atts['rhi_mast']          .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'calculated from measured variables following Hyland & Wexler (1983)',
-                                                    'height'        : mast_sonic_height,
-                                                    'location'      : mast_location_string,})
-
-    lev2_atts['pw_vaisala_2m']             .update({'long_name'     : 'vapor pressure',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Vaisala PTU300',
-                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : sonic_2m,
-                                                    'location'      : bottom_location_string,})
-
-    lev2_atts['pw_vaisala_6m']             .update({'long_name'     : 'vapor pressure',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Vaisala HMT330',
-                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : sonic_6m,
-                                                    'location'      : middle_location_string,})
-
-    lev2_atts['pw_vaisala_10m']            .update({'long_name'     : 'vapor pressure',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Vaisala HMT330',
-                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
-                                                    'height'        : sonic_10m,
-                                                    'location'      : top_location_string,})
-
-    lev2_atts['pw_vaisala_mast']           .update({'long_name'     : 'vapor pressure',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Vaisala WXT530',
-                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['wind_speed_metek_2m']       .update({'long_name'     : 'average metek wind speed',
+    lev2_atts['vapor_pressure_2m']             .update({'long_name'     : 'vapor pressure',
+                                                    'cf_name'       : '',
+                                                    'instrument'    : 'Vaisala PTU300',
+                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
+                                                    'height'        : sonic_2m,
+                                                    'location'      : bottom_location_string,})
+
+    lev2_atts['vapor_pressure_6m']             .update({'long_name'     : 'vapor pressure',
+                                                    'cf_name'       : '',
+                                                    'instrument'    : 'Vaisala HMT330',
+                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
+                                                    'height'        : sonic_6m,
+                                                    'location'      : middle_location_string,})
+
+    lev2_atts['vapor_pressure_10m']            .update({'long_name'     : 'vapor pressure',
+                                                    'cf_name'       : '',
+                                                    'instrument'    : 'Vaisala HMT330',
+                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
+                                                    'height'        : sonic_10m,
+                                                    'location'      : top_location_string,})
+
+    lev2_atts['vapor_pressure_mast']           .update({'long_name'     : 'vapor pressure',
+                                                    'cf_name'       : '',
+                                                    'instrument'    : 'Vaisala WXT530',
+                                                    'methods'       : 'calculated from measured variables following Wexler (1976)',
+                                                    'height'        : mast_sonic_height,
+                                                    'location'      : mast_location_string,})
+
+    lev2_atts['wspd_vec_mean_2m']       .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['wind_speed_metek_6m']       .update({'long_name'     : 'average metek wind speed',
+    lev2_atts['wspd_vec_mean_6m']       .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['wind_speed_metek_10m']      .update({'long_name'     : 'average metek wind speed',
+    lev2_atts['wspd_vec_mean_10m']      .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['wind_speed_metek_mast']     .update({'long_name'     : 'average metek wind speed',
+    lev2_atts['wspd_vec_mean_mast']     .update({'long_name'     : 'average metek wind speed',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
@@ -1222,70 +1177,43 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'location'      : mast_location_string,})
 
 
-    lev2_atts['wind_direction_metek_2m']   .update({'long_name'     : 'average metek wind direction',
+    lev2_atts['wdir_vec_mean_2m']   .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['wind_direction_metek_6m']   .update({'long_name'     : 'average metek wind direction',
+    lev2_atts['wdir_vec_mean_6m']   .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['wind_direction_metek_10m']  .update({'long_name'     : 'average metek wind direction',
+    lev2_atts['wdir_vec_mean_10m']  .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['wind_direction_metek_mast'] .update({'long_name'     : 'average metek wind direction',
+    lev2_atts['wdir_vec_mean_mast'] .update({'long_name'     : 'average metek wind direction',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['temp_variance_metek_2m']    .update({'long_name'     : 'metek sonic temperature obs variance',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : sonic_2m,
-                                                    'location'      : bottom_location_string,})
 
-    lev2_atts['temp_variance_metek_6m']    .update({'long_name'     : 'acoustic temperature obs variance',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : sonic_6m,
-                                                    'location'      : middle_location_string,})
-
-    lev2_atts['temp_variance_metek_10m']   .update({'long_name'     : 'acoustic temperature obs variance',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : sonic_10m,
-                                                    'location'      : top_location_string,})
-
-    lev2_atts['temp_variance_metek_mast']  .update({'long_name'     : 'acoustic temperature obs variance',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Metek USA-1 sonic anemometer',
-                                                    'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                    'height'        : mast_sonic_height,
-                                                    'location'      : mast_location_string,})
-
-    lev2_atts['H2O_licor']                 .update({'long_name'     : 'Licor water vapor molar density',
+    lev2_atts['h2o_licor']                 .update({'long_name'     : 'Licor water vapor molar density',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Licor 7500-DS',
                                                     'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
                                                     'height'        : licor_z,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['CO2_licor']                 .update({'long_name'     : 'Licor CO2 gas molar density',
+    lev2_atts['co2_licor']                 .update({'long_name'     : 'Licor CO2 gas molar density',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Licor 7500-DS',
                                                     'methods'       : 'open-path optical gas analyzer, source data reported at 20 Hz',
@@ -1299,35 +1227,35 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'height'        : licor_z,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['pr_licor']                  .update({'long_name'     : 'Licor pressure',
+    lev2_atts['pressure_licor']                  .update({'long_name'     : 'Licor pressure',
                                                     'cf_name'       : 'air_pressure',
                                                     'instrument'    : 'Licor 7500-DS',
                                                     'methods'       : 'pressure sensor located in electronics box. source data reported at 20 Hz',
                                                     'height'        : licor_z,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['u_metek_2m']                .update({'long_name'     : 'Metek u-component',
+    lev2_atts['wspd_u_mean_2m']                .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['u_metek_6m']                .update({'long_name'     : 'Metek u-component',
+    lev2_atts['wspd_u_mean_6m']                .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['u_metek_10m']               .update({'long_name'     : 'Metek u-component',
+    lev2_atts['wspd_u_mean_10m']               .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['u_metek_mast']              .update({'long_name'     : 'Metek u-component',
+    lev2_atts['wspd_u_mean_mast']              .update({'long_name'     : 'Metek u-component',
                                                     'cf_name'       : 'northward_wind',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
@@ -1335,28 +1263,28 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'location'      : mast_location_string,})
 
 
-    lev2_atts['v_metek_2m']                .update({'long_name'     : 'Metek v-component',
+    lev2_atts['wspd_v_mean_2m']                .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['v_metek_6m']                .update({'long_name'     : 'Metek v-component',
+    lev2_atts['wspd_v_mean_6m']                .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['v_metek_10m']               .update({'long_name'     : 'Metek v-component',
+    lev2_atts['wspd_v_mean_10m']               .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['v_metek_mast']              .update({'long_name'     : 'Metek v-component',
+    lev2_atts['wspd_v_mean_mast']              .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
@@ -1364,180 +1292,173 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'location'      : mast_location_string,})
 
 
-    lev2_atts['w_metek_2m']                .update({'long_name'     : 'Metek w-component',
+    lev2_atts['wspd_w_mean_2m']                .update({'long_name'     : 'Metek w-component',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['w_metek_6m']                .update({'long_name'     : 'Metek w-component',
+    lev2_atts['wspd_w_mean_6m']                .update({'long_name'     : 'Metek w-component',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : '6 m',
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['w_metek_10m']               .update({'long_name'     : 'Metek w-component',
+    lev2_atts['wspd_w_mean_10m']               .update({'long_name'     : 'Metek w-component',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['w_metek_mast']              .update({'long_name'     : 'Metek w-component',
+    lev2_atts['wspd_w_mean_mast']              .update({'long_name'     : 'Metek w-component',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['temp_metek_2m']             .update({'long_name'     : 'Metek sonic temperature',
+    lev2_atts['temp_acoustic_mean_2m']             .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['temp_metek_6m']             .update({'long_name'     : 'Metek sonic temperature',
+    lev2_atts['temp_acoustic_mean_6m']             .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['temp_metek_10m']            .update({'long_name'     : 'Metek sonic temperature',
+    lev2_atts['temp_acoustic_mean_10m']            .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['temp_metek_mast']           .update({'long_name'     : 'Metek sonic temperature',
+    lev2_atts['temp_acoustic_mean_mast']           .update({'long_name'     : 'Metek sonic temperature',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['stddev_u_metek_2m']         .update({'long_name'     : 'u metek obs standard deviation',
+    lev2_atts['wspd_u_std_2m']         .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['stddev_v_metek_2m']         .update({'long_name'     : 'v metek obs standard deviation',
+    lev2_atts['wspd_v_std_2m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive west in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['stddev_w_metek_2m']         .update({'long_name'     : 'w metek obs standard deviation',
+    lev2_atts['wspd_w_std_2m']         .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['stddev_T_metek_2m']         .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['acoustic_temp_std_2m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['stddev_u_metek_6m']         .update({'long_name'     : 'u metek obs standard deviation',
+    lev2_atts['wspd_u_std_6m']         .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['stddev_v_metek_6m']         .update({'long_name'     : 'v metek obs standard deviation',
+    lev2_atts['wspd_v_std_6m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['stddev_w_metek_6m']         .update({'long_name'     : 'w metek obs standard deviation',
+    lev2_atts['wspd_w_std_6m']         .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['stddev_T_metek_6m']         .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['acoustic_temp_std_6m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['stddev_u_metek_10m']        .update({'long_name'     : 'u metek obs standard deviation',
+    lev2_atts['wspd_u_std_10m']        .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['stddev_v_metek_10m']        .update({'long_name'     : 'v metek obs standard deviation',
+    lev2_atts['wspd_v_std_10m']        .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['stddev_w_metek_10m']        .update({'long_name'     : 'w metek obs standard deviation',
+    lev2_atts['wspd_w_std_10m']        .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['stddev_T_metek_10m']        .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['acoustic_temp_std_10m']        .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['stddev_u_metek_mast']       .update({'long_name'     : 'u metek obs standard deviation',
+    lev2_atts['wspd_u_std_mast']       .update({'long_name'     : 'u metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['stddev_v_metek_mast']       .update({'long_name'     : 'v metek obs standard deviation',
+    lev2_atts['wspd_v_std_mast']       .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'v defined positive west in right-hand coordinate system',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['stddev_w_metek_mast']       .update({'long_name'     : 'w metek obs standard deviation',
+    lev2_atts['wspd_w_std_mast']       .update({'long_name'     : 'w metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'w defined positive up in right-hand coordinate system',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['stddev_T_metek_mast']       .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['acoustic_temp_std_mast']       .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
-
-    lev2_atts['co2_signal_licor']          .update({'long_name'     : 'Licor CO2 signal strength diagnostic',
-                                                    'cf_name'       : '',
-                                                    'instrument'    : 'Licor 7500-DS',
-                                                    'methods'       : 'signal strength [0-100%] is a measure of attenuation of the optics (e.g., by salt residue or ice) that applies to both co2 and h2o observations',
-                                                    'height'        : licor_z,
-                                                    'location'      : bottom_location_string,})
 
     return lev2_atts, list(lev2_atts.keys()).copy() 
 
@@ -2103,7 +2024,7 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z):
                                                'height'        : licor_z,
                                                'location'      : bottom_location_string,})
     
-    turb_atts['uc_csp']               .update({'long_name'     : 'uc-covariance, vertical flux of c02',
+    turb_atts['uc_csp']               .update({'long_name'     : 'uc-covariance, vertical flux of co2',
                                                'cf_name'       : '',
                                                'height'        : licor_z,
                                                'location'      : bottom_location_string,})

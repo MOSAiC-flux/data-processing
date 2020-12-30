@@ -19,13 +19,18 @@
 # you for input... maybe make sure you have a backup of the code just in case.
 # 
 # ###############################################################################################
-import re
+import re # regexes galore
+import readline # provides history, e.g. up arrow 
 
 def main(): 
 
-    asfs_files  = ("asfs_data_definitions.py", "create_level1_product_asfs.py", "create_level2_product_asfs.py", "qc_level2_asfs.py")
-    tower_files = ("tower_data_definitions.py", "create_level1_product_tower.py", "create_level2_product_tower.py",
-                   "plot_scripts/plot_asfs_lev2_quicklooks.py","plot_scripts/plot_asfs_lev1_quicklooks.py")
+    asfs_files  = ("asfs_data_definitions.py", "create_level1_product_asfs.py", 
+                   "create_level2_product_asfs.py", "qc_level2_asfs.py", 
+                   "plot_scripts/plot_asfs_lev1_quicklooks.py","plot_scripts/plot_asfs_lev2_quicklooks.py",)
+
+    tower_files = ("tower_data_definitions.py", "create_level1_product_tower.py",
+                   "create_level2_product_tower.py", "qc_level2_tower.py",
+                   "plot_scripts/plot_tower_lev1_quicklooks.py","plot_scripts/plot_tower_lev2_quicklooks.py",)
 
     printline()
     print("\nThis is pretty stupid software, it will do exactly what you ask it to do...")

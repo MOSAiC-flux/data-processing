@@ -261,6 +261,8 @@ def get_pll(licor_db):
 # can be called like:     DataFrame.apply(take_average, perc_allowed_missing=80)
 def take_average(array_like_thing, **kwargs):
 
+    # this is for exceptions where you pass this function dates and such
+    UFuncTypeError = np.core._exceptions.UFuncTypeError
     perc_allowed_missing = kwargs.get('perc_allowed_missing')
     if perc_allowed_missing is None:
         perc_allowed_missing = 100.0
@@ -269,9 +271,13 @@ def take_average(array_like_thing, **kwargs):
         return nan
     perc_miss = np.round((np.count_nonzero(np.isnan(array_like_thing))/float(array_like_thing.size))*100.0, decimals=4)
     if perc_allowed_missing < perc_miss:
-        return nan
+        return np.nan
     else:
-        return np.nanmean(array_like_thing)
+        try: mean_val = np.nanmean(array_like_thing)
+        except UFuncTypeError as e: 
+            mean_val = np.nan #  this exception should only happen when this function is used on a pandas array
+                              #  that contains dates or other things where averages are hard to define
+        return mean_val
 
 # functions to make grepping lines easier, differentiating between normal output, warnings, and fatal errors
 def warn(string):

@@ -79,7 +79,10 @@ def get_flux_data(station, start_day, end_day, level,
         for i_day, today in enumerate(day_series): # loop over days in processing range and get list of files
 
             if i_day %nthreads == 0:
-                print("  ... getting data for day {} (and {} days after in parallel)".format(today,nthreads))
+                if nthreads > 1:
+                    print("  ... getting data for day {} (and {} days after in parallel)".format(today,nthreads))
+                else:
+                    print("  ... getting data for day {}")
 
             date_str = today.strftime('%Y%m%d.%H%M%S')
             if level == 1: 
