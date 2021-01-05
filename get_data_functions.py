@@ -101,7 +101,7 @@ def get_flux_data(station, start_day, end_day, level,
             curr_file = files_dir+file_str
 
             q_today = Q()
-            P(target=get_datafile, args=(curr_file, station, today,q_today),).start()
+            P(target=get_datafile, args=(curr_file, q_today),).start()
             q_list.append(q_today)
             day_list.append(today)
             if (i_day+1) % nthreads == 0 or today == day_series[-1]:
@@ -139,7 +139,7 @@ def get_flux_data(station, start_day, end_day, level,
 
     return df, code_version 
 
-def get_datafile(curr_file, curr_station, today, q):
+def get_datafile(curr_file, q=None):
 
     if os.path.isfile(curr_file):
         xarr_ds = xr.open_dataset(curr_file)
@@ -150,7 +150,10 @@ def get_datafile(curr_file, curr_station, today, q):
         data_frame   = pd.DataFrame()
         code_version = None
 
-    q.put(data_frame)
-    q.put(code_version)
-    return # can be implicit but doesn't matter, really
+    try:
+        q.put(data_frame)
+        q.put(code_version)
+        return
+    except:
+        return data_frame # can be implicit but doesn't matter, really
 
