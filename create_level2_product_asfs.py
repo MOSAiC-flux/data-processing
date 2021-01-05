@@ -122,9 +122,11 @@ print(version_msg)
 
 def main(): # the main data crunching program
 
-    # the date on which the first MOSAiC data was taken... there will be a "seconds_since" variable 
-    global beginning_of_time, integ_time_turb_flux
-    beginning_of_time    = datetime(1970,1,1,0,0,0) # Unix epoch, ARM convention
+    # the UNIX epoch... provides a common reference, used with base_time
+    global epoch_time
+    epoch_time        = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
+
+    global integ_time_turb_flux
     integ_time_turb_flux = [10,30]                  # [minutes] the integration time for the turbulent flux calculation
     calc_fluxes          = True                     # if you want to run turbulent flux calculations and write files
 
@@ -164,7 +166,7 @@ def main(): # the main data crunching program
     global data_dir, in_dir # make data available
     if args.path: data_dir = args.path
     else: data_dir = '/Projects/MOSAiC/'
-    leica_dir = data_dir+'partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
+    leica_dir = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
 
     if args.station: flux_stations = args.station.split(',')
     else: flux_stations = ['asfs30', 'asfs40', 'asfs50']
@@ -177,25 +179,23 @@ def main(): # the main data crunching program
               .format(startline, endline))
 
     global start_time, end_time
-    start_time = beginning_of_time
     if args.start_time:
         start_time = datetime.strptime(args.start_time, '%Y%m%d')
     else:
         # make the data processing start yesterday! i.e. process only most recent full day of data
-        start_time = beginning_of_time.today() # any datetime object can provide current time
+        start_time = epoch_time.today() # any datetime object can provide current time
         start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
     if args.end_time:
         end_time = datetime.strptime(args.end_time, '%Y%m%d')
     else:
-        end_time = beginning_of_time.today() # any datetime object can provide current time
+        end_time = epoch_time.today() # any datetime object can provide current time
         end_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
         
     # expand the load by 1 day to facilite gps processing    
     start_time = start_time-timedelta(1)
     end_time = end_time+timedelta(1)
 
-    print('The first day of the experiment is:    %s' % beginning_of_time)
-    print('The first day we  process data is:     %s' % str(start_time+timedelta(1)))
+    print('The first day of data we will process data is:     %s' % str(start_time+timedelta(1)))
     print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
     printline()
 
@@ -532,7 +532,7 @@ def main(): # the main data crunching program
     print("\n We have retreived all slow data, now processing each day...\n")
     def process_station_day(curr_station, today, tomorrow, slow_data_today, day_q):
 
-        out_dir = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'_dev/' # where level 2 data written?
+        out_dir = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/version1/' # where level 2 data written?
 
         printline(endline="\n")
         print("Retreiving level1 fast data for {} on {}\n".format(curr_station,today))
@@ -1163,7 +1163,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
     global_atts = define_global_atts(curr_station, "level2") # global atts for level 1 and level 2
-    netcdf_lev2 = Dataset(lev2_name, 'w', format='NETCDF4_CLASSIC')
+    netcdf_lev2 = Dataset(lev2_name, 'w')# format='NETCDF4_CLASSIC')
 
     for att_name, att_val in global_atts.items(): # write global attributes 
         netcdf_lev2.setncattr(att_name, att_val)
@@ -1171,28 +1171,73 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev2.createDimension('time', None)
 
-    time_atts   = {'delta_t'   : '0000-00-00 00:01:00',
-                   'long_name' : 'Base time in Epoch',
-                   'units'     : 'seconds since {}'.format(beginning_of_time),
-                   'calendar'  : 'standard',}
-
-    bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
-
-    # create the arrays that are integer intervals from  'time since beginning of mosaic' for indexing netcdf files
-    bot = np.datetime64(beginning_of_time)
-    dti = pd.DatetimeIndex(l2_data.index.values)
     fstr = '{}T'.format(timestep.rstrip("min"))
     if timestep != "1min":
         dti = pd.date_range(date, tomorrow, freq=fstr)
-    delta_ints = np.floor((dti - bot).total_seconds()) # seconds
+
+    try:
+        fms = l2_data.index[0]
+    except Exception as e:
+        print("... something went really wrong with the indexing")
+        print("... the code doesn't handle that currently")
+        raise e
+
+    # base_time, ARM spec, the difference between the time of the first data point and the BOT
+    today_midnight = datetime(fms.year, fms.month, fms.day)
+    beginning_of_time = fms 
+
+    # create the three 'bases' that serve for calculating the time arrays
+    et = np.datetime64(epoch_time)
+    bot = np.datetime64(beginning_of_time)
+    tm =  np.datetime64(today_midnight)
+
+    # first write the int base_time, the temporal distance from the UNIX epoch
+    base = netcdf_lev2.createVariable('base_time', 'u4') # seconds since
+    base[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
+
+    base_atts = {'string'     : '{}'.format(bot),
+                 'long_name' : 'Base time since Epoch',
+                 'units'     : 'seconds since {}'.format(et),
+                 'ancillary_variables'  : 'time_offset',}
+    for att_name, att_val in base_atts.items(): netcdf_lev2['base_time'].setncattr(att_name,att_val)
+
+    # here we create the array and attributes for 'time'
+    t_atts   = {'units'     : 'seconds since {}'.format(tm),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from midnight',
+                     'calendar'  : 'standard',}
+
+
+    bt_atts   = {'units'     : 'seconds since {}'.format(bot),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from base_time',
+                     'calendar'  : 'standard',}
+
+
+    dti = pd.DatetimeIndex(l2_data.index.values)
+    delta_ints = np.floor((dti - tm).total_seconds())      # seconds
 
     t_ind = pd.Int64Index(delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    t = netcdf_lev2.createVariable('time', 'i','time') # seconds since
-    t[:] = t_ind.values
+    t = netcdf_lev2.createVariable('time', 'u4','time') # seconds since
 
-    for att_name, att_val in time_atts.items(): netcdf_lev2['time'].setncattr(att_name,att_val)
+    # now we create the array and attributes for 'time_offset'
+    bt_dti = pd.DatetimeIndex(l2_data.index.values)   
+
+    bt_delta_ints = np.floor((bt_dti - bot).total_seconds())      # seconds
+
+    bt_ind = pd.Int64Index(bt_delta_ints)
+
+    # set the time dimension and variable attributes to what's defined above
+    bt = netcdf_lev2.createVariable('time_offset', 'u4','time') # seconds since
+
+    # this try/except is vestigial, this bug should be fixed
+    t[:]  = t_ind.values
+    bt[:] = bt_ind.values
+
+    for att_name, att_val in t_atts.items(): netcdf_lev2['time'].setncattr(att_name,att_val)
+    for att_name, att_val in bt_atts.items(): netcdf_lev2['time_offset'].setncattr(att_name,att_val)
 
     for var_name, var_atts in l2_atts.items():
 
@@ -1251,35 +1296,78 @@ def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir
     turb_name  = '{}/{}'.format(out_dir, file_str)
 
     global_atts = define_global_atts(curr_station, "turb") # global atts for level 1 and level 2
-    netcdf_turb = Dataset(turb_name, 'w', format='NETCDF4_CLASSIC')
+    netcdf_turb = Dataset(turb_name, 'w')#format='NETCDF4_CLASSIC')
     # output netcdf4_classic files, for backwards compatibility... can be changed later but has some useful
     # features when using the data with 'vintage' processing code. it's the netcdf3 api, wrapped in hdf5
-
 
     # !! sorry, i have a different set of globals for this file so it isnt in the file list
     for att_name, att_val in global_atts.items(): netcdf_turb.setncattr(att_name, att_val) 
     n_turb_in_day = np.int(24*60/integration_window)
 
-    # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
-    netcdf_turb.createDimension('time', None)# n_turb_in_day)    
+    netcdf_turb.createDimension('time', None)
 
-    time_atts_turb = {'units'     : 'seconds since {}'.format(beginning_of_time),
-                      'delta_t'   : '0000-00-00 00:00:01',
-                      'long_name' : 'seconds since the first day of MOSAiC',
-                      'calendar'  : 'standard',}
-    # this is a bit klugy
-    time_atts_turb['delta_t']   = '0000-00-00 '+np.str(pd.Timedelta(integration_window,'m')).split(sep=' ')[2] 
+    try:
+        fms = turb_data.index[0]
+    except Exception as e:
+        print("... something went really wrong with the indexing")
+        print("... the code doesn't handle that currently")
+        raise e
 
-    bot = beginning_of_time # create the arrays that are 'time since beginning' for indexing netcdf files
-    times_turb = np.floor(((pd.date_range(date, tomorrow, freq=str(integration_window)+'T') - bot).total_seconds()))
+    # base_time, ARM spec, the difference between the time of the first data point and the BOT
+    today_midnight = datetime(fms.year, fms.month, fms.day)
+    beginning_of_time = fms 
 
-    # fix problems with flt rounding errors for high temporal resolution (occasional errant 0.00000001)
-    times_turb = pd.Int64Index(times_turb)
+    # create the three 'bases' that serve for calculating the time arrays
+    et = np.datetime64(epoch_time)
+    bot = np.datetime64(beginning_of_time)
+    tm =  np.datetime64(today_midnight)
+
+    # first write the int base_time, the temporal distance from the UNIX epoch
+    base = netcdf_turb.createVariable('base_time', 'u4') # seconds since
+    base[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
+
+    base_atts = {'string'     : '{}'.format(bot),
+                 'long_name' : 'Base time since Epoch',
+                 'units'     : 'seconds since {}'.format(et),
+                 'ancillary_variables'  : 'time_offset',}
+    for att_name, att_val in base_atts.items(): netcdf_turb['base_time'].setncattr(att_name,att_val)
+
+    # here we create the array and attributes for 'time'
+    t_atts   = {'units'     : 'seconds since {}'.format(tm),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from midnight',
+                     'calendar'  : 'standard',}
+
+
+    bt_atts   = {'units'     : 'seconds since {}'.format(bot),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from base_time',
+                     'calendar'  : 'standard',}
+
+    dti = pd.DatetimeIndex(turb_data.index.values)
+    delta_ints = np.floor((dti - tm).total_seconds())      # seconds
+
+    t_ind = pd.Int64Index(delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    t    = netcdf_turb.createVariable('time', 'i','time') # seconds since
-    t[:] = times_turb.values
-    for att_name, att_val in time_atts_turb.items() : netcdf_turb['time'].setncattr(att_name,att_val)
+    t = netcdf_turb.createVariable('time', 'u4','time') # seconds since
+
+    # now we create the array and attributes for 'time_offset'
+    bt_dti = pd.DatetimeIndex(turb_data.index.values)   
+
+    bt_delta_ints = np.floor((bt_dti - bot).total_seconds())      # seconds
+
+    bt_ind = pd.Int64Index(bt_delta_ints)
+
+    # set the time dimension and variable attributes to what's defined above
+    bt = netcdf_turb.createVariable('time_offset', 'u4','time') # seconds since
+
+    # this try/except is vestigial, this bug should be fixed
+    t[:]  = t_ind.values
+    bt[:] = bt_ind.values
+
+    for att_name, att_val in t_atts.items(): netcdf_turb['time'].setncattr(att_name,att_val)
+    for att_name, att_val in bt_atts.items(): netcdf_turb['time_offset'].setncattr(att_name,att_val)
 
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():
