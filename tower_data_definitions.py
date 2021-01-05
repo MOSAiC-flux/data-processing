@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['1.3', '11/10/2020', 'ccox']
+    cv = ['1.4', '1/1/2020', 'mgallagher']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -97,9 +97,9 @@ def define_level1_slow():
     lev1_slow_atts['vaisala_T_10m']      = {'units' : 'degC'}     
     lev1_slow_atts['vaisala_Td_10m']     = {'units' : 'degC'}     
     lev1_slow_atts['fp_A_mV']            = {'units' : 'mV'}       
-    lev1_slow_atts['fp_A_Wm2']           = {'units' : 'Wm2'}      
+    lev1_slow_atts['fp_A_Wm2']           = {'units' : 'W/m2'}      
     lev1_slow_atts['fp_B_mV']            = {'units' : 'mV'}       
-    lev1_slow_atts['fp_B_Wm2']           = {'units' : 'Wm2'}      
+    lev1_slow_atts['fp_B_Wm2']           = {'units' : 'W/m2'}      
     lev1_slow_atts['mast_T']             = {'units' : 'degC'}     
     lev1_slow_atts['mast_RH']            = {'units' : '%'}        
     lev1_slow_atts['mast_P']             = {'units' : 'hPa'}
@@ -274,7 +274,7 @@ def define_level1_slow():
     lev1_slow_atts['vaisala_T_10m']      .update({'long_name'  : 'temperature',			     
                                                   'instrument' : 'Vaisala HMT330',			     
                                                   'methods'    : 'meteorology sensor, PT100 RTD; RS-485 protocol',	     
-                                                  'height'     : '',				     
+                                                  'height'     : '10m',				     
                                                   'location'   : top_location_string,})                  
 
     lev1_slow_atts['vaisala_Td_10m']     .update({'long_name'  : 'dewpoint temperature',			     
@@ -792,8 +792,8 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
     lev2_atts['atmos_pressure_2m']       = {'units' : 'hPa'}
     lev2_atts['atmos_pressure_mast']     = {'units' : 'hPa'}
     lev2_atts['brightness_temp_surface'] = {'units' : 'deg C'}
-    lev2_atts['subsurface_heat_flux_A']  = {'units' : 'Wm2'}
-    lev2_atts['subsurface_heat_flux_B']  = {'units' : 'Wm2'}
+    lev2_atts['subsurface_heat_flux_A']  = {'units' : 'W/m2'}
+    lev2_atts['subsurface_heat_flux_B']  = {'units' : 'W/m2'}
     lev2_atts['snow_depth']              = {'units' : 'cm'}
     lev2_atts['mixing_ratio_2m']         = {'units' : 'g/kg'}
     lev2_atts['mixing_ratio_6m']         = {'units' : 'g/kg'}
@@ -838,19 +838,19 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
     lev2_atts['wspd_u_std_2m']           = {'units' : 'm/s'}
     lev2_atts['wspd_v_std_2m']           = {'units' : 'm/s'}
     lev2_atts['wspd_w_std_2m']           = {'units' : 'm/s'}
-    lev2_atts['acoustic_temp_std_2m']    = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic_std_2m']    = {'units' : 'deg C'}
     lev2_atts['wspd_u_std_6m']           = {'units' : 'm/s'}
     lev2_atts['wspd_v_std_6m']           = {'units' : 'm/s'}
     lev2_atts['wspd_w_std_6m']           = {'units' : 'm/s'}
-    lev2_atts['acoustic_temp_std_6m']    = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic_std_6m']    = {'units' : 'deg C'}
     lev2_atts['wspd_u_std_10m']          = {'units' : 'm/s'}
     lev2_atts['wspd_v_std_10m']          = {'units' : 'm/s'}
     lev2_atts['wspd_w_std_10m']          = {'units' : 'm/s'}
-    lev2_atts['acoustic_temp_std_10m']   = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic_std_10m']   = {'units' : 'deg C'}
     lev2_atts['wspd_u_std_mast']         = {'units' : 'm/s'}
     lev2_atts['wspd_v_std_mast']         = {'units' : 'm/s'}
     lev2_atts['wspd_w_std_mast']         = {'units' : 'm/s'}
-    lev2_atts['acoustic_temp_std_mast']  = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic_std_mast']  = {'units' : 'deg C'}
     
     # add the other important things to the data variable NetCDF attributes
     # #########################################################################################################
@@ -880,21 +880,21 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : 'GPRMC, GPGGA, GPGZDA',
                                                     'height'        : 'N/A',
-                                                    'location'      : bottom_location_string,})
+                                                    'location'      : mast_location_string,})
 
     lev2_atts['lon_mast']                  .update({'long_name'     : 'longitude from gps at the mast',
                                                     'cf_name'       : 'longitude',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$GPRMC, $GPGGA, GPGZDA',
                                                     'height'        : 'N/A',
-                                                    'location'      : bottom_location_string,})
+                                                    'location'      : mast_location_string,})
 
     lev2_atts['heading_mast']              .update({'long_name'     : 'heading from gps at the mast',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Hemisphere V102',
                                                     'methods'       : '$HEHDT',
                                                     'height'        : 'N/A',
-                                                    'location'      : bottom_location_string,})
+                                                    'location'      : mast_location_string,})
     
     lev2_atts['zenith_true']                  .update({ 'long_name'    : 'true solar zenith angle',
                                                      'cf_name'      : '',
@@ -956,7 +956,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : 'air_emperature',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'digitally polled from instument',
-                                                    'height'        : sonic_2m,
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['temp_mast']         .update({'long_name'     : 'temperature',
@@ -1034,7 +1034,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'digitally polled from instument',
                                                     'height'        : mast_sonic_height,
-                                                    'location'      : bottom_location_string,})
+                                                    'location'      : mast_location_string,})
 
     lev2_atts['brightness_temp_surface']             .update({'long_name'     : 'Apogee IRT target 8-14 micron brightness temperature.',
                                                     'cf_name'       : '',
@@ -1083,14 +1083,14 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : sonic_10m,
-                                                    'location'      : middle_location_string,})
+                                                    'location'      : top_location_string,})
 
     lev2_atts['mixing_ratio_mast']           .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
                                                     'cf_name'       : 'specific_humidity',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : mast_sonic_height,
-                                                    'location'      : middle_location_string,})
+                                                    'location'      : mast_location_string,})
 
     lev2_atts['rhi_2m']            .update({'long_name'     : 'ice RH derived using T/P/RH',
                                                     'cf_name'       : '',
@@ -1369,7 +1369,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
-    lev2_atts['acoustic_temp_std_2m']         .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['temp_acoustic_std_2m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
@@ -1397,7 +1397,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
-    lev2_atts['acoustic_temp_std_6m']         .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['temp_acoustic_std_6m']         .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
@@ -1408,7 +1408,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'u defined positive north in right-hand coordinate system',
-                                                    'height'        : sonic_6m,
+                                                    'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['wspd_v_std_10m']        .update({'long_name'     : 'v metek obs standard deviation',
@@ -1425,7 +1425,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
-    lev2_atts['acoustic_temp_std_10m']        .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['temp_acoustic_std_10m']        .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
@@ -1453,7 +1453,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
-    lev2_atts['acoustic_temp_std_mast']       .update({'long_name'     : 'T metek obs standard deviation',
+    lev2_atts['temp_acoustic_std_mast']       .update({'long_name'     : 'T metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
                                                     'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
@@ -1480,12 +1480,12 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z):
 
     turb_atts = OrderedDict()
 
-    turb_atts['Hs_2m']                     = {'units'         : 'Wm2'}
-    turb_atts['Hs_6m']                     = {'units'         : 'Wm2'}
-    turb_atts['Hs_10m']                    = {'units'         : 'Wm2'}
-    turb_atts['Hs_mast']                   = {'units'         : 'Wm2'}
-    turb_atts['Hl']                        = {'units'         : 'Wm2'}
-    turb_atts['Hl_Webb']                   = {'units'         : 'Wm2'}
+    turb_atts['Hs_2m']                     = {'units'         : 'W/m2'}
+    turb_atts['Hs_6m']                     = {'units'         : 'W/m2'}
+    turb_atts['Hs_10m']                    = {'units'         : 'W/m2'}
+    turb_atts['Hs_mast']                   = {'units'         : 'W/m2'}
+    turb_atts['Hl']                        = {'units'         : 'W/m2'}
+    turb_atts['Hl_Webb']                   = {'units'         : 'W/m2'}
     turb_atts['CO2_flux']                  = {'units'         : 'mg*m^-2*s^-1'}
     turb_atts['CO2_flux_Webb']             = {'units'         : 'mg*m^-2*s^-1'}
     turb_atts['Cd_2m']                     = {'units'         : 'dimensionless'}
@@ -1743,9 +1743,9 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z):
     turb_atts['cwcs']                     = {'units'          : '(m/s*mg*m^-2*s^-1)/Hz'}
     turb_atts['cucs']                     = {'units'          : '(m/s*mg*m^-2*s^-1)/Hz'}
     turb_atts['cvcs']                     = {'units'          : '(m/s*mg*m^-2*s^-1)/Hz'}  
-    turb_atts['bulk_Hs_10m']              = {'units'          : 'Wm2'}
-    turb_atts['bulk_Hl_10m']              = {'units'          : 'Wm2'}
-    turb_atts['bulk_Hl_Webb_10m']         = {'units'          : 'Wm2'}  
+    turb_atts['bulk_Hs_10m']              = {'units'          : 'W/m2'}
+    turb_atts['bulk_Hl_10m']              = {'units'          : 'W/m2'}
+    turb_atts['bulk_Hl_Webb_10m']         = {'units'          : 'W/m2'}  
     turb_atts['bulk_tau']                 = {'units'          : 'Pa'}
     turb_atts['bulk_z0']                  = {'units'          : 'm'}
     turb_atts['bulk_z0t']                 = {'units'          : 'm'}

@@ -86,5 +86,16 @@ Basically, this is the push for August through mid September by Cox that impleme
     - level 2 is written to the deveopment directory but level 1 is read from the permenant directory
 - changed base time to Unix epoch for level 1 and level 2
 - changed filename convention for level 1 to be consistent with level 2 
-
-
+ 
+## Revision 1.4 1/1/2020 mgallagher
+- modified level1/level2 timing conventions for level1 files to match ARM
+- replaced multithreading with multriprocessing and fixed netcdf bugs
+    - ... long story, but finally figured it out
+- threaded application further to fully utilize new twin behemoths
+- int64 time is now uint32
+- significant naming convention changes for level2, breaking changes
+- some other misc cleaning and improvements
+- release level1 and level2 quicklooks with data products
+- level1 fast files are now de-grouped and variables post-fixed by level
+- new get_data function that's threaded and can pull in level1 or level2 files
+- manual qc and flagging has been refactored to a separate file for documentation

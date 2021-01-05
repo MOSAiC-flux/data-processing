@@ -22,7 +22,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('1.4', '12/1/2020', 'mgallagher')
+    cv = ('1.4', '1/1/2020', 'mgallagher')
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -121,16 +121,16 @@ def define_level1_slow():
     lev1_slow_atts['call_time_efoy_Max']           = {'units' : 'mSec'}
     lev1_slow_atts['sr30_swu_DegC_Avg']            = {'units' : 'degC'}
     lev1_slow_atts['sr30_swu_DegC_Std']            = {'units' : 'degC'}
-    lev1_slow_atts['sr30_swu_Irr_Avg']             = {'units' : 'Wm2'}
-    lev1_slow_atts['sr30_swu_Irr_Std']             = {'units' : 'Wm2'}
-    lev1_slow_atts['sr30_swu_IrrC_Avg']            = {'units' : 'Wm2'}
-    lev1_slow_atts['sr30_swu_IrrC_Std']            = {'units' : 'Wm2'}
+    lev1_slow_atts['sr30_swu_Irr_Avg']             = {'units' : 'W/m2'}
+    lev1_slow_atts['sr30_swu_Irr_Std']             = {'units' : 'W/m2'}
+    lev1_slow_atts['sr30_swu_IrrC_Avg']            = {'units' : 'W/m2'}
+    lev1_slow_atts['sr30_swu_IrrC_Std']            = {'units' : 'W/m2'}
     lev1_slow_atts['sr30_swd_DegC_Avg']            = {'units' : 'degC'}
     lev1_slow_atts['sr30_swd_DegC_Std']            = {'units' : 'degC'}
-    lev1_slow_atts['sr30_swd_Irr_Avg']             = {'units' : 'Wm2'}
-    lev1_slow_atts['sr30_swd_Irr_Std']             = {'units' : 'Wm2'}
-    lev1_slow_atts['sr30_swd_IrrC_Avg']            = {'units' : 'Wm2'}
-    lev1_slow_atts['sr30_swd_IrrC_Std']            = {'units' : 'Wm2'}
+    lev1_slow_atts['sr30_swd_Irr_Avg']             = {'units' : 'W/m2'}
+    lev1_slow_atts['sr30_swd_Irr_Std']             = {'units' : 'W/m2'}
+    lev1_slow_atts['sr30_swd_IrrC_Avg']            = {'units' : 'W/m2'}
+    lev1_slow_atts['sr30_swd_IrrC_Std']            = {'units' : 'W/m2'}
     lev1_slow_atts['apogee_body_T_Avg']            = {'units' : 'degC'}
     lev1_slow_atts['apogee_body_T_Std']            = {'units' : 'degC'}
     lev1_slow_atts['apogee_targ_T_Avg']            = {'units' : 'degC'}
@@ -158,24 +158,24 @@ def define_level1_slow():
     lev1_slow_atts['ir20_lwu_Case_R_Std']          = {'units' : 'ohms'}
     lev1_slow_atts['ir20_lwu_DegC_Avg']            = {'units' : 'degC'}
     lev1_slow_atts['ir20_lwu_DegC_Std']            = {'units' : 'degC'}
-    lev1_slow_atts['ir20_lwu_Wm2_Avg']             = {'units' : 'Wm2'}
-    lev1_slow_atts['ir20_lwu_Wm2_Std']             = {'units' : 'Wm2'}
+    lev1_slow_atts['ir20_lwu_Wm2_Avg']             = {'units' : 'W/m2'}
+    lev1_slow_atts['ir20_lwu_Wm2_Std']             = {'units' : 'W/m2'}
     lev1_slow_atts['ir20_lwd_mV_Avg']              = {'units' : 'mV'}
     lev1_slow_atts['ir20_lwd_mV_Std']              = {'units' : 'mV'}
     lev1_slow_atts['ir20_lwd_Case_R_Avg']          = {'units' : 'ohms'}
     lev1_slow_atts['ir20_lwd_Case_R_Std']          = {'units' : 'ohms'}
     lev1_slow_atts['ir20_lwd_DegC_Avg']            = {'units' : 'degC'}
     lev1_slow_atts['ir20_lwd_DegC_Std']            = {'units' : 'degC'}
-    lev1_slow_atts['ir20_lwd_Wm2_Avg']             = {'units' : 'Wm2'}
-    lev1_slow_atts['ir20_lwd_Wm2_Std']             = {'units' : 'Wm2'}
+    lev1_slow_atts['ir20_lwd_Wm2_Avg']             = {'units' : 'W/m2'}
+    lev1_slow_atts['ir20_lwd_Wm2_Std']             = {'units' : 'W/m2'}
     lev1_slow_atts['fp_A_mV_Avg']                  = {'units' : 'mV'}
     lev1_slow_atts['fp_A_mV_Std']                  = {'units' : 'mV'}
-    lev1_slow_atts['fp_A_Wm2_Avg']                 = {'units' : 'Wm2'}
-    lev1_slow_atts['fp_A_Wm2_Std']                 = {'units' : 'Wm2'}
+    lev1_slow_atts['fp_A_Wm2_Avg']                 = {'units' : 'W/m2'}
+    lev1_slow_atts['fp_A_Wm2_Std']                 = {'units' : 'W/m2'}
     lev1_slow_atts['fp_B_mV_Avg']                  = {'units' : 'mV'}
     lev1_slow_atts['fp_B_mV_Std']                  = {'units' : 'mV'}
-    lev1_slow_atts['fp_B_Wm2_Avg']                 = {'units' : 'Wm2'}
-    lev1_slow_atts['fp_B_Wm2_Std']                 = {'units' : 'Wm2'}
+    lev1_slow_atts['fp_B_Wm2_Avg']                 = {'units' : 'W/m2'}
+    lev1_slow_atts['fp_B_Wm2_Std']                 = {'units' : 'W/m2'}
     lev1_slow_atts['licor_co2_Avg']                = {'units' : 'mg/m3'}
     lev1_slow_atts['licor_co2_Std']                = {'units' : 'mg/m3'}
     lev1_slow_atts['licor_h2o_Avg']                = {'units' : 'g/m3'}
@@ -927,18 +927,18 @@ def define_level2_variables():
     lev2_atts['rhi']          = {'units' : 'percent'}
     lev2_atts['brightness_temp_surface']        = {'units' : 'deg C'}
     lev2_atts['skin_temp_surface']       = {'units' : 'deg C'}
-    lev2_atts['subsurface_heat_flux_A']     = {'units' : 'Wm2'}
-    lev2_atts['subsurface_heat_flux_B']     = {'units' : 'Wm2'}
+    lev2_atts['subsurface_heat_flux_A']     = {'units' : 'W/m2'}
+    lev2_atts['subsurface_heat_flux_B']     = {'units' : 'W/m2'}
     lev2_atts['wspd_vec_mean']     = {'units' : 'm/s'}
     lev2_atts['wdir_vec_mean'] = {'units' : 'degC'}
     lev2_atts['acoustic_temp']           = {'units' : 'deg C'}
     lev2_atts['h2o_licor']            = {'units' : 'g/m3'}
     lev2_atts['co2_licor']            = {'units' : 'mg/m3'}
-    lev2_atts['down_long_hemisp']        = {'units' : 'Wm2'}
-    lev2_atts['down_short_hemisp']        = {'units' : 'Wm2'}
-    lev2_atts['up_long_hemisp']        = {'units' : 'Wm2'}
-    lev2_atts['up_short_hemisp']        = {'units' : 'Wm2'}
-    lev2_atts['net_radiation']        = {'units' : 'Wm2'}
+    lev2_atts['down_long_hemisp']        = {'units' : 'W/m2'}
+    lev2_atts['down_short_hemisp']        = {'units' : 'W/m2'}
+    lev2_atts['up_long_hemisp']        = {'units' : 'W/m2'}
+    lev2_atts['up_short_hemisp']        = {'units' : 'W/m2'}
+    lev2_atts['net_radiation']        = {'units' : 'W/m2'}
 
     # add everything else to the variable NetCDF attributes
     # #########################################################################################################
@@ -1082,7 +1082,7 @@ def define_level2_variables():
                                                 'height'        : 'subsurface, variable',
                                                 'location'      : '10m south of station at met city',})
 
-    lev2_atts['subsurface_heat_flux_B']      .update({'units'         : 'Wm2',
+    lev2_atts['subsurface_heat_flux_B']      .update({'units'         : 'W/m2',
                                                 'long_name'     : 'conductive flux',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hukseflux HFP01',
@@ -1168,9 +1168,9 @@ def define_turb_variables():
 
     turb_atts = OrderedDict()
 
-    turb_atts['Hs']              = {'units' : 'Wm2'}
-    turb_atts['Hl']              = {'units' : 'Wm2'}
-    turb_atts['Hl_Webb']         = {'units' : 'Wm2'}
+    turb_atts['Hs']              = {'units' : 'W/m2'}
+    turb_atts['Hl']              = {'units' : 'W/m2'}
+    turb_atts['Hl_Webb']         = {'units' : 'W/m2'}
     turb_atts['CO2_flux']        = {'units' : 'mg*m^-2*s^-1'}
     turb_atts['CO2_flux_Webb']   = {'units' : 'mg*m^-2*s^-1'}
     turb_atts['Cd']              = {'units' : 'dimensionless'}
@@ -1260,9 +1260,9 @@ def define_turb_variables():
     turb_atts['cwcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
     turb_atts['cucs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
     turb_atts['cvcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
-    turb_atts['bulk_Hs']         = {'units' : 'Wm2'}
-    turb_atts['bulk_Hl']         = {'units' : 'Wm2'}
-    turb_atts['bulk_Hl_Webb']    = {'units' : 'Wm2'}
+    turb_atts['bulk_Hs']         = {'units' : 'W/m2'}
+    turb_atts['bulk_Hl']         = {'units' : 'W/m2'}
+    turb_atts['bulk_Hl_Webb']    = {'units' : 'W/m2'}
     turb_atts['bulk_tau']        = {'units' : 'Pa'}
     turb_atts['bulk_z0']         = {'units' : 'm'}
     turb_atts['bulk_z0t']        = {'units' : 'm'}
