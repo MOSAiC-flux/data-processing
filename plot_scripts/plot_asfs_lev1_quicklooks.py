@@ -33,6 +33,15 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import colorsys
 
+if '.psd.' in socket.gethostname():
+    nthreads = 20 # the twins have 64 cores, it won't hurt if we use ~30
+else: nthreads = 8 # if nthreads < nplots then plotting will not be threaded
+
+# need to debug something? kills multithreading to step through function calls
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+# nthreads = 1
+
 # this is here because for some reason the default matplotlib doesn't
 # like running headless...  off with its head
 mpl.use('pdf');
@@ -48,7 +57,9 @@ import xarray as xr
 
 sys.path.insert(0,'../')
 
+from debug_functions import drop_me as dm
 import functions_library as fl 
+from get_data_functions import get_flux_data
 
 #import warnings
 mpl.warnings.filterwarnings("ignore", category=mpl.MatplotlibDeprecationWarning) 
@@ -56,11 +67,7 @@ mpl.warnings.filterwarnings("ignore", category=UserWarning)
 
 def main(): # the main data crunching program
 
-    default_data_dir = '/psd3data/arctic/MOSAiC/' # give '-p your_directory' to the script if you don't like this
-
-    if '.psd.' in socket.gethostname():
-        nthreads = 20 # the twins have 64 cores, it won't hurt if we use <20
-    else: nthreads = 3
+    default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
 
     make_daily_plots = True
     make_leg_plots   = True # make plots that include data from each leg
@@ -85,6 +92,7 @@ def main(): # the main data crunching program
                                    }
     var_dict['winds']           = {'winds_horizontal' : ['metek_horiz_Avg'], # CREATED BELOW
                                    'winds_vertical'   : ['metek_z_Avg'],
+                                   'tilt'             : ['sr30_swd_tilt_Avg', 'sr30_swu_tilt_Avg'],
                                    }
     var_dict['radiation']       = {'shortwave'        : ['sr30_swu_Irr_Avg','sr30_swd_Irr_Avg'], 
                                    'longwave'         : ['ir20_lwu_Wm2_Avg','ir20_lwd_Wm2_Avg'], 
@@ -97,18 +105,22 @@ def main(): # the main data crunching program
                                    'logger_voltage'   : ['batt_volt_Avg'],
                                    'gps'              : ['gps_hdop_Avg'],
                                    }
-    var_dict['lat_lon']         = {'minutes'         : ['gps_lat_min_Avg', 'gps_lon_min_Avg'],
-                                  'degrees'          : ['gps_lat_deg_Avg', 'gps_lon_deg_Avg'],
-                                  'heading'          : ['gps_hdg_Avg'],
+    var_dict['lat_lon']         = {'minutes'          : ['gps_lat_min_Avg', 'gps_lon_min_Avg'],
+                                   'degrees'          : ['gps_lat_deg_Avg', 'gps_lon_deg_Avg'],
+                                   'heading'          : ['gps_hdg_Avg'],
+                                  }
+    var_dict['licor']           = {'gas'              : ['licor_co2_Avg','licor_h2o_Avg'],
+                                   'quality'          : ['licor_co2_str_out_Avg'],
                                   }
 
-    unit_dict = {}
+    unit_dict                    = {}
     unit_dict['meteorology']     = {'temperature'      : 'C',
                                     'humidity'         : '%', 
                                     'pressure'         : 'hPa', 
                                     }
     unit_dict['winds']           = {'winds_horizontal' : 'm/s', 
-                                    'winds_vertical'   : 'm/s', 
+                                    'winds_vertical'   : 'm/s',
+                                    'tilt'             : 'degrees', 
                                     }
     unit_dict['radiation']       = {'shortwave'        : 'W/m2', 
                                     'longwave'         : 'W/m2', 
@@ -119,22 +131,28 @@ def main(): # the main data crunching program
                                     }
     unit_dict['is_alive']        = {'logger_temp'      : 'C', 
                                     'logger_voltage'   : 'V',
-                                    'gps'   : 'none', 
+                                    'gps'              : 'none', 
                                     }
-    unit_dict['lat_lon']        = {'minutes'      : 'minutes',
-                                   'degrees'   : 'degrees',
-                                   'heading'   : 'degrees'
-                                   }
+    unit_dict['lat_lon']         = {'minutes'          : 'minutes',
+                                    'degrees'          : 'degrees',
+                                    'heading'          : 'degrees'
+                                    }
+    unit_dict['licor']           = {'gas'              : 'g/m3',
+                                    'quality'          : '%',
+                                    }
 
     # if you put a color in the list, (rgb or hex) the function below will all lines different luminosities
     # of the same hue. if you put a 3-tuple of colors, it will use the colors provided explicitly for 30/40/50
     color_dict = {}
     color_dict['meteorology']     = ['#E24A33','#348ABD','#988ED5','#777777','#FBC15E','#8EBA42','#FFB5B8']
-    color_dict['winds']           = ['#4878CF','#6ACC65','#D65F5F','#B47CC7','#C4AD66','#77BEDB','#4878CF']
+    #color_dict['winds']           = ['#4878CF','#6ACC65','#D65F5F','#B47CC7','#C4AD66','#77BEDB','#4878CF']
+    color_dict['winds']           = ['#4878CF','#6ACC65','#C4AD66','#77BEDB','#4878CF']
     color_dict['radiation']       = ['#001C7F','#017517','#8C0900','#7600A1','#B8860B','#006374','#001C7F']
     color_dict['plates_and_sr50'] = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2']
     color_dict['is_alive'] = [((0.8,0.8,0.9), (0.35,0.55,0.55), (0.55,0.55,0.35)), (0.2,0.5,0.8), (0.1,0.1,0.3)]
-    color_dict['lat_lon']  = [(0.8,0.8,0.8),(0.2,0.4,0.2),(0.8,0.6,0.6),(0.2,0.4,0.2),(0.9,0.5,0.9),(0.3,0.1,0.5),(0.1,0.01,0.01)]
+    color_dict['lat_lon']  = [(0.8,0.8,0.8),(0.2,0.4,0.2),(0.8,0.6,0.6),
+                              (0.2,0.4,0.2),(0.9,0.5,0.9),(0.3,0.1,0.5),(0.1,0.01,0.01)]
+    color_dict['licor'] = ['#23001a','#ffe000','#00fdff']
 
     # gg_colors    = ['#E24A33','#348ABD','#988ED5','#777777','#FBC15E','#8EBA42','#FFB5B8']
     # muted_colors = ['#4878CF','#6ACC65','#D65F5F','#B47CC7','#C4AD66','#77BEDB','#4878CF']
@@ -147,6 +165,7 @@ def main(): # the main data crunching program
     parser.add_argument('-s', '--start_time', metavar='str',   help='beginning of processing period, Ymd syntax')
     parser.add_argument('-e', '--end_time',   metavar='str',   help='end  of processing period, Ymd syntax')
     parser.add_argument('-p', '--path', metavar='str', help='base path to data up to, including /data/, include trailing slash')
+    parser.add_argument('-pd', '--pickledir', metavar='str',help='want to store a pickle of the data for debugging?')
 
     args         = parser.parse_args()
     v_print      = print if args.verbose else lambda *a, **k: None
@@ -163,6 +182,9 @@ def main(): # the main data crunching program
     if args.end_time: end_time = datetime.strptime(args.end_time, '%Y%m%d')   
     else: end_time = start_time
 
+    if args.pickledir: pickle_dir=args.pickledir
+    else: pickle_dir=False
+
     print('---------------------------------------------------------------------------------------')
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
@@ -174,56 +196,14 @@ def main(): # the main data crunching program
     # plot for all of leg 2.
     day_series = pd.date_range(start_time, end_time) # we're going to get date for these days between start->end
 
+    print(f"Retreiving data from netcdf files... {data_dir}")
     df_list = []
-    print(" Retreiving data from netcdf files...")
-    nthreadsstation = int(np.floor(nthreads/len(sleds_to_plot)))
-    for i_day, start_day in enumerate(day_series): # loop over days in processing range and get list of files
-        if i_day % nthreadsstation!=0 or i_day>len(day_series): continue
-        print("  ... getting data for day {} (and {} days after in parallel)".format(start_day,nthreadsstation))
-
-        q_list = []; p_list = []
-        for ithread in range(0,nthreadsstation):
-            today = start_day+timedelta(ithread)
-            q_list.append({}); p_list.append({});
-            for istation, curr_station in enumerate(sleds_to_plot):
-                site_strs ={'asfs30':'L2','asfs40':'L1','asfs50':'L3'}
-                #file_str_slow = '/mos{}slow.level1.{}.nc'.format(curr_station, today.strftime('%Y%m%d.%H%M%S'))
-                file_str_slow = '/slow_preliminary_{}.{}.{}.nc'.format(curr_station, site_strs[curr_station],today.strftime('%Y%m%d'))
-                level1_dir    = data_dir+curr_station+'/1_level_ingest_{}/'.format(curr_station) # where does level1 data live?
-                curr_file     = level1_dir+file_str_slow
-
-
-                q_list[ithread][curr_station] = Q()
-                p_list[ithread][curr_station] = P(target=get_asfs_data, \
-                                                args=(curr_file, curr_station, today, \
-                                                      q_list[ithread][curr_station])).start()
- 
-        for ithread in range(0,nthreadsstation):
-            today = start_day+timedelta(ithread)
-            df_today = pd.DataFrame()
-            df_dict = {}
-            for istation, curr_station in enumerate(sleds_to_plot):
-                df_dict[curr_station] = q_list[ithread][curr_station].get()
-                cv = q_list[ithread][curr_station].get()
-                if cv!=None: code_version = cv
-
-            for istation, curr_station in enumerate(sleds_to_plot):
-                if df_today.empty: df_today = df_dict[curr_station]
-                else:              df_today = pd.concat( [df_today, df_dict[curr_station]], axis=1 )
-
-            df_list.append(df_today.copy())
-
-    df = pd.concat(df_list)
-    time_dates = df.index
-    df['time'] = time_dates # duplicates index... but it can be convenient
-
-    print('\n ... data sample :')
-    print('================')
-    print(df)
-    print('\n')
-    print(df.info())
-    #for var in df.columns.values.tolist(): print('   {}'.format(var))
-    print('================\n\n') 
+    for station in sleds_to_plot:
+        df_station, code_version = get_flux_data(station, start_time, end_time, 1,
+                                                        data_dir, 'slow', False, nthreads, pickle_dir)
+        df_station = df_station.add_suffix('_{}'.format(station))
+        df_list.append(df_station)
+    df = pd.concat(df_list, axis=1)
 
     ## create variables that we want to have 
     for istation, curr_station in enumerate(sleds_to_plot):
@@ -241,12 +221,13 @@ def main(): # the main data crunching program
 
     if make_daily_plots:
         day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
-        print("~~ making daily plots for all figures ~~")
-        print("----------------------------------------")
         nplotthreads = int(np.floor(nthreads/len(var_dict)))
+        if (nplotthreads==0): nplotthreads=1
+        print(f"~~ making daily plots for all figures with threads {nplotthreads}~~")
+        print("----------------------------------------------------")
         for i_day, start_day in enumerate(day_series):
             if i_day % nplotthreads!=0 or i_day>len(day_series): continue
-            print("  ... plotting data for day {} (and {} days *with {} plots* after in parallel)".format(start_day,nplotthreads,len(var_dict)))
+            print("  ... plotting data for day {} (and {} days *with {} plots* after in parallel)".format(start_day, nplotthreads, len(var_dict)))
 
             plot_q_list = []; plot_p_list = []
             for ithread in range(0,nplotthreads):
@@ -266,7 +247,8 @@ def main(): # the main data crunching program
                               color_dict[plot_name],save_str,True,
                               plot_q_list[ithread][plot_name])).start()
 
-            for ithread in range(0,nplotthreads):
+
+            for ithread in range(0, nplotthreads):
                 for plot_name, subplot_dict in var_dict.items():
                     plot_q_list[ithread][plot_name].get()
 
@@ -343,10 +325,14 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
 
         for var in var_list:
             ivar+=1
-
+            #print(f"{var}")
+            #print(f"and {colors[ivar]}")
             if isinstance(colors[ivar],str) or isinstance(colors[ivar][0],float) :
                 color_tuples = get_rgb_trio(colors[ivar])
-            else: color_tuples = list(colors[ivar])
+            else:
+                color_tuples = list(colors[ivar])
+
+            color_tuples = normalize_luminosity(color_tuples)
 
             for istation, curr_station in enumerate(sleds_to_plot):
                 try:
@@ -386,7 +372,7 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
     fig.text(0.5, 0.005,'(plotted on {} from level1 data version {} )'.format(datetime.today(), code_version),
              ha='center')
 
-    fig.tight_layout(pad=0.3)
+    fig.tight_layout(pad=2.0)
     #fig.tight_layout(pad=5.0) # cut off white-space on edges
 
     #print('... saving to: {}'.format(save_str))
@@ -399,6 +385,17 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
     plt.close() # closes figure before exiting
     q.put(True)
     return # not necessary
+
+def normalize_luminosity(color_tuples):
+    return_colors = []
+    pre_lume_list = [colorsys.rgb_to_hls(r,g,b)[1] for r,g,b in color_tuples]
+    for r,g,b in color_tuples: 
+        h,l,s = colorsys.rgb_to_hls(r,g,b)
+        if l == min(pre_lume_list): return_colors.append(colorsys.hls_to_rgb(h, 0.75, s))
+        elif l==max(pre_lume_list): return_colors.append(colorsys.hls_to_rgb(h, 0.25, s))
+        else:                       return_colors.append(colorsys.hls_to_rgb(h, 0.5, s))
+
+    return return_colors
 
 # returns 3 rgb tuples of varying darkness for a given color, 
 def get_rgb_trio(color):
@@ -427,8 +424,8 @@ def make_plots_pretty(style_name):
     # plt.style.use('seaborn-whitegrid') # white grid with softer colors
     plt.style.use(style_name)
 
-    mpl.rcParams['lines.linewidth']     = 6
-    mpl.rcParams['font.size']           = 70
+    mpl.rcParams['lines.linewidth']     = 12
+    mpl.rcParams['font.size']           = 80
     mpl.rcParams['legend.fontsize']     = 'medium'
     mpl.rcParams['axes.labelsize']      = 'xx-large'
     mpl.rcParams['axes.titlesize']      = 'xx-large'

@@ -29,7 +29,12 @@ import colorsys
 
 if '.psd.' in socket.gethostname():
     nthreads = 20 # the twins have 64 cores, it won't hurt if we use ~30
-else: nthreads = 4 # if nthreads < nplots then plotting will not be threaded
+else: nthreads = 8 # if nthreads < nplots then plotting will not be threaded
+
+# need to debug something? kills multithreading to step through function calls
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+# nthreads = 1
 
 # this is here because for some reason the default matplotlib doesn't
 # like running headless...  off with its head
@@ -47,8 +52,9 @@ import xarray as xr
 
 sys.path.insert(0,'../')
 
+from debug_functions import drop_me as dm
 import functions_library as fl 
-from get_data_functions import get_tower_l1_data
+from get_data_functions import get_flux_data
 
 #import warnings
 mpl.warnings.filterwarnings("ignore", category=mpl.MatplotlibDeprecationWarning)
@@ -58,7 +64,6 @@ def main(): # the main data crunching program
 
     default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
 
-    threaded_data    = True; nthreads = 16
     make_daily_plots = True
     make_leg_plots   = True # make plots that include data from each leg
 
@@ -80,7 +85,7 @@ def main(): # the main data crunching program
                                    'pressure'         : ['vaisala_P_2m', 'mast_P'],
                                    }
     var_dict['plates_and_sr50'] = {'flux_plates'      : ['fp_A_Wm2','fp_B_Wm2'],
-                                   'surface_distance' : ['sr50_dist'],
+                                   'surface_distance' : [''],
                                    }
     var_dict['is_alive']        = {'logger_temp'      : ['PTemp'],
                                    'logger_voltage'   : ['batt_volt'],
@@ -129,6 +134,7 @@ def main(): # the main data crunching program
     parser.add_argument('-s', '--start_time', metavar='str',   help='beginning of processing period, Ymd syntax')
     parser.add_argument('-e', '--end_time',   metavar='str',   help='end  of processing period, Ymd syntax')
     parser.add_argument('-p', '--path', metavar='str', help='base path to data up to, including /data/, include trailing slash')
+    parser.add_argument('-pd', '--pickledir', metavar='str',help='want to store a pickle of the data for debugging?')
 
     args         = parser.parse_args()
     v_print      = print if args.verbose else lambda *a, **k: None
@@ -145,6 +151,9 @@ def main(): # the main data crunching program
     if args.end_time: end_time = datetime.strptime(args.end_time, '%Y%m%d')   
     else: end_time = start_time
 
+    if args.pickledir: pickle_dir=args.pickledir
+    else: pickle_dir=False
+
     print('---------------------------------------------------------------------------------------')
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
@@ -155,7 +164,11 @@ def main(): # the main data crunching program
 
     # plot for all of leg 2.
     day_series = pd.date_range(start_time, end_time) # we're going to get date for these days between start->end
-    df, code_version = get_tower_l1_data(start_time, end_time, nthreads, data_dir)
+    df, code_version = get_flux_data('tower', start_time, end_time, 1,
+                                     data_dir, 'slow', True, nthreads, pickle_dir=pickle_dir)
+
+    if args.pickledir: pickle_dir=args.pickledir
+    else: pickle_dir=False
 
     make_plots_pretty('seaborn-whitegrid') # ... and higher resolution
 
@@ -163,7 +176,8 @@ def main(): # the main data crunching program
         day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
         print("~~ making daily plots for all figures ~~")
         print("----------------------------------------")
-        nplotthreads = int(np.floor(nthreads/len(var_dict)))
+        if nthreads==1: nplotthreads = 1
+        else: nplotthreads = int(np.floor(nthreads/len(var_dict)))
         for i_day, start_day in enumerate(day_series):
             if i_day % nplotthreads!=0 or i_day>len(day_series): continue
 
@@ -274,6 +288,8 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
                 if isinstance(colors[ivar],str) or isinstance(colors[ivar][0],float) :
                     color_tuples = get_rgb_trio(colors[ivar])
                 else: color_tuples = list(colors[ivar])
+
+                color_tuples = normalize_luminosity(color_tuples)
                 height_strs = ['_2m','_6m','_10m']
                 for ihs, hs in enumerate(height_strs):
                     try:
@@ -324,7 +340,7 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
 
     fig.text(0.5, 0.005,'(plotted on {} from level1 data version {} )'.format(datetime.today(), code_version),
              ha='center')
-    fig.tight_layout(pad=3) # cut off white-space on edges
+    #fig.tight_layout(pad=3) # cut off white-space on edges
 
     if not os.path.isdir(os.path.dirname(save_str)):
         print("!!! making directory {}... hope that's what you intended".format(os.path.dirname(save_str)))
@@ -336,6 +352,16 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
     q.put(True)
     return # not necessary
 
+def normalize_luminosity(color_tuples):
+    return_colors = []
+    pre_lume_list = [colorsys.rgb_to_hls(r,g,b)[1] for r,g,b in color_tuples]
+    for r,g,b in color_tuples: 
+        h,l,s = colorsys.rgb_to_hls(r,g,b)
+        if l == min(pre_lume_list): return_colors.append(colorsys.hls_to_rgb(h, 0.75, s))
+        elif l==max(pre_lume_list): return_colors.append(colorsys.hls_to_rgb(h, 0.25, s))
+        else:                       return_colors.append(colorsys.hls_to_rgb(h, 0.5, s))
+
+    return return_colors
 
 def get_rgb(color):
     if isinstance(color, str):
