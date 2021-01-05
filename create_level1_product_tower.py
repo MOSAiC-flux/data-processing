@@ -57,16 +57,17 @@ import os, inspect, argparse, time
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
-# need to debug something? kills multithreading to step through function calls
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
-
 import socket 
 
 global nthreads 
 if '.psd.' in socket.gethostname():
     nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 3 # laptops don't tend to have 64 cores, set to 1 to debug
+
+# need to debug something? kills multithreading to step through function calls
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+# nthreads = 1
 
 import numpy  as np
 import pandas as pd
@@ -138,6 +139,7 @@ def main(): # the main data crunching program
     metek_mast_dir   = 'tower/0_level_raw/Metek30m/'
     licor_dir        = 'tower/0_level_raw/Licor02m/'
     tower_logger_dir = 'tower/0_level_raw/CR1000X/daily_files/'
+    mast_logger_dir  = 'tower/0_level_raw/CR1000_mast/daily_files/'
 
     # constants for calculations
     global nan, def_fill_int, def_fill_flt # make using nans look better
@@ -343,9 +345,11 @@ def main(): # the main data crunching program
     print('---------------------------------------------------------------------------------------------')
 
 def get_slow_data(date):
+
     tower_subdir = 'tower/0_level_raw/CR1000X/daily_files/'
+    mast_subdir  = 'tower/0_level_raw/CR1000_mast/daily_files/'
     slow_data  = pd.DataFrame()
-    fuzzy_window = timedelta(5) # we look for files 2 days before and after because we didn't save even days...(?!)
+    fuzzy_window = timedelta(20) # we look for files 2 days before and after because we didn't save even days...(?!)
     # fuzzy_window>=5 required for days of MOSAiC where logger info is spread out across 'daily-ish' files -- "shutdown days"
 
     slow_atts, slow_vars = define_level1_slow()
@@ -354,7 +358,10 @@ def get_slow_data(date):
     logger_file_list   = [] # list of filenames to concat into dataframes
     mast_gps_file_list = [] # list of filenames to concat into mast dataframes
 
-    for data_file in os.listdir(data_dir+tower_subdir):
+    data_file_list = os.listdir(data_dir+tower_subdir)
+    data_file_list.extend(os.listdir(data_dir+mast_subdir))
+
+    for data_file in data_file_list:
 
         if data_file.endswith('.dat'):
 
@@ -370,6 +377,7 @@ def get_slow_data(date):
                 
                 if file_date >= (date-fuzzy_window) and file_date <= (date+fuzzy_window): # weirdness
                     if file_words[1] == "Noodleville":
+                        print(f"!!! Noodle file found {data_file}")
                         mast_gps_file_list.append(data_file)
                     else:
                         logger_file_list.append(data_file)
@@ -399,7 +407,7 @@ def get_slow_data(date):
 
     mast_gps_df_list = [] # mast gps dataframes to be concatted all at once
     for mast_gps_file in mast_gps_file_list:
-        path  = data_dir+tower_subdir+'/'+mast_gps_file
+        path  = data_dir+mast_subdir+'/'+mast_gps_file
         with open(path) as f:
 
             cols = ["TIMESTAMP","mast_RECORD","mast_gps_lat_deg_Avg","mast_gps_lat_min_Avg","mast_gps_lon_deg_Avg",\
