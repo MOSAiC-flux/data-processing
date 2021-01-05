@@ -1,4 +1,4 @@
-#!/usr/local/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-   
 from tower_data_definitions import code_version
 code_version = code_version()
@@ -73,8 +73,6 @@ from multiprocessing import Queue   as Q
 # from multiprocessing.dummy import Queue   as Q
 # nthreads = 1
 
-from debug_functions import drop_me as dm 
-
 import numpy  as np
 import pandas as pd
 import xarray as xr
@@ -147,9 +145,9 @@ def main(): # the main data crunching program
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                  # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product_dev/'        # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product_dev/'        # where does level2 data go
-    leica_dir  = data_dir+'partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives  
+    level2_dir = data_dir+'/tower/2_level_product/version1/'        # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/version1/'        # where does level2 data go
+    leica_dir  = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives  
     
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -418,11 +416,9 @@ def main(): # the main data crunching program
         licor_index = 0 
         for li, ld in enumerate(licor_dates) :
             if today >= ld:
-                print(f"{today_str} >>> {ld}")
                 licor_index = li
                 break
         licor_z = licor_heights[licor_index]
-        print(f"{licor_index} -- {today_str}")
 
         # has the mast moved today?
         mast_index = 0 
