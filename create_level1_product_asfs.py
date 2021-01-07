@@ -547,7 +547,7 @@ def get_fast_file_list(station, qq):
         f.close()
 
         num_cols  = len(firstline)
-        if (num_cols > 11 or num_cols <7): 
+        if (num_cols not in [7,11,12]):
             print("!!! The number of columns should be 7 or 11, something's up !!!")
             print("!!! not using {} with cols {}".format(data_file,num_cols))
             continue
@@ -620,11 +620,11 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
         try:  # ingest each csv into own data frame and keep in list
             frame = pd.read_csv(data_file, parse_dates=[0], sep=',', na_values=na_vals,\
                                 engine='c', names=cols)
-            frame_list.append(frame)   
+            frame_list.append(frame)
         except Exception as e:
             printline()
             print(e)
-            print("!!! There was an exception reading file {}, skipping!!!".format(data_file))
+            print("!!! There was an exception reading file {}, {}skipping!!!".format(data_fil,num_cols))
             printline()
 
     # reindex each frame to avoid collisions before concatting/interpolating the time column/axis
@@ -667,16 +667,22 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
 
 # function that searches sitevisit dirs looking for SDcard directory and returns data file paths in a list
 def get_card_file_list(filestr, searchdir): # filestr is the name in the data file you want to get slow/fast/etc
-    card_file_list = [] 
+    card_file_list = []
+    card_dir_list = [''] 
     for subdir, dirs, files in os.walk(searchdir):
         for curr_dir in dirs:
             if "sdcard" in curr_dir.lower():
                 card_dir = subdir+'/'+curr_dir
+                if card_dir_list[-1] != card_dir: card_dir_list.append(card_dir)
                 card_files_in_dir = []
                 for f in os.listdir(card_dir):
-                    if filestr in f and f.endswith('.dat') and not f.startswith('._'):
+                    if filestr in f.lower() and f.endswith('.dat') and not f.startswith('._'):
                         card_files_in_dir.append(card_dir+'/'+f)
                 card_file_list.extend(card_files_in_dir) # lets not make a list of lists
+    verboseprint(f"\n\n... you asked for it, here's your list of {filestr} card files...\n\n")
+    printline()
+    [print(d) for d in card_dir_list]
+    printline()
     return card_file_list
 
 # do the stuff to write out the level1 files, after finishing this it could probably just be one
