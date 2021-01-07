@@ -28,7 +28,7 @@ def get_flux_data(station, start_day, end_day, level,
     Optional params
     ---------------
     data_dir    : the head where the files can be found
-    data_type   : 'fast' 'slow', 'turb' data, etc
+    data_type   : 'fast' 'slow', 'turb','met'data, etc
     nthreads    : how many cpu threads would you like to use 
     verbose     : would you like to see more print statements?
 
@@ -82,20 +82,26 @@ def get_flux_data(station, start_day, end_day, level,
                 if nthreads > 1:
                     print("  ... getting data for day {} (and {} days after in parallel)".format(today,nthreads))
                 else:
-                    print("  ... getting data for day {}")
+                    print("  ... getting data for day {}".format(today))
 
             date_str = today.strftime('%Y%m%d.%H%M%S')
-            if level == 1: 
-                level_str = 'ingest'
+            if level == 1: level_str = 'ingest'
+            if level == 2: level_str = 'product'
+            if level == 3: level_str = 'archive'
 
             subdir   = f'/{level}_level_{level_str}_{station}/'
-            file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
             if station == 'tower':
                 subdir   = f'/{level}_level_{level_str}/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
+                if level == 2:
+                    file_str = f'/mosflx{station}{data_type}.level{level}.1min.{date_str}.nc'
+                    subdir = subdir+'version1/'
 
-            if level == 2: level_str = 'product'
-            if level == 3: level_str = 'archive'
+            else:
+                file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
+                if level == 2:
+                    file_str = f'/mos{station}{data_type}.level{level}.1min.{date_str}.nc'
+                    subdir = subdir+'version1/'
 
             files_dir = data_dir+station+subdir
             curr_file = files_dir+file_str
