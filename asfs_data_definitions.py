@@ -908,37 +908,37 @@ def define_level2_variables():
 
     lev2_atts = OrderedDict()
 
-    lev2_atts['lat']          = {'units' : 'degrees_north'}
-    lev2_atts['lon']          = {'units' : 'degrees_east'}
-    lev2_atts['heading']      = {'units' : 'degrees_true'}
+    lev2_atts['lat']                     = {'units' : 'degrees_north'}
+    lev2_atts['lon']                     = {'units' : 'degrees_east'}
+    lev2_atts['heading']                 = {'units' : 'degrees_true'}
     lev2_atts['zenith_true']             = {'units' : 'degrees'}
-    lev2_atts['zenith_apparent']              = {'units' : 'degrees'}
-    lev2_atts['azimuth']              = {'units' : 'degrees'}
-    lev2_atts['ship_distance']        = {'units' : 'meters'}
-    lev2_atts['ship_bearing']         = {'units' : 'degrees'}
-    lev2_atts['sr50_dist']            = {'units' : 'meters'}
-    lev2_atts['snow_depth']           = {'units' : 'cm'}
-    lev2_atts['atmos_pressure']        = {'units' : 'hPa'}
-    lev2_atts['temp']         = {'units' : 'deg C'}
-    lev2_atts['rh'] = {'units' : 'percent'}
-    lev2_atts['dew_point']     = {'units' : 'deg C'}
-    lev2_atts['mixing_ratio']           = {'units' : 'g/kg'}
-    lev2_atts['vapor_pressure']           = {'units' : 'Pa'}
-    lev2_atts['rhi']          = {'units' : 'percent'}
-    lev2_atts['brightness_temp_surface']        = {'units' : 'deg C'}
+    lev2_atts['zenith_apparent']         = {'units' : 'degrees'}
+    lev2_atts['azimuth']                 = {'units' : 'degrees'}
+    lev2_atts['ship_distance']           = {'units' : 'meters'}
+    lev2_atts['ship_bearing']            = {'units' : 'degrees'}
+    lev2_atts['sr50_dist']               = {'units' : 'meters'}
+    lev2_atts['snow_depth']              = {'units' : 'cm'}
+    lev2_atts['atmos_pressure']          = {'units' : 'hPa'}
+    lev2_atts['temp']                    = {'units' : 'deg C'}
+    lev2_atts['rh']                      = {'units' : 'percent'}
+    lev2_atts['dew_point']               = {'units' : 'deg C'}
+    lev2_atts['mixing_ratio']            = {'units' : 'g/kg'}
+    lev2_atts['vapor_pressure']          = {'units' : 'Pa'}
+    lev2_atts['rhi']                     = {'units' : 'percent'}
+    lev2_atts['brightness_temp_surface'] = {'units' : 'deg C'}
     lev2_atts['skin_temp_surface']       = {'units' : 'deg C'}
-    lev2_atts['subsurface_heat_flux_A']     = {'units' : 'W/m2'}
-    lev2_atts['subsurface_heat_flux_B']     = {'units' : 'W/m2'}
-    lev2_atts['wspd_vec_mean']     = {'units' : 'm/s'}
-    lev2_atts['wdir_vec_mean'] = {'units' : 'degC'}
+    lev2_atts['subsurface_heat_flux_A']  = {'units' : 'W/m2'}
+    lev2_atts['subsurface_heat_flux_B']  = {'units' : 'W/m2'}
+    lev2_atts['wspd_vec_mean']           = {'units' : 'm/s'}
+    lev2_atts['wdir_vec_mean']           = {'units' : 'degrees'}
     lev2_atts['acoustic_temp']           = {'units' : 'deg C'}
-    lev2_atts['h2o_licor']            = {'units' : 'g/m3'}
-    lev2_atts['co2_licor']            = {'units' : 'mg/m3'}
+    lev2_atts['h2o_licor']               = {'units' : 'g/m3'}
+    lev2_atts['co2_licor']               = {'units' : 'mg/m3'}
     lev2_atts['down_long_hemisp']        = {'units' : 'W/m2'}
-    lev2_atts['down_short_hemisp']        = {'units' : 'W/m2'}
-    lev2_atts['up_long_hemisp']        = {'units' : 'W/m2'}
-    lev2_atts['up_short_hemisp']        = {'units' : 'W/m2'}
-    lev2_atts['net_radiation']        = {'units' : 'W/m2'}
+    lev2_atts['down_short_hemisp']       = {'units' : 'W/m2'}
+    lev2_atts['up_long_hemisp']          = {'units' : 'W/m2'}
+    lev2_atts['up_short_hemisp']         = {'units' : 'W/m2'}
+    lev2_atts['net_radiation']           = {'units' : 'W/m2'}
 
     # add everything else to the variable NetCDF attributes
     # #########################################################################################################
