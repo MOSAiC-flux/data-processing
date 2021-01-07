@@ -170,5 +170,10 @@ def qc_tower(tower_data):
     td['heading_tower'] .loc[:raise_day] = nan # ditto
     td['sr50_dist']     .loc[:raise_day] = nan # sr50 data is garbage when the tower is down
                                                       # (it's pointed at the horizon or something)
-    return td
 
+
+    td['heading_tower'].loc[:date(2019,10,24,4,59,49)] = nan # this is a couple hours after the gps
+                                                                 # was calibrated and mounted and is
+                                                                 # when the data looks ok
+
+    return td
