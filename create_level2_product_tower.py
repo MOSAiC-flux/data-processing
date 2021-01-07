@@ -62,7 +62,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 40  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -401,6 +401,44 @@ def main(): # the main data crunching program
     print(slow_data)
     printline(startline="\n")
 
+    # #############################################################################################
+    # a small amount of pre-processing before the loop over each day. the band-pass filtering
+    # is done on an envelope the day before and after and therefore must be done as a whole 
+
+    # The heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, 12.8
+    # hours. I've considered several approaches: wavelet frequency rejection, various band-pass filters,
+    # Kalman filter, tower->ais bearing baseline. Median filter works the best. Because the lowest nosie
+    # frequency is near 12 hours, a 24 hour filter is needed. I have implemented a 1 day buffer on the
+    # start_time, end_time for this. For missing data we forward pad to reduce edge effects but report
+    # nan in the padded space.
+    print('\n... band-pass median filter applied to heading... unthreaded and a bit slow.... must be done') 
+    slow_data['heading_tower'] = slow_data['gps_hdg']/100.0  # convert to degrees
+    slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise 
+    tmph = slow_data['heading_tower'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
+    tmpa = slow_data['tower_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
+
+    tmph.mask(slow_data['heading_tower'].isna(),inplace=True)
+    tmpa.mask(slow_data['tower_ice_alt'].isna(),inplace=True)
+
+    slow_data['heading_tower'] = tmph
+    slow_data['tower_ice_alt'] = tmpa
+
+    if 'mast_RECORD' in slow_data: # same thing for the mast if it was up
+        slow_data['mast_gps_alt'] = slow_data['gps_alt']/1000.0 # convert to meters
+        slow_data['heading_mast'] = slow_data['mast_gps_hdg_Avg']/100.0  # convert to degrees
+        slow_data['mast_ice_alt'] = slow_data['mast_gps_alt'] - mst_GPS_height_raised_precise 
+
+
+
+        tmph = slow_data['heading_mast'].rolling(86400,min_periods=1,center=True).median()
+        tmpa = slow_data['mast_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
+        tmph.mask(slow_data['heading_mast'].isna(), inplace=True)
+        tmpa.mask(slow_data['mast_ice_alt'].isna(), inplace=True)
+
+        slow_data['heading_mast'] = tmph
+        slow_data['heading_mast'] = np.mod(slow_data['heading_mast'], 360)
+        slow_data['mast_ice_alt'] = tmpa
+
     def process_day(today, tomorrow, slow_data_today, day_q):
 
         slow_data = slow_data_today
@@ -575,32 +613,32 @@ def main(): # the main data crunching program
                                                                    slow_data['vaisala_T_6m']+K_offset,
                                                                    p6,
                                                                    0)
-        slow_data['rhi_6m']          = rhi6
+        slow_data['rhi_6m']                  = rhi6
         slow_data['enthalpy_vaisala_6m']     = h6
         slow_data['abs_humidity_vaisala_6m'] = a6
-        slow_data['vapor_pressure_6m']           = Pw6
-        slow_data['mixing_ratio_6m']           = x6
+        slow_data['vapor_pressure_6m']       = Pw6
+        slow_data['mixing_ratio_6m']         = x6
 
         Td10, h10, a10, x10, Pw10, Pws10, rhi10 = fl.calc_humidity_ptu300(slow_data['vaisala_RH_10m'],\
                                                                           slow_data['vaisala_T_10m']+K_offset,
                                                                           p10,
                                                                           0)
-        slow_data['rhi_10m']          = rhi10
+        slow_data['rhi_10m']                  = rhi10
         slow_data['enthalpy_vaisala_10m']     = h10
         slow_data['abs_humidity_vaisala_10m'] = a10
-        slow_data['vapor_pressure_10m']           = Pw10
-        slow_data['mixing_ratio_10m']           = x10
+        slow_data['vapor_pressure_10m']       = Pw10
+        slow_data['mixing_ratio_10m']         = x10
 
         Tdm, hm, am, xm, Pwm, Pwsm, rhim = fl.calc_humidity_ptu300(slow_data['mast_RH'],\
                                                                    slow_data['mast_T']+K_offset,
                                                                    pmast,
                                                                    -1)
-        slow_data['dew_point_mast']     = Tdm
-        slow_data['rhi_mast']          = rhim
+        slow_data['dew_point_mast']            = Tdm
+        slow_data['rhi_mast']                  = rhim
         slow_data['enthalpy_vaisala_mast']     = hm
         slow_data['abs_humidity_vaisala_mast'] = am
-        slow_data['vapor_pressure_mast']           = Pwm
-        slow_data['mixing_ratio_mast']           = xm
+        slow_data['vapor_pressure_mast']       = Pwm
+        slow_data['mixing_ratio_mast']         = xm
 
 
         # sr50 dist QC then in m & snow depth in cm, both corrected for
@@ -642,7 +680,6 @@ def main(): # the main data crunching program
         # GPS QC etc.
         sd['lat_tower']     = sd['gps_lat_deg']+sd['gps_lat_min']/60.0 # add decimal values
         sd['lon_tower']     = sd['gps_lon_deg']+sd['gps_lon_min']/60.0
-        sd['heading_tower'] = sd['gps_hdg']/100.0  # convert to degrees
         sd['gps_alt']       = sd['gps_alt']/1000.0 # convert to meters
 
         sd['gps_alt'].mask( (sd['gps_alt']   < twr_alt_lim[0])
@@ -654,13 +691,9 @@ def main(): # the main data crunching program
         sd['gps_alt']       .mask( (sd['gps_qc']==0) | (sd['gps_hdop']>4), inplace=True) 
         sd['heading_tower'] .mask( (sd['gps_qc']==0) | (sd['gps_hdop']>4), inplace=True) 
 
-        sd['tower_ice_alt'] = sd['gps_alt'] - twr_GPS_height_raised_precise 
-
         if 'mast_RECORD' in sd:
             sd['lat_mast']     = sd['mast_gps_lat_deg_Avg']+sd['mast_gps_lat_min_Avg']/60.0 # add decimal values
             sd['lon_mast']     = sd['mast_gps_lon_deg_Avg']+sd['mast_gps_lon_min_Avg']/60.0
-            sd['heading_mast'] = sd['mast_gps_hdg_Avg']/100.0  # convert to degrees
-            sd['mast_gps_alt'] = sd['gps_alt']/1000.0 # convert to meters
 
             sd['mast_gps_alt'].mask( (sd['mast_gps_alt']   < mst_alt_lim[0])
                                      | (sd['mast_gps_alt'] > mst_alt_lim[1]),
@@ -671,39 +704,6 @@ def main(): # the main data crunching program
             sd['mast_gps_alt'] .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
             sd['heading_mast'] .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
 
-            sd['mast_ice_alt'] = sd['mast_gps_alt'] - mst_GPS_height_raised_precise 
-
-        # The heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, 12.8
-        # hours. I've considered several approaches: wavelet frequency rejection, various band-pass filters,
-        # Kalman filter, tower->ais bearing baseline. Median filter works the best. Because the lowest nosie
-        # frequency is near 12 hours, a 24 hour filter is needed. I have implemented a 1 day buffer on the
-        # start_time, end_time for this. For missing data we forward pad to reduce edge effects but report
-        # nan in the padded space.
-        print('... band-pass median filter applied to heading') 
-        # 
-        tmph = slow_data['heading_tower'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
-        tmpa = slow_data['tower_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
-
-        tmph.mask(slow_data['heading_tower'].isna(),inplace=True)
-        tmpa.mask(slow_data['tower_ice_alt'].isna(),inplace=True)
-
-        slow_data['heading_tower'] = tmph
-        slow_data['tower_ice_alt'] = tmpa
-
-        slow_data['heading_tower'].loc[:datetime(2019,10,24,4,59,49)] = nan # this is a couple hours after the gps
-                                                                            # was calibrated and mounted and is
-                                                                            # when the data looks ok
-
-        if 'mast_RECORD' in slow_data: # same thing for the mast if it was up
-            tmph = slow_data['heading_mast'].rolling(86400,min_periods=1,center=True).median()
-            tmpa = slow_data['mast_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
-
-            tmph.mask(slow_data['heading_mast'].isna(), inplace=True)
-            tmpa.mask(slow_data['mast_ice_alt'].isna(), inplace=True)
-
-            slow_data['heading_mast'] = tmph
-            slow_data['heading_mast'] = np.mod(slow_data['heading_mast'],360)
-            slow_data['mast_ice_alt'] = tmpa
 
 
         # Get the bearing on the ship... load the ship track and reindex to slow_data, calculate distance
@@ -754,14 +754,14 @@ def main(): # the main data crunching program
         app_zenith, zenith, app_elevation, elevation, azimuth, eot = spa.solar_position(utime_in,lat_in,lon_in,elv_in,pr_in,t_in,delt_in,atm_ref)
 
         # write it out
-        slow_data['zenith_true'] = zenith
-        slow_data['zenith_apparent']  = app_zenith 
-        slow_data['azimuth']  = azimuth 
+        slow_data['zenith_true']     = zenith
+        slow_data['zenith_apparent'] = app_zenith 
+        slow_data['azimuth']         = azimuth 
 
         # in matlab, there were rare instabilities in the Reda and Andreas algorithm that resulted in spikes (a few per year). no idea if this is a problem in the python version, but lets make sure
-        slow_data['zenith_true'] = fl.despike(slow_data['zenith_true'],2,5,'no')
-        slow_data['zenith_apparent']  = fl.despike(slow_data['zenith_apparent'],2,5,'no')
-        slow_data['azimuth']  = fl.despike(slow_data['azimuth'],2,5,'no')
+        slow_data['zenith_true']     = fl.despike(slow_data['zenith_true'],2,5,'no')
+        slow_data['zenith_apparent'] = fl.despike(slow_data['zenith_apparent'],2,5,'no')
+        slow_data['azimuth']         = fl.despike(slow_data['azimuth'],2,5,'no')
 
         verboseprint("... manual data QC")
         slow_data = qc_tower(slow_data)
