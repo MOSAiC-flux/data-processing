@@ -63,11 +63,6 @@ from qc_level2_asfs import qc_stations
 
 from get_data_functions import get_flux_data
 
-# from debug_functions import drop_me
-# from debug_functions import drop_me as dm
-# l=locals
-# drops = True
-
 import functions_library as fl # includes a bunch of helper functions that we wrote
 
 # Ephemeris
@@ -87,7 +82,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 6 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -169,7 +164,7 @@ def main(): # the main data crunching program
     leica_dir = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
 
     if args.station: flux_stations = args.station.split(',')
-    else: flux_stations = ['asfs30', 'asfs40', 'asfs50']
+    else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
@@ -421,8 +416,10 @@ def main(): # the main data crunching program
         for curr_station in  flux_stations:
             curr_slow_data = slow_data[curr_station]
 
-            bv = curr_slow_data["batt_volt_Avg"]
-
+            try: 
+                bv = curr_slow_data["batt_volt_Avg"]
+            except:
+                print(f"\n No data for {curr_station} for your requested range\n")
             threshold   = 60 # warn if the station was down for more than 60 minutes
             nan_groups  = bv.isnull().astype(int).groupby(bv.notnull().astype(int).cumsum()).cumsum()
             mins_down   = np.sum( nan_groups > 0 )
