@@ -1,7 +1,7 @@
 # MOSAiC Flux Data
 
 This code and the associated libraries create the ATMOS flux team data product for observations for the three
-remote flux stations and the central "met City" observatory at the MOSAiC drifting ice campaign from Oct 2019 to
+remote flux stations and the central "met city" on ice tower observatory at the MOSAiC drifting ice campaign from Oct 2019 to
 Oct 2020. The python code found here was primarily developed by [Chris Cox
 NOAA](mailto:christopher.j.cox@noaa.gov) (NOAA) and [Michael Gallagher
 (CIRES/NOAA)](mailto:michael.r.gallagher@noaa.gov). This code integrates significant data processing work by [Ola
@@ -20,9 +20,9 @@ All processed levels (1-3) are provided as compressed netCDF files aligned close
 
 ## Code description:
 
-The data processing is done in level-stages seperately for both the tower and the flux stations. Each level is organized into functionally distinct code pieces. Variable names and attributes at all levels are documented and defined in the "*_data_definitions.py". The actual data processing and calculations are done in the "create_" files, and these are the "main" programs that run the data processing. These create functions are threaded across days, meaning if you request a large time range the code will use many CPU cores, this is configurable. Manual data quality control (QC) has been separated into "qc_*" files so that questions about QC and further implementation can be well documented and understood seperate from automated processing routines. 
+The data processing is done in level-stages seperately for both the tower and the flux stations. Each level is organized into functionally distinct code pieces. Variable names and attributes at all levels are documented and defined in the "\*_data_definitions.py". The actual data processing and calculations are done in the "create_\*" files, and these are the "main" programs that run the data processing. These create functions are threaded across days, meaning if you request a large time range the code will use many CPU cores, this is configurable. Manual data quality control (QC) has been separated into "qc_*" files so that questions about QC and further implementation can be well documented and understood seperate from automated processing routines. 
 
-Data processing functions common to multiple pieces of code or levels are included in "functions_library.py". Some of these functions process data and derive useful scientific variables/parameters and others are helper functions written to make coding easier/simpler. Anything that can be abstracted in a generic way should ideally be separated in this way to minimize code duplication and maximize ease of maintenance. 
+Data processing functions common to multiple pieces of code or levels are included in "functions_library.py". Some of these functions process data and derive useful scientific variables/parameters and others are helper functions written to make coding easier/simpler. Anything that can be abstracted in a generic way should ideally be separated here to minimize code duplication and maximize ease of maintenance. 
 
 The program "change_var_name.py" is provided for simplicity as a quick and dirty way to rename data variables inside the code files so that you don't have to manually edit the text for each variable you would like to change. Backup your code changes before using this, it should make name changes quick but it's a simple program. It searches for variable names in single quotes matching your query and replaces them automagically. 
 
