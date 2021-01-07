@@ -11,10 +11,10 @@ Persson (CIRES/NOAA)](mailto:ola.persson@noaa.gov) and many components are deriv
 
 Flux team data products exist at 4 "levels":
 
-  — level 0: raw data, the collection of observation files gathered as data in the field that is ingested to higher level products
-  — level 1: raw data that has been re-formatted as binary netCDF files, these files contain only minor changes to the data that are necessary for organization such as sign changes or de-duplication.
-  — level 2: preliminary processed data, a 'first-cut' processed data product under active development that evolves as improvements are made
-  — level 3: polished release data, a fully integrated data product that is stable for broad user consumption with well documented releases cycles
+  - level 0: raw data, the collection of observation files gathered as data in the field that is ingested to higher level products
+  - level 1: raw data that has been re-formatted as binary netCDF files, these files contain only minor changes to the data that are necessary for organization such as sign changes or de-duplication.
+  - level 2: preliminary processed data, a 'first-cut' processed data product under active development that evolves as improvements are made
+  - level 3: polished release data, a fully integrated data product that is stable for broad user consumption with well documented releases cycles
 
 All processed levels (1-3) are provided as compressed netCDF files aligned closely with ARM specifications for data products. Daily data files are created with the available level 0 data and should be readable with any software package. Scripts that create data quicklooks for each processed level can be found in plot_scripts.
 
