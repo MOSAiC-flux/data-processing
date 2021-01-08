@@ -414,8 +414,13 @@ def main(): # the main data crunching program
     print('\n... band-pass median filter applied to heading... unthreaded and a bit slow.... must be done') 
     slow_data['heading_tower'] = slow_data['gps_hdg']/100.0  # convert to degrees
     slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise 
-    tmph = slow_data['heading_tower'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
-    tmpa = slow_data['tower_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
+    unitv1 = np.cos(np.radians(slow_data['heading_tower'])) # degrees -> unit vector
+    unitv2 = np.sin(np.radians(slow_data['heading_tower'])) # degrees -> unit vector
+    unitv1 = unitv1.interpolate(method='pad').rolling(21600,min_periods=1,center=True).median() # filter the unit vector
+    unitv2 = unitv2.interpolate(method='pad').rolling(21600,min_periods=1,center=True).median() # filter the unit vector
+    tmph = atan2(-unitv2,-unitv1)+180 # back to degrees
+    
+    tmpa = slow_data['tower_ice_alt'].interpolate(method='pad').rolling(21600,min_periods=1,center=True).median()
 
     tmph.mask(slow_data['heading_tower'].isna(),inplace=True)
     tmpa.mask(slow_data['tower_ice_alt'].isna(),inplace=True)
@@ -585,9 +590,9 @@ def main(): # the main data crunching program
         #   are not (qualitatively) conclusive enough, nor are any dependencies easily parameterized, nor does the
         #   comparison period span a large enough range in temperature to justify either intrpolation or
         #   extrapolation of correction factors.
-        slow_data['vaisala_T_2m']  = slow_data['vaisala_T_2m']+0.0643
-        slow_data['vaisala_T_6m']  = slow_data['vaisala_T_6m']-0.0513
-        slow_data['vaisala_T_10m'] = slow_data['vaisala_T_10m']-0.0130      
+        slow_data['vaisala_T_2m']  = slow_data['vaisala_T_2m']+0 # +0.0643 ccox removing these for "version 1". Ola is calculating them.
+        slow_data['vaisala_T_6m']  = slow_data['vaisala_T_6m']+0 # -0.0513
+        slow_data['vaisala_T_10m'] = slow_data['vaisala_T_10m']+0 #-0.0130      
 
         # here we derive useful parameters computed from logger data that we want to write to the output file
         # ###################################################################################################

@@ -99,3 +99,11 @@ Basically, this is the push for August through mid September by Cox that impleme
 - level1 fast files are now de-grouped and variables post-fixed by level
 - new get_data function that's threaded and can pull in level1 or level2 files
 - manual qc and flagging has been refactored to a separate file for documentation
+
+## Revision 1.5 1/8/2020 ccox
+- remove the relative cal offset from tower temperatures (set to 0). Ola is calculating this and offsets will be entered later when he has them
+- heading median filter from 86400 s window -> 21600 s (24 hr -> 6 hr)
+- heading median filtering perfomed in unit vector space to accomodate rotations past 0/360 degrees
+
+
+

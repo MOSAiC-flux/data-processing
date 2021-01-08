@@ -252,11 +252,17 @@ def qc_stations(curr_station, station_data):
         station_data['rh'] .loc[datetime(2020,1,30,13,21) :datetime(2020,1,30,13,37)] = nan 
         station_data['rh'] .loc[datetime(2020,2,5,3,2)    :datetime(2020,2,5,3,6)]    = nan 
         station_data['rh'] .loc[datetime(2020,4,14,12,43) :datetime(2020,4,14,12,49)] = nan 
+        station_data['rh'] .loc[datetime(2020,6,25,7,29)  :datetime(2020,6,25,7,43)]  = nan 
+        station_data['rh'] .loc[datetime(2020,9,24,8,34)  :datetime(2020,9,24,10,19)] = nan # flat lines...maybe station failed?
+        station_data['rh'] .loc[datetime(2020,9,25,12,38) :datetime(2020,9,25,13,3)]  = nan
 
         station_data['dew_point']     .loc[                          :datetime(2019,10,10,1,14)] = nan # firing it up in October
         station_data['dew_point']     .loc[datetime(2020,1,30,13,21) :datetime(2020,1,30,13,37)] = nan 
         station_data['dew_point']     .loc[datetime(2020,2,5,3,2)    :datetime(2020,2,5,3,6)]    = nan 
         station_data['dew_point']     .loc[datetime(2020,4,14,12,43) :datetime(2020,4,14,12,49)] = nan 
+        station_data['dew_point']     .loc[datetime(2020,6,25,7,29)  :datetime(2020,6,25,7,43)]  = nan 
+        station_data['dew_point']     .loc[datetime(2020,9,24,8,34)  :datetime(2020,9,24,10,19)] = nan # flat lines...maybe station failed?
+        station_data['dew_point']     .loc[datetime(2020,9,25,12,38) :datetime(2020,9,25,13,3)]  = nan
 
         # Temp weirdness at on/off
         station_data['temp']         .loc[datetime(2020,1,22,1,28) :datetime(2020,1,23,0,15)]   = nan

@@ -84,3 +84,7 @@ Turbulence
 - release level1 and level2 quicklooks with data products
 - new get_data function that's threaded and can pull in level1 or level2 files
 - manual qc and flagging has been refactored to a separate file for documentation
+
+## Revision 1.5 1/8/2020 ccox
+- rh equilibration periods in asfs50 legs 4/5 removed
+
