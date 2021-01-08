@@ -405,21 +405,25 @@ def main(): # the main data crunching program
     # a small amount of pre-processing before the loop over each day. the band-pass filtering
     # is done on an envelope the day before and after and therefore must be done as a whole 
 
-    # The heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, 12.8
+    # The heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, and 12.8
     # hours. I've considered several approaches: wavelet frequency rejection, various band-pass filters,
-    # Kalman filter, tower->ais bearing baseline. Median filter works the best. Because the lowest nosie
-    # frequency is near 12 hours, a 24 hour filter is needed. I have implemented a 1 day buffer on the
-    # start_time, end_time for this. For missing data we forward pad to reduce edge effects but report
-    # nan in the padded space.
+    # Kalman filter, tower->ais bearing baseline. Median filter works the best. J. Hutchings results indicate
+    # that the 12 hour signal is tidal - throughout the year! - so it shuld be retained. So, we implement 
+    # a 6 hour running median filter. I have implemented a 1 day buffer on the start_time, end_time for
+    # this. For missing data we forward pad to reduce edge effects but report nan in the padded space.
     print('\n... band-pass median filter applied to heading... unthreaded and a bit slow.... must be done') 
+    
+    # The heading is in degree x 100 so convert. also we will do something simlar for the altitude
     slow_data['heading_tower'] = slow_data['gps_hdg']/100.0  # convert to degrees
     slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise 
+    
+    # The filter needs to be carried out in vector space. the filter is 6 hrs = 21600 sec
     unitv1 = np.cos(np.radians(slow_data['heading_tower'])) # degrees -> unit vector
     unitv2 = np.sin(np.radians(slow_data['heading_tower'])) # degrees -> unit vector
     unitv1 = unitv1.interpolate(method='pad').rolling(21600,min_periods=1,center=True).median() # filter the unit vector
     unitv2 = unitv2.interpolate(method='pad').rolling(21600,min_periods=1,center=True).median() # filter the unit vector
-    tmph = atan2(-unitv2,-unitv1)+180 # back to degrees
-    
+    tmph = np.degrees(np.arctan2(-unitv2,-unitv1))+180 # back to degrees
+ 
     tmpa = slow_data['tower_ice_alt'].interpolate(method='pad').rolling(21600,min_periods=1,center=True).median()
 
     tmph.mask(slow_data['heading_tower'].isna(),inplace=True)

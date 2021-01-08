@@ -87,4 +87,6 @@ Turbulence
 
 ## Revision 1.5 1/8/2020 ccox
 - rh equilibration periods in asfs50 legs 4/5 removed
+- heading median filter from 86400 s window -> 21600 s (24 hr -> 6 hr)
+- heading median filtering perfomed in unit vector space to accomodate rotations past 0/360 degrees
 

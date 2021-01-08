@@ -491,15 +491,22 @@ def main(): # the main data crunching program
         # orientation is defined along the boom. the gps is mount 90 degrees to the left of sonic-north.
         sd['heading'] = np.mod(sd['heading']+90,360)     
         
-        # the heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, 12.8 hours.  I've
-        # considered several approaches: wavelet frequency rejection, various band-pass filters, Kalman filter,
-        # tower->ais bearing baseline. Median filter works the best. Because the lowest nosie frequency is near 12
-        # hours, a 24 hour filter is needed. I have implemented a 1 day buffer on the start_time, end_time for
+        # The heading/alt from the v102 is "noisey" at regular frequencies, about ~1, 2.1, 6.4, and 12.8
+        # hours. I've considered several approaches: wavelet frequency rejection, various band-pass filters,
+        # Kalman filter, tower->ais bearing baseline. Median filter works the best. J. Hutchings results indicate
+        # that the 12 hour signal is tidal - throughout the year! - so it shuld be retained. So, we implement 
+        # a 6 hour running median filter. I have implemented a 1 day buffer on the start_time, end_time for
         # this. For missing data we forward pad to reduce edge effects but report nan in the padded space.
-        tmph =  sd['heading'].interpolate(method='pad').rolling(1440,min_periods=1,center=True).median()
+        
+        # The filter needs to be carried out in vector space. the filter is 6 hrs = 360 min
+        unitv1 = np.cos(np.radians(sd['heading_tower'])) # degrees -> unit vector
+        unitv2 = np.sin(np.radians(sd['heading_tower'])) # degrees -> unit vector
+        unitv1 = unitv1.interpolate(method='pad').rolling(360,min_periods=1,center=True).median() # filter the unit vector
+        unitv2 = unitv2.interpolate(method='pad').rolling(360,min_periods=1,center=True).median() # filter the unit vector
+        tmph = np.degrees(np.arctan2(-unitv2,-unitv1))+180 # back to degrees
         tmph.mask(sd['heading'].isna(),inplace=True)
         sd['heading'] = tmph
-        tmpa = sd['ice_alt'].interpolate(method='pad').rolling(1440,min_periods=1,center=True).median()
+        tmpa = sd['ice_alt'].interpolate(method='pad').rolling(360,min_periods=1,center=True).median()
         tmpa.mask(sd['ice_alt'].isna(),inplace=True)
         sd['ice_alt'] = tmpa
                   
