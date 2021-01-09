@@ -499,8 +499,8 @@ def main(): # the main data crunching program
         # this. For missing data we forward pad to reduce edge effects but report nan in the padded space.
         
         # The filter needs to be carried out in vector space. the filter is 6 hrs = 360 min
-        unitv1 = np.cos(np.radians(sd['heading_tower'])) # degrees -> unit vector
-        unitv2 = np.sin(np.radians(sd['heading_tower'])) # degrees -> unit vector
+        unitv1 = np.cos(np.radians(sd['heading'])) # degrees -> unit vector
+        unitv2 = np.sin(np.radians(sd['heading'])) # degrees -> unit vector
         unitv1 = unitv1.interpolate(method='pad').rolling(360,min_periods=1,center=True).median() # filter the unit vector
         unitv2 = unitv2.interpolate(method='pad').rolling(360,min_periods=1,center=True).median() # filter the unit vector
         tmph = np.degrees(np.arctan2(-unitv2,-unitv1))+180 # back to degrees
