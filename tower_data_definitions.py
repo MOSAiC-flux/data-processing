@@ -1266,28 +1266,28 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
     lev2_atts['wspd_v_mean_2m']                .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'v defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'v defined positive east in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['wspd_v_mean_6m']                .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'v defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'v defined positive east in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['wspd_v_mean_10m']               .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'v defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'v defined positive east in right-hand coordinate system',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['wspd_v_mean_mast']              .update({'long_name'     : 'Metek v-component',
                                                     'cf_name'       : 'westward_wind',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
-                                                    'methods'       : 'v defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'v defined positive east in right-hand coordinate system',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
@@ -1358,7 +1358,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
     lev2_atts['wspd_v_std_2m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'w defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'w defined positive east in right-hand coordinate system',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
@@ -1386,7 +1386,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
     lev2_atts['wspd_v_std_6m']         .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'v defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'v defined positive east in right-hand coordinate system',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
@@ -1414,7 +1414,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
     lev2_atts['wspd_v_std_10m']        .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                    'methods'       : 'v defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'v defined positive east in right-hand coordinate system',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
@@ -1442,7 +1442,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
     lev2_atts['wspd_v_std_mast']       .update({'long_name'     : 'v metek obs standard deviation',
                                                     'cf_name'       : '',
                                                     'instrument'    : 'Metek USA-1 sonic anemometer',
-                                                    'methods'       : 'v defined positive west in right-hand coordinate system',
+                                                    'methods'       : 'v defined positive east in right-hand coordinate system',
                                                     'height'        : mast_sonic_height,
                                                     'location'      : mast_location_string,})
 
