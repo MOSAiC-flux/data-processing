@@ -150,6 +150,7 @@ def main(): # the main data crunching program
     level2_dir = data_dir+'/tower/2_level_product/version1/'        # where does level2 data go
     turb_dir   = data_dir+'/tower/2_level_product/version1/'        # where does level2 data go
     leica_dir  = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives  
+    #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
     
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -1456,8 +1457,7 @@ def main(): # the main data crunching program
         try: l2_data = pd.concat([logger_1min, stats_data], axis=1)
         except UnboundLocalError: l2_data = logger_1min # there was no fast data, rare
 
-        # write out in threads the files separately to save some time... which would be great... but HDF5
-        # borks if you try to do it... ? really annoying and I can't find any reason why
+        # write out all the hard work that we've done
         write_level2_netcdf(l2_data.copy(), today, "1min", sonic_z, mast_sonic_height, licor_z)
         write_level2_netcdf(l2_data.copy(), today, "10min",sonic_z, mast_sonic_height, licor_z)
         print(f"... finally finished with day {today_str}, returning worker process to parent")
@@ -1594,6 +1594,7 @@ def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z):
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev2.createDimension('time', None)
 
+    dti = pd.DatetimeIndex(l2_data.index.values)
     fstr = '{}T'.format(timestep.rstrip("min"))
     if timestep != "1min":
         dti = pd.date_range(date, tomorrow, freq=fstr)
@@ -1637,7 +1638,6 @@ def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z):
                      'calendar'  : 'standard',}
 
 
-    dti = pd.DatetimeIndex(l2_data.index.values)
     delta_ints = np.floor((dti - tm).total_seconds())      # seconds
 
     t_ind = pd.Int64Index(delta_ints)
@@ -1646,9 +1646,7 @@ def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z):
     t = netcdf_lev2.createVariable('time', 'u4','time') # seconds since
 
     # now we create the array and attributes for 'time_offset'
-    bt_dti = pd.DatetimeIndex(l2_data.index.values)   
-
-    bt_delta_ints = np.floor((bt_dti - bot).total_seconds())      # seconds
+    bt_delta_ints = np.floor((dti - bot).total_seconds())      # seconds
 
     bt_ind = pd.Int64Index(bt_delta_ints)
 

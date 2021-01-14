@@ -83,7 +83,7 @@ import socket
 global nthreads 
 if '.psd.' in socket.gethostname():
     nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 6 # laptops don't tend to have 64 cores
+else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
@@ -162,6 +162,7 @@ def main(): # the main data crunching program
     if args.path: data_dir = args.path
     else: data_dir = '/Projects/MOSAiC/'
     leica_dir = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
+    #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
 
     if args.station: flux_stations = args.station.split(',')
     else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
@@ -1175,6 +1176,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev2.createDimension('time', None)
 
+    dti = pd.DatetimeIndex(l2_data.index.values)
     fstr = '{}T'.format(timestep.rstrip("min"))
     if timestep != "1min":
         dti = pd.date_range(date, tomorrow, freq=fstr)
@@ -1218,7 +1220,6 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
                      'calendar'  : 'standard',}
 
 
-    dti = pd.DatetimeIndex(l2_data.index.values)
     delta_ints = np.floor((dti - tm).total_seconds())      # seconds
 
     t_ind = pd.Int64Index(delta_ints)
@@ -1227,9 +1228,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     t = netcdf_lev2.createVariable('time', 'u4','time') # seconds since
 
     # now we create the array and attributes for 'time_offset'
-    bt_dti = pd.DatetimeIndex(l2_data.index.values)   
-
-    bt_delta_ints = np.floor((bt_dti - bot).total_seconds())      # seconds
+    bt_delta_ints = np.floor((dti - bot).total_seconds())      # seconds
 
     bt_ind = pd.Int64Index(bt_delta_ints)
 
