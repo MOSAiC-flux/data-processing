@@ -82,7 +82,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -161,7 +161,7 @@ def main(): # the main data crunching program
     global data_dir, in_dir # make data available
     if args.path: data_dir = args.path
     else: data_dir = '/Projects/MOSAiC/'
-    leica_dir = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
+    leica_dir = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
     #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
 
     if args.station: flux_stations = args.station.split(',')
