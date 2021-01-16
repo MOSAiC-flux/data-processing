@@ -150,7 +150,7 @@ def main(): # the main data crunching program
     level2_dir = data_dir+'/tower/2_level_product/version1/'        # where does level2 data go
     turb_dir   = data_dir+'/tower/2_level_product/version1/'        # where does level2 data go
     leica_dir = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
-    leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
+    #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
     
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
