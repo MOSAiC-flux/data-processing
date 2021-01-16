@@ -62,7 +62,7 @@ import socket
 global nthreads 
 if '.psd.' in socket.gethostname():
     nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 3 # laptops don't tend to have 64 cores, set to 1 to debug
+else: nthreads = 8 # laptops don't tend to have 64 cores, set to 1 to debug
 
 # need to debug something? kills multithreading to step through function calls
 # from multiprocessing.dummy import Process as P
@@ -576,7 +576,7 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
 
     global_atts_fast = define_global_atts("fast") # global atts for level 1 and level 2
 
-    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w')
+    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w',zlib=True)
 
     for att_name, att_val in global_atts_fast.items(): # write the global attributes to fast
         netcdf_lev1_fast.setncattr(att_name, att_val)
@@ -606,7 +606,7 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
         tm  =  np.datetime64(today_midnight)
 
         # first write the int base_time, the temporal distance from the UNIX epoch
-        base_fast = netcdf_lev1_fast.createVariable(f'base_time_{inst_str}', 'u4') # seconds since
+        base_fast = netcdf_lev1_fast.createVariable(f'base_time_{inst_str}', 'i') # seconds since
         base_fast[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])
 
         base_atts = {'string'              : '{}'.format(bot),
@@ -628,8 +628,8 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
         fast_dti    = pd.DatetimeIndex(inst_data.index.values)
 
         # set the time dimension and variable attributes to what's defined above
-        t_fast      = netcdf_lev1_fast.createVariable(f'time_{inst_str}', 'u4',f'time_{inst_str}') 
-        bt_fast     = netcdf_lev1_fast.createVariable(f'time_offset_{inst_str}', 'u4',f'time_{inst_str}') 
+        t_fast      = netcdf_lev1_fast.createVariable(f'time_{inst_str}', 'd',f'time_{inst_str}') 
+        bt_fast     = netcdf_lev1_fast.createVariable(f'time_offset_{inst_str}', 'd',f'time_{inst_str}') 
 
         bt_fast_delta_ints = np.floor((bt_fast_dti - bot).total_seconds()*1000)      # milliseconds
         fast_delta_ints    = np.floor((fast_dti - tm).total_seconds()*1000)      # milliseconds
@@ -732,7 +732,7 @@ def write_level1_slow(slow_data, date):
 
     global_atts_slow = define_global_atts("slow") # global atts for level 1 and level 2
 
-    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w')
+    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w', zlib=True)
 
     for att_name, att_val in global_atts_slow.items(): # write the global attributes to slow
         netcdf_lev1_slow.setncattr(att_name, att_val)
@@ -753,7 +753,7 @@ def write_level1_slow(slow_data, date):
     tm  =  np.datetime64(today_midnight)
 
     # first write the int base_time, the temporal distance from the UNIX epoch
-    base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
+    base_slow = netcdf_lev1_slow.createVariable('base_time', 'i') # seconds since
     base_slow[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0]) # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
@@ -775,8 +775,8 @@ def write_level1_slow(slow_data, date):
     slow_dti           = pd.DatetimeIndex(slow_data.index.values)
 
     # set the time dimension and variable attributes to what's defined above
-    t_slow             = netcdf_lev1_slow.createVariable('time', 'u4','time') 
-    bt_slow            = netcdf_lev1_slow.createVariable('time_offset', 'u4','time') 
+    t_slow             = netcdf_lev1_slow.createVariable('time', 'd','time') 
+    bt_slow            = netcdf_lev1_slow.createVariable('time_offset', 'd','time') 
 
     bt_slow_delta_ints = np.floor((bt_slow_dti - bot).total_seconds())      # seconds
     slow_delta_ints    = np.floor((slow_dti - tm).total_seconds())      # seconds

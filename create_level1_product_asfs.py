@@ -79,7 +79,7 @@ import socket
 global nthreads 
 if '.psd.' in socket.gethostname():
     nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 3 # laptops don't tend to have 64 cores
+else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
@@ -624,7 +624,7 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
         except Exception as e:
             printline()
             print(e)
-            print("!!! There was an exception reading file {}, {}skipping!!!".format(data_fil,num_cols))
+            print("!!! There was an exception reading file {}, {}skipping!!!".format(data_file, num_cols))
             printline()
 
     # reindex each frame to avoid collisions before concatting/interpolating the time column/axis
@@ -744,8 +744,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     global_atts_slow = define_global_atts(curr_station, "slow") # global atts for level 1 and level 2
     global_atts_fast = define_global_atts(curr_station, "fast") # global atts for level 1 and level 2
 
-    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w')#, format='NETCDF4_CLASSIC')
-    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w')#, format='NETCDF4_CLASSIC')
+    netcdf_lev1_slow  = Dataset(lev1_slow_name, 'w', zlib=True)
+    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w', zlib=True)
 
     for att_name, att_val in global_atts_slow.items(): # write the global attributes to slow
         netcdf_lev1_slow.setncattr(att_name, att_val)
@@ -774,8 +774,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     tm =  np.datetime64(today_midnight)
 
     # first write the int base_time, the temporal distance from the UNIX epoch
-    base_slow = netcdf_lev1_slow.createVariable('base_time', 'u4') # seconds since
-    base_fast = netcdf_lev1_fast.createVariable('base_time', 'u4') # seconds since
+    base_slow = netcdf_lev1_slow.createVariable('base_time', 'i') # seconds since
+    base_fast = netcdf_lev1_fast.createVariable('base_time', 'i') # seconds since
     base_slow[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
     base_fast[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
 
@@ -815,8 +815,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     t_fast_ind = pd.Int64Index(fast_delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    t_slow = netcdf_lev1_slow.createVariable('time', 'u4','time') # seconds since
-    t_fast = netcdf_lev1_fast.createVariable('time', 'u8','time') # seconds since
+    t_slow = netcdf_lev1_slow.createVariable('time', 'd','time') # seconds since
+    t_fast = netcdf_lev1_fast.createVariable('time', 'd','time') # seconds since
 
     # now we create the array and attributes for 'time_offset'
     bt_slow_dti = pd.DatetimeIndex(slow_data.index.values)   
@@ -829,8 +829,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
     bt_fast_ind = pd.Int64Index(bt_fast_delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    bt_slow = netcdf_lev1_slow.createVariable('time_offset', 'u4','time') # seconds since
-    bt_fast = netcdf_lev1_fast.createVariable('time_offset', 'u8','time')
+    bt_slow = netcdf_lev1_slow.createVariable('time_offset', 'd','time') # seconds since
+    bt_fast = netcdf_lev1_fast.createVariable('time_offset', 'd','time')
 
     # this try/except is vestigial, this bug should be fixed
     try:
