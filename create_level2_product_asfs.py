@@ -161,8 +161,8 @@ def main(): # the main data crunching program
     global data_dir, in_dir # make data available
     if args.path: data_dir = args.path
     else: data_dir = '/Projects/MOSAiC/'
-    leica_dir = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
-    #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
+    #leica_dir = '/psd3data/arctic/temp/MOSAiC_dump/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
+    leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
 
     if args.station: flux_stations = args.station.split(',')
     else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
@@ -1168,7 +1168,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
     global_atts = define_global_atts(curr_station, "level2") # global atts for level 1 and level 2
-    netcdf_lev2 = Dataset(lev2_name, 'w')# format='NETCDF4_CLASSIC')
+    netcdf_lev2 = Dataset(lev2_name, 'w',zlib=True)
 
     for att_name, att_val in global_atts.items(): # write global attributes 
         netcdf_lev2.setncattr(att_name, att_val)
@@ -1198,7 +1198,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     tm =  np.datetime64(today_midnight)
 
     # first write the int base_time, the temporal distance from the UNIX epoch
-    base = netcdf_lev2.createVariable('base_time', 'u4') # seconds since
+    base = netcdf_lev2.createVariable('base_time', 'i') # seconds since
     base[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
@@ -1225,7 +1225,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     t_ind = pd.Int64Index(delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    t = netcdf_lev2.createVariable('time', 'u4','time') # seconds since
+    t = netcdf_lev2.createVariable('time', 'd','time') # seconds since
 
     # now we create the array and attributes for 'time_offset'
     bt_delta_ints = np.floor((dti - bot).total_seconds())      # seconds
@@ -1233,7 +1233,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
     bt_ind = pd.Int64Index(bt_delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    bt = netcdf_lev2.createVariable('time_offset', 'u4','time') # seconds since
+    bt = netcdf_lev2.createVariable('time_offset', 'd','time') # seconds since
 
     # this try/except is vestigial, this bug should be fixed
     t[:]  = t_ind.values
@@ -1299,7 +1299,7 @@ def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir
     turb_name  = '{}/{}'.format(out_dir, file_str)
 
     global_atts = define_global_atts(curr_station, "turb") # global atts for level 1 and level 2
-    netcdf_turb = Dataset(turb_name, 'w')#format='NETCDF4_CLASSIC')
+    netcdf_turb = Dataset(turb_name, 'w', zlib=True)
     # output netcdf4_classic files, for backwards compatibility... can be changed later but has some useful
     # features when using the data with 'vintage' processing code. it's the netcdf3 api, wrapped in hdf5
 
@@ -1326,7 +1326,7 @@ def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir
     tm =  np.datetime64(today_midnight)
 
     # first write the int base_time, the temporal distance from the UNIX epoch
-    base = netcdf_turb.createVariable('base_time', 'u4') # seconds since
+    base = netcdf_turb.createVariable('base_time', 'i') # seconds since
     base[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
 
     base_atts = {'string'     : '{}'.format(bot),
@@ -1353,7 +1353,7 @@ def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir
     t_ind = pd.Int64Index(delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    t = netcdf_turb.createVariable('time', 'u4','time') # seconds since
+    t = netcdf_turb.createVariable('time', 'd','time') # seconds since
 
     # now we create the array and attributes for 'time_offset'
     bt_dti = pd.DatetimeIndex(turb_data.index.values)   
@@ -1363,7 +1363,7 @@ def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir
     bt_ind = pd.Int64Index(bt_delta_ints)
 
     # set the time dimension and variable attributes to what's defined above
-    bt = netcdf_turb.createVariable('time_offset', 'u4','time') # seconds since
+    bt = netcdf_turb.createVariable('time_offset', 'd','time') # seconds since
 
     # this try/except is vestigial, this bug should be fixed
     t[:]  = t_ind.values
