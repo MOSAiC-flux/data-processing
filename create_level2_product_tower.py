@@ -62,7 +62,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 15  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -1625,18 +1625,24 @@ def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z):
                  'ancillary_variables'  : 'time_offset',}
     for att_name, att_val in base_atts.items(): netcdf_lev2['base_time'].setncattr(att_name,att_val)
 
+    time_int = int(timestep.rstrip("min"))
+    if time_int < 10:
+        delt_str = f"0000-00-00 00:0{time_int}:00"
+    else:
+        delt_str = f"0000-00-00 00:{time_int}:00"
+
     # here we create the array and attributes for 'time'
     t_atts   = {'units'     : 'seconds since {}'.format(tm),
-                     'delta_t'   : '0000-00-00 00:01:00',
-                     'long_name' : 'Time offset from midnight',
-                     'calendar'  : 'standard',}
+                'delta_t'   : delt_str,
+                'long_name' : 'Time offset from midnight',
+                'calendar'  : 'standard',}
 
 
     bt_atts   = {'units'     : 'seconds since {}'.format(bot),
-                     'delta_t'   : '0000-00-00 00:01:00',
-                     'long_name' : 'Time offset from base_time',
-                     'ancillary_variables'  : 'base_time',
-                     'calendar'  : 'standard',}
+                 'delta_t'   : delt_str,
+                 'long_name' : 'Time offset from base_time',
+                 'ancillary_variables'  : 'base_time',
+                 'calendar'  : 'standard',}
 
 
     delta_ints = np.floor((dti - tm).total_seconds())      # seconds
@@ -1780,18 +1786,23 @@ def write_turb_netcdf(turb_data, date, sonic_z, mast_height, licor_z, win_len):
                  'ancillary_variables'  : 'time_offset',}
     for att_name, att_val in base_atts.items(): netcdf_turb['base_time'].setncattr(att_name,att_val)
 
+    if integ_time_turb_flux[win_len] < 10:
+        delt_str = f"0000-00-00 00:0{integ_time_turb_flux[win_len]}:00"
+    else:
+        delt_str = f"0000-00-00 00:{integ_time_turb_flux[win_len]}:00"
+
     # here we create the array and attributes for 'time'
     t_atts   = {'units'     : 'seconds since {}'.format(tm),
-                     'delta_t'   : '0000-00-00 00:01:00',
-                     'long_name' : 'Time offset from midnight',
-                     'calendar'  : 'standard',}
+                'delta_t'   : delt_str,
+                'long_name' : 'Time offset from midnight',
+                'calendar'  : 'standard',}
 
 
     bt_atts   = {'units'     : 'seconds since {}'.format(bot),
-                     'delta_t'   : '0000-00-00 00:01:00',
-                     'long_name' : 'Time offset from base_time',
-                     'ancillary_variables'  : 'base_time',
-                     'calendar'  : 'standard',}
+                 'delta_t'   : delt_str,
+                 'long_name' : 'Time offset from base_time',
+                 'ancillary_variables'  : 'base_time',
+                 'calendar'  : 'standard',}
 
     dti = pd.DatetimeIndex(turb_data.index.values)
     delta_ints = np.floor((dti - tm).total_seconds())      # seconds

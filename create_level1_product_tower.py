@@ -61,7 +61,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores, set to 1 to debug
 
 # need to debug something? kills multithreading to step through function calls
@@ -615,12 +615,12 @@ def write_level1_fast(metek_bottom, metek_middle, metek_top, metek_mast, licor_b
                      'ancillary_variables' : 'time_offset',}
 
         t_atts_fast   = {'units'     : 'milliseconds since {}'.format(tm),
-                         'delta_t'   : '0000-00-00 00:01:00.001',
+                         'delta_t'   : '0000-00-00 00:00:00.001',
                          'long_name' : 'Time offset from midnight',
                          'calendar'  : 'standard',}
 
         bt_atts_fast   = {'units'    : 'milliseconds since {}'.format(bot),
-                          'delta_t'   : '0000-00-00 00:01:00.001',
+                          'delta_t'   : '0000-00-00 00:00:00.001',
                           'long_name' : 'Time offset from base_time',
                           'calendar'  : 'standard',}
 

@@ -78,7 +78,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 60  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -794,7 +794,7 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
 
     t_atts_fast = t_atts_slow.copy()
     t_atts_fast['units']     = 'milliseconds since {}'.format(tm)
-    t_atts_fast['delta_t']   = '0000-00-00 00:01:00.001',
+    t_atts_fast['delta_t']   = '0000-00-00 00:00:00.001',
 
     bt_atts_slow   = {'units'     : 'seconds since {}'.format(bot),
                      'delta_t'   : '0000-00-00 00:01:00',
@@ -803,7 +803,7 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
 
     bt_atts_fast           = t_atts_slow.copy()
     bt_atts_fast['units']  = 'milliseconds since {}'.format(bot)
-    t_atts_fast['delta_t'] = '0000-00-00 00:01:00.001',
+    bt_atts_fast['delta_t'] = '0000-00-00 00:00:00.001',
 
     slow_dti = pd.DatetimeIndex(slow_data.index.values)
     fast_dti = pd.DatetimeIndex(fast_data.index.values)
