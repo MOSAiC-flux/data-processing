@@ -1918,3 +1918,87 @@ def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
  
 
 
+# Tilt correction
+def tilt_corr(df,diff,incx_offset,incy_offset):
+
+    # Performs a pyranometer tilt correction using a method developed from Long et al. (2010)
+    # called from create_level2_product_asfs.py
+    #
+    # df: the dataframe for this day (sdt in create_level2_product_asfs.py)
+    # diff: dataframe having the same index as df containing measured diffuse flux. if -1 signals no measuremnt available and the code will parameterize diffuse flux instead
+    # incx_offset: value of metek incX at last installation
+    # incy_offset: value of metek incY at last installation
+
+    ###### (0) For documentation we will do this in the parlance of Long et al. (2010)
+    G_t = df['down_short_hemisp'] # observed SWD in the tilted frame 
+    
+    ###### (1) Calculate clear-sky equivalent SWD
+    #   Based on a power-law relationship following Long and Shi (2008) which is the lite-version of Long and Ackerman (2000)
+    a_coef = 1266 # Wm^-2
+    b_coef = 1.1740 
+    mu0 = np.cos(np.deg2rad(df['zenith_true']))
+    mu0.loc[mu0 < 0] = 0
+    G_clr = a_coef*mu0**b_coef # clear-sky flux
+    
+    ###### (2) Get your diffuse, either by parameterizing or measurement passed as argument
+    if diff == -1: # if we did not observe diffuse
+        # (i) Calcualte Rayleigh Limit
+        #   Using STREAMER 3.1, arctic summer stdatm, no aerosols, and albedo scaled such that sza=70 is albedo = 0.8
+        diff_calc_891_noaerosol  = [131.94,131.54,130.29,128.21,125.32,121.65,117.23,112.09,106.27, 99.82, 92.77,85.14,76.96,68.21,58.83,48.63,37.13,22.99,0.8]
+        diff_calc_1010_noaerosol = [146.39,145.95,144.52,142.17,138.90,134.74,129.74,123.92,117.35,110.05,102.07,93.46,84.23,74.37,63.82,52.39,39.60,24.09,0.8]
+        RL = np.polyval(np.polyfit(np.cos(np.deg2rad(np.linspace(0,90,19))),diff_calc_1010_noaerosol,4),mu0)
+        RL[mu0 < 0] = 0
+        RL = pd.DataFrame(data=RL,columns=['RL'],index=df.index)
+        
+        # (ii) Define a variable, sky transmissivity
+        #   Only use data where the SZA < 88 degrees: when the sun is below this, no correction will be made
+        trans = G_t/G_clr
+    
+        # (iii) Parameterize the diffuse fraction
+        #
+        # (a) define a variable, diffuse fraction
+        diff_fract = np.nan*G_t
+        #
+        # (b) identify the clear skies (very) loosely based on Long and Ackerman (2000) by thresholding sky transmissivity and time variance
+        smoothed_cre = (G_t-G_clr).interpolate(method='pad').rolling(11,min_periods=1,center=True).mean() 
+        ind_clr = (trans > 0.7) & (abs(smoothed_cre) < 100) | (G_t > G_clr)
+        diff_fract.loc[ind_clr] = RL['RL'].where(ind_clr)/G_t.where(ind_clr)
+        #
+        # (c) identify the cloudy skies and use a parameterization based on D-ICE
+        ind_cld = (ind_clr==False) & (~np.isnan(trans)) & (df['zenith_true'] < 89.9)
+        diff_fract.loc[ind_cld] = (0.94958*G_t.where(ind_cld) - 5.8128)/G_t.where(ind_cld)
+        
+        # (iv) estimate D
+        D = G_t*diff_fract # diffuse flux
+    else:
+        D = diff # formality. this is the observed diff
+        
+    ###### (3) from D, calculate N and D_t
+    D_t = D # Diffuse at the tilted sensor. formality. We set tilted diffuse to measured (parameterized) diffuse because as Chuck says "diffuse is aptly named"
+    N = (G_t-D_t)/mu0 # Direct normal to sun's rays
+    
+    ###### (4) Calculate slope and aspect of the G_t
+    
+    # we cannot know the aspect of the sr30 precisely so we use the metek but the metek was installed with its own tilt so we remove that here
+    # we assume that at installation the level was 0 (even if it wasn't) and we will correct for all CHANGE in the tilt from that moment
+    # we also assume that for the affected period the RELATIVE orientation of sr30 and metek was a constant  
+    incX = df['metek_InclX_Avg'] - incx_offset
+    incY = df['metek_InclY_Avg'] - incy_offset
+    
+    # this is the aspect of the unlevel plane of the thermopile
+    aspect = np.mod(df['heading'] - np.rad2deg(np.arctan(np.cos(np.deg2rad(incY))/np.cos(np.deg2rad(incX)))),360)
+    
+    # this is the slope of the unlevel plane of the thermopile
+    slope = np.sqrt(incX**2 + incY**2)
+    
+    ###### (5) Calcualte mu_t, the solar zenith angle relative to the unlevel plane of the thermopile
+    mu_t = np.cos(np.deg2rad(df['zenith_true']))*np.cos(np.deg2rad(slope))+np.sin(np.deg2rad(df['zenith_true']))*np.sin(np.deg2rad(slope))*np.cos(np.deg2rad(df['azimuth'])-np.deg2rad(aspect)) # Eq. 1.6.3 from Duffie & Beckman (2013)
+
+    ###### (6) Implement the correction following Long et al. (2010)
+    G = G_t * ((mu0 + D/N) / (mu_t + D/N))
+        
+    ###### (7) and insert the result back into the df then return it
+    df['down_short_hemisp'] = G
+    
+    return df
+ 
