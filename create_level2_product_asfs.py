@@ -465,7 +465,12 @@ def main(): # the main data crunching program
         print('Processing GPS: qc, calculations, and band-pass median filter applied to heading for '+curr_station) 
 
         # convert to degrees
-        sd['lat']     = sd['gps_lat_deg_Avg'] + sd['gps_lat_min_Avg']/60.0 # add decimal values
+        try: 
+            sd['lat']     = sd['gps_lat_deg_Avg'] + sd['gps_lat_min_Avg']/60.0 # add decimal values
+        except KeyError as e: 
+            print(f"!!! No GPS data for station {curr_station} during requested time range !!! ")
+            return (sd, False)
+
         sd['lon']     = sd['gps_lon_deg_Avg']+sd['gps_lon_min_Avg']/60.0
         sd['heading'] = sd['gps_hdg_Avg']
 
@@ -518,12 +523,13 @@ def main(): # the main data crunching program
         sd['ship_distance'] = fl.despike(sd['ship_distance'],2,15,'yes')   # tiny spikes in lat/lon resulting in 
         sd['ship_bearing']  = fl.despike(sd['ship_bearing'],0.02,15,'yes') # spikes of ~5 m in distance, so despike
 
-        return sd 
+        return (sd, True)
 
     # actually call the qc/gps functions
     for curr_station in flux_stations:
-        slow_data[curr_station] = process_gps(curr_station, slow_data[curr_station])
-        slow_data[curr_station] = qc_stations(curr_station, slow_data[curr_station])
+        slow_data[curr_station], return_status = process_gps (curr_station, slow_data[curr_station])
+        if return_status:
+            slow_data[curr_station] = qc_stations(curr_station, slow_data[curr_station])
 
     # ###############################################################################
     # OK we have all the slow data, now loop over each day and get fast data for that
@@ -1089,6 +1095,194 @@ def main(): # the main data crunching program
                 turbulencetom = pd.concat( [turbulencetom, bulk], axis=1) # concat columns alongside each other without adding indexes
                 print('Outputting {} turbulent fluxes to netcdf files: {}'.format(str(integration_window)+"min",today))
                 trash_var = write_turb_netcdf(turbulencetom.copy(), curr_station, today, integration_window, out_dir)+"min"
+
+                if win_len < len(integ_time_turb_flux)-1: print('\n')
+
+        print('\nOutputting to netcdf files and calcuating averages for day: {}'.format(today))
+        trash_var = write_level2_netcdf(sdt.copy(), curr_station, today, "1min", out_dir)
+        trash_var = write_level2_netcdf(sdt.copy(), curr_station, today,"10min", out_dir)
+
+        day_q.put(True) # process_station_day() ends here
+
+        return 
+
+    # ###########################################################################
+    # here's where we actually call the data crunching function. for each station
+    # we process days sequentially *then move on to the next station
+
+    # call processing by day then station (allows threading for processing a single days data)
+    for curr_station in flux_stations:
+        printline(endline=f"\n\n  Processing all requested days of data for {curr_station}\n\n"); printline()
+        q_list = []  # setup queue storage
+        for i_day, today in enumerate(day_series): # loop over the days in the processing range and crunch away
+
+            tomorrow        = today+day_delta
+            slow_data_today = slow_data[curr_station][today:tomorrow]
+
+            q_today = Q()
+            P(target=process_station_day,
+              args=(curr_station, today, tomorrow, slow_data_today, q_today)).start()
+            q_list.append(q_today)
+
+            if (i_day+1) % nthreads == 0 or today == day_series[-1]:
+                for qq in q_list: qq.get()
+                q_list = []
+
+    printline()
+    print("All done! Go check out your freshly baked files")
+    print(version_msg)
+    printline()
+
+# do the stuff to write out the level1 files, set timestep equal to anything from "1min" to "XXmin"
+# and we will average the native 1min data to that timestep. right now we are writing 1 and 10min files
+def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
+
+    day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
+    tomorrow  = date+day_delta
+
+    l2_atts, l2_cols = define_level2_variables()
+
+    all_missing     = True 
+    first_loop      = True
+    n_missing_denom = 0
+
+    if l2_data.empty:
+        print("... there was no data to write today {} for {} at station {}".format(date,timestep,curr_station))
+        print(l2_data)
+        return False
+
+    # get some useful missing data information for today and print it for the user
+    for var_name, var_atts in l2_atts.items():
+        try: dt = l2_data[var_name].dtype
+        except KeyError as e: 
+            print(" !!! no {} in data for {} ... does this make sense??".format(var_name, curr_station))
+        perc_miss = fl.perc_missing(l2_data[var_name].values)
+        if perc_miss < 100: all_missing = False
+        if first_loop: 
+            avg_missing = perc_miss
+            first_loop=False
+        elif perc_miss < 100: 
+            avg_missing = avg_missing + perc_miss
+            n_missing_denom += 1
+    if n_missing_denom > 1: avg_missing = round(avg_missing/n_missing_denom,2)
+    else: avg_missing = 100.
+
+    print("... writing {} level2 for {} on {}, ~{}% of data is present".format(timestep, curr_station, date, 100-avg_missing))
+
+    file_str = 'mos{}met.level2.{}.{}.nc'.format(curr_station,timestep,date.strftime('%Y%m%d.%H%M%S'))
+    
+    lev2_name  = '{}/{}'.format(out_dir, file_str)
+
+    global_atts = define_global_atts(curr_station, "level2") # global atts for level 1 and level 2
+    netcdf_lev2 = Dataset(lev2_name, 'w')# format='NETCDF4_CLASSIC')
+
+    for att_name, att_val in global_atts.items(): # write global attributes 
+        netcdf_lev2.setncattr(att_name, att_val)
+        
+    # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
+    netcdf_lev2.createDimension('time', None)
+
+    dti = pd.DatetimeIndex(l2_data.index.values)
+    fstr = '{}T'.format(timestep.rstrip("min"))
+    if timestep != "1min":
+        dti = pd.date_range(date, tomorrow, freq=fstr)
+
+    try:
+        fms = l2_data.index[0]
+    except Exception as e:
+        print("... something went really wrong with the indexing")
+        print("... the code doesn't handle that currently")
+        raise e
+
+    # base_time, ARM spec, the difference between the time of the first data point and the BOT
+    today_midnight = datetime(fms.year, fms.month, fms.day)
+    beginning_of_time = fms 
+
+    # create the three 'bases' that serve for calculating the time arrays
+    et = np.datetime64(epoch_time)
+    bot = np.datetime64(beginning_of_time)
+    tm =  np.datetime64(today_midnight)
+
+    # first write the int base_time, the temporal distance from the UNIX epoch
+    base = netcdf_lev2.createVariable('base_time', 'i') # seconds since
+    base[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
+
+    base_atts = {'string'     : '{}'.format(bot),
+                 'long_name' : 'Base time since Epoch',
+                 'units'     : 'seconds since {}'.format(et),
+                 'ancillary_variables'  : 'time_offset',}
+    for att_name, att_val in base_atts.items(): netcdf_lev2['base_time'].setncattr(att_name,att_val)
+
+    # here we create the array and attributes for 'time'
+    t_atts   = {'units'     : 'seconds since {}'.format(tm),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from midnight',
+                     'calendar'  : 'standard',}
+
+
+    bt_atts   = {'units'     : 'seconds since {}'.format(bot),
+                     'delta_t'   : '0000-00-00 00:01:00',
+                     'long_name' : 'Time offset from base_time',
+                     'calendar'  : 'standard',}
+
+
+    delta_ints = np.floor((dti - tm).total_seconds())      # seconds
+
+    t_ind = pd.Int64Index(delta_ints)
+
+    # set the time dimension and variable attributes to what's defined above
+    t = netcdf_lev2.createVariable('time', 'd','time') # seconds since
+
+    # now we create the array and attributes for 'time_offset'
+    bt_delta_ints = np.floor((dti - bot).total_seconds())      # seconds
+
+    bt_ind = pd.Int64Index(bt_delta_ints)
+
+    # set the time dimension and variable attributes to what's defined above
+    bt = netcdf_lev2.createVariable('time_offset', 'd','time') # seconds since
+
+    # this try/except is vestigial, this bug should be fixed
+    t[:]  = t_ind.values
+    bt[:] = bt_ind.values
+
+    for att_name, att_val in t_atts.items(): netcdf_lev2['time'].setncattr(att_name,att_val)
+    for att_name, att_val in bt_atts.items(): netcdf_lev2['time_offset'].setncattr(att_name,att_val)
+
+    for var_name, var_atts in l2_atts.items():
+
+        var_dtype = l2_data[var_name].dtype
+        perc_miss = fl.perc_missing(l2_data[var_name])
+
+        if fl.column_is_ints(l2_data[var_name]):
+            var_dtype = np.int32
+            fill_val  = def_fill_int
+            var_tmp = l2_data[var_name].values.astype(np.int32)
+        else:
+            fill_val  = def_fill_flt
+            var_tmp = l2_data[var_name].values.astype(np.int32)
+
+        var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+        # write atts to the var now
+        for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
+        netcdf_lev2[var_name].setncattr('missing_value', fill_val)
+
+        if timestep != "1min":
+            vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
+        else: vtmp = l2_data[var_name]
+        vtmp.fillna(fill_val, inplace=True)
+        var[:] = vtmp.values
+
+        # add a percent_missing attribute to give a first look at "data quality"
+        netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
+
+    netcdf_lev2.close() # close and write files for today
+    return  True
+
+# do the stuff to write out the level1 files, set timestep equal to anything from "1min" to "XXmin"
+# and we will average the native 1min data to that timestep. right now we are writing 1 and 10min files
+def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir):
+    
+    timestep = str(integration_window)+"min"
 
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
