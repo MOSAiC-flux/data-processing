@@ -1094,7 +1094,7 @@ def main(): # the main data crunching program
                 # add this to the EC data
                 turbulencetom = pd.concat( [turbulencetom, bulk], axis=1) # concat columns alongside each other without adding indexes
                 print('Outputting {} turbulent fluxes to netcdf files: {}'.format(str(integration_window)+"min",today))
-                trash_var = write_turb_netcdf(turbulencetom.copy(), curr_station, today, integration_window, out_dir)+"min"
+                trash_var = write_turb_netcdf(turbulencetom.copy(), curr_station, today, integration_window, win_len, out_dir)
 
                 if win_len < len(integ_time_turb_flux)-1: print('\n')
 
@@ -1280,7 +1280,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir):
 
 # do the stuff to write out the level1 files, set timestep equal to anything from "1min" to "XXmin"
 # and we will average the native 1min data to that timestep. right now we are writing 1 and 10min files
-def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir):
+def write_turb_netcdf(turb_data, curr_station, date, integration_window, win_len, out_dir):
     
     timestep = str(integration_window)+"min"
 
@@ -1341,10 +1341,10 @@ def write_turb_netcdf(turb_data, curr_station, date, integration_window, out_dir
                  'ancillary_variables'  : 'time_offset',}
     for att_name, att_val in base_atts.items(): netcdf_turb['base_time'].setncattr(att_name,att_val)
 
-    if integ_time_turb_flux[integration_window] < 10:
-        delt_str = f"0000-00-00 00:0{integ_time_turb_flux[integration_window]}:00"
+    if integ_time_turb_flux[win_len] < 10:
+        delt_str = f"0000-00-00 00:0{integ_time_turb_flux[win_len]}:00"
     else:
-        delt_str = f"0000-00-00 00:{integ_time_turb_flux[integration_window]}:00"
+        delt_str = f"0000-00-00 00:{integ_time_turb_flux[win_len]}:00"
 
     # here we create the array and attributes for 'time'
     t_atts   = {'units'     : 'seconds since {}'.format(tm),
