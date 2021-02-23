@@ -1065,28 +1065,28 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z):
                                                     'location'      : 'at base of tower under SR50',})
 
     lev2_atts['mixing_ratio_2m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
-                                                    'cf_name'       : 'specific_humidity',
+                                                    'cf_name'       : 'humidity_mixing_ratio',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : sonic_2m,
                                                     'location'      : bottom_location_string,})
 
     lev2_atts['mixing_ratio_6m']             .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
-                                                    'cf_name'       : 'specific_humidity',
+                                                    'cf_name'       : 'humidity_mixing_ratio',
                                                     'instrument'    : 'Vaisala PTU300',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : sonic_6m,
                                                     'location'      : middle_location_string,})
 
     lev2_atts['mixing_ratio_10m']            .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
-                                                    'cf_name'       : 'specific_humidity',
+                                                    'cf_name'       : 'humidity_mixing_ratio',
                                                     'instrument'    : 'Vaisala HMT330',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : sonic_10m,
                                                     'location'      : top_location_string,})
 
     lev2_atts['mixing_ratio_mast']           .update({'long_name'     : 'mixing ratio derived using T/P/RH from HMT',
-                                                    'cf_name'       : 'specific_humidity',
+                                                    'cf_name'       : 'humidity_mixing_ratio',
                                                     'instrument'    : 'Vaisala WXT530',
                                                     'methods'       : 'calculated from measured variables following Wexler (1976)',
                                                     'height'        : mast_sonic_height,
