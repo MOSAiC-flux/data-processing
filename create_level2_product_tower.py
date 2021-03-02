@@ -139,7 +139,7 @@ def main(): # the main data crunching program
     verboseprint = v_print
     
     # paths
-    global data_dir, level1_dir, level2_dir, turb_dir, raise_day 
+    global data_dir, level1_dir, level2_dir, turb_dir, date_twr_raised
 
     if args.path: data_dir = args.path
     else: data_dir = '/Projects/MOSAiC/'
@@ -211,13 +211,16 @@ def main(): # the main data crunching program
     # from Ola's original code... these are events that are important/relevant to data processing
     # here they are stored as a list of tuple pairs, (date, event_description)...
     # ... I would like to do this in a more clever way but haven't had the time to get to it
-    raise_day = datetime(2019,10,25,5,30) # used elsewhere
+    
+    # instrument heights after tower raised
+    date_twr_raised = datetime(2019, 10, 24, 5, 30)
+    
     events = []
     events.append( (datetime(2019,10,22,1,0),   'move WXT away from lowest boom') )
     events.append( (datetime(2019,10,22,5,0),   'replace 2m sonic w spare (S/N 7255)') )
     events.append( (datetime(2019,10,24,1,0),   'rotate & calibrate GPS') )
     events.append( (datetime(2019,10,25,1,25),  'put in second flux plate - under Apogee') )
-    events.append( (raise_day,                  'raised met tower; sonics N oriented to GPS N') )
+    events.append( (date_twr_raised,            'raised met tower; sonics N oriented to GPS N') )
     events.append( (datetime(2019,10,26,1,0),   'move WXT to mast') )
     events.append( (datetime(2019,10,26,8,0),   '30-m mast raised') )
     events.append( (datetime(2019,10,29,0,47),  'adjusted orientation of 2-m sonic slightly clockwise') )
@@ -233,8 +236,6 @@ def main(): # the main data crunching program
     GPS_height_on_ground        = [(1)]
     SR50_height_on_ground       = [(1)]
 
-    # instrument heights after tower raised
-    date_twr_raised = datetime(2019, 10, 24, 5, 30)
 
     sonic_height_raised      = [(2.66, 5.68, 10.54)] # height from tower base plate (m)
     vasaila_T_height_raised  = [(1.65, 5.44, 9.34)]  # height from tower base plate (m)
@@ -821,7 +822,7 @@ def main(): # the main data crunching program
 
         # Nothing bad happened...  this probably doesn't really need to be a loop
         # get the right instrument heights for this day... goes in the day loop
-        if today < raise_day:
+        if today < date_twr_raised:
             sonic_z  = sonic_height_on_ground
             Tvais_z  = vasaila_T_height_on_ground
             RHvais_z = vasaila_Rh_height_on_ground

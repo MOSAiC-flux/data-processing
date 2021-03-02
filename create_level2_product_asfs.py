@@ -660,7 +660,7 @@ def main(): # the main data crunching program
         # Tilt correction 
         # commented out for now until the times for the correction are decided (need if statements onf dates here)  
         # and incx/y_offset are determined for those dates. SPN1 can come later still. ccox 1/26/21 
-       
+               
         #diffuse_flux = -1 # we don't have an spn1 so we model the error. later we can use it if we have it
         #incx_offset = 0.0298 # for testing. actual value TBD
         #incy_offset = -0.7043 # for testing. actual value TBD
