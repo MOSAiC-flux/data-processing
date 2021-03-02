@@ -22,6 +22,8 @@ emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Wa
 def qc_tower(tower_data):
 
     td = tower_data 
+    
+    date_twr_raised = date(2019, 10, 24, 5, 30)
 
     # something went horribly wrong with the pressure sensor during the leg 3 newdle reboot  
     td['mast_P']         .loc[date(2020,3,13,0,0,0)    :date(2020,5,13,0,0,0)]    = nan 
@@ -167,11 +169,5 @@ def qc_tower(tower_data):
     td['tower_ice_alt'] .loc[:date_twr_raised] = nan 
     td['heading_tower'] .loc[:date_twr_raised] = 291.3 # just use the daily mean for raise day. prior to raise in Oct GPS was on its side and erratice. 291.3 is the average for the raise day as a surrogate
     td['sr50_dist']     .loc[:date_twr_raised] = nan # sr50 data is garbage when the tower is down
-                                                      # (it's pointed at the horizon or something)
-
-
-    td['heading_tower'].loc[:date(2019,10,24,4,59,49)] = nan # this is a couple hours after the gps
-                                                                 # was calibrated and mounted and is
-                                                                 # when the data looks ok
 
     return td
