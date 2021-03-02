@@ -23,8 +23,6 @@ def qc_tower(tower_data):
 
     td = tower_data 
 
-    raise_day = date(2019,10,25,5,30) # used for nan-ing data before the tower is up
-
     # something went horribly wrong with the pressure sensor during the leg 3 newdle reboot  
     td['mast_P']         .loc[date(2020,3,13,0,0,0)    :date(2020,5,13,0,0,0)]    = nan 
     td['mast_RH']        .loc[date(2019,11,26,12,14,0) :date(2019,11,26,12,45,0)] = nan 
@@ -166,9 +164,9 @@ def qc_tower(tower_data):
     td['apogee_body_T']  .loc[                          :date(2019,10,15,7,54)]    = nan
 
     # not very useful before the tower is up
-    td['tower_ice_alt'] .loc[:raise_day] = nan 
-    td['heading_tower'] .loc[:raise_day] = nan # ditto
-    td['sr50_dist']     .loc[:raise_day] = nan # sr50 data is garbage when the tower is down
+    td['tower_ice_alt'] .loc[:date_twr_raised] = nan 
+    td['heading_tower'] .loc[:date_twr_raised] = 291.3 # just use the daily mean for raise day. prior to raise in Oct GPS was on its side and erratice. 291.3 is the average for the raise day as a surrogate
+    td['sr50_dist']     .loc[:date_twr_raised] = nan # sr50 data is garbage when the tower is down
                                                       # (it's pointed at the horizon or something)
 
 
