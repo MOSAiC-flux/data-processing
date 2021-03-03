@@ -128,6 +128,7 @@ def main(): # the main data crunching program
     global verboseprint  # defines a function that prints only if -v is used when running
     global printline     # prints a line out of dashes, pretty boring
     global verbose       # a useable flag to allow subroutines etc when using -v 
+    global tilt_data     # some variables seem to be unavailable when others defined similarly are ...????
     
     # constants for calculations
     global nan, def_fill_int, def_fill_flt # make using nans look better
@@ -165,7 +166,7 @@ def main(): # the main data crunching program
     #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
 
     if args.station: flux_stations = args.station.split(',')
-    else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
+    else: flux_stations = ['asfs30']#['asfs50', 'asfs40', 'asfs30']
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
@@ -365,7 +366,82 @@ def main(): # the main data crunching program
     init_data['asfs30'] = init_asfs30
     init_data['asfs40'] = init_asfs40
     init_data['asfs50'] = init_asfs50
+    
+    
+    # Metadata for the radiometer tilt correction. We need a priori (i.e., when level prior to change in orientation) knowledge 
+    # of the offsets between Metek inclinometer and SWD. Dates are begining of period and values should be persisted until the 
+    # next date. nan signifies no correction should be performed.
+                     
+    asfs30_tilt_data = pd.DataFrame(np.array([ # date               IncX_offset IncY_offset  
+                                            [datetime(2019,10,1,0,0),    nan,     nan], # Beg. MOSAiC in the dark. No corrections until spring!
+                                            [datetime(2020,3,22,4,48),   nan,     nan], # Leg 3; tilts logging turned on. L2. rads level so no correction
+                                            [datetime(2020,4,7,12,0),    nan,     nan], # Leg 3; LOG, no correction
+                                            [datetime(2020,4,15,12,25),  nan,     nan], # Leg 3; Balloon Town install. rads level no correction
+                                            [datetime(2020,5,5,8,29),    nan,     nan], # Leg 3; LOG, EFOY tests in BGC1 rd
+                                            [datetime(2020,5,7,11,37),   nan,     nan], # Leg 3; to BGC1. rads level no correction
+                                            [datetime(2020,5,12,22,16),  nan,     nan], # Leg 3; BGC1 reequillibrates after braking in storm. rads remain level. no correction
+                                            [datetime(2020,5,26,0,0),    0.0298, -0.7043], # Leg 3; BGC1 melt onset
+                                            [datetime(2020,6,21,8,8),    nan,     nan], # Leg 4; sled being moved. no correction 
+                                            [datetime(2020,6,21,8,27),   0.3285, -1.9358], # Leg 4; releveled at BGC1
+                                            [datetime(2020,6,30,15,51),  0.0776, -0.2305], # Leg 4; FYI
+                                            [datetime(2020,7,14,13,11), -0.1341, -0.0376], # Leg 4; FYI, reset
+                                            [datetime(2020,8,2,18,0),    nan,     nan], # Leg 4; PS deck, no correction
+                                            [datetime(2020,8,21,16,35),  0.9804, -0.6325], # Leg 5; tower location
+                                            [datetime(2020,8,31,5,7),    nan,     nan], # Leg 5; ASFS being moved, no correction 
+                                            [datetime(2020,8,31,5,29),   nan,     nan], # Leg 5; tower location, reset. installed out of level so cant be corrected
+                                            [datetime(2020,9,4,9,16),    nan,     nan], # Leg 5; ASFS being moved, no correction
+                                            [datetime(2020,9,4,11,18),   nan,     nan], # Leg 5; icing. Hinterland. rads level so no correction
+                                            [datetime(2020,9,19,8,45),   nan,     nan], # Leg 5; sledge intercomparison. brief. little chang in level. no correction
+                                            [datetime(2020,9,20,4,51),   nan,     nan], # Leg 5; PS deck, no correction
+                                            [datetime(2020,9,24,5,15),   0.1248,  1.0505], # Leg 5; Ice Stn 1 transect
+                                            [datetime(2020,9,24,11,57),  nan,     nan], # Leg 5; PS deck, no correction
+                                            [datetime(2020,9,26,5,18),   0.4665,  0.5202], # Leg 5; Ice Stn 2 transect
+                                            [datetime(2020,9,26,10,59),  nan,     nan], # Leg 5; PS deck, no correction
+                                            [datetime(2020,9,30,8,38),   1.1053,  0.3600], # Leg 5; Ice Stn 3 transect
+                                            [datetime(2020,9,30,14,3),   nan,     nan], # Leg 5; PS deck, no correction
+                                            [datetime(2020,10,5,0,0),    nan,     nan], # End.
+                                            ]),columns=['date', 'incx_offset', 'incy_offset'])
 
+    asfs30_tilt_data.set_index(asfs30_tilt_data['date'],inplace=True)
+                    
+    asfs50_tilt_data = pd.DataFrame(np.array([ # date               IncX_offset IncY_offset  
+                                            [datetime(2019,10,1,0,0),    nan,     nan], # Beg. MOSAiC in the dark. No corrections until spring!
+                                            [datetime(2020,4,7,13,12),   nan,     nan], # Leg 3; LOG. no correction
+                                            [datetime(2020,4,14,12,45),  nan,     nan], # Leg 3; BGC1. rads level so no correction
+                                            [datetime(2020,4,15,0,0),    nan,     nan], # Leg 3; BGC1 reset. rads level so no correction
+                                            [datetime(2020,5,7,11,23),   nan,     nan], # Leg 3; instrument off and stored. no correction
+                                            [datetime(2020,6,15,11,45), -0.4499, -3.6961], # Leg 4; PS deck. correctable so why not?
+                                            [datetime(2020,6,25,7,29),   nan,     nan], # Leg 4; LOG. no correction
+                                            [datetime(2020,6,29,12,49), -0.0585, -0.4529], # Leg 4; FYI install. SPN1 nearby
+                                            [datetime(2020,7,4,12,39),  -0.0821,  0.0843], # Leg 4; FYI reset. SPN1 nearby
+                                            [datetime(2020,7,4,13,39),  -0.0523, -0.0108], # Leg 4; FYI reset. SPN1 nearby
+                                            [datetime(2020,7,10,11,30),  nan,     nan], # Leg 4; FYI reset. rads level so no correction
+                                            [datetime(2020,7,30,14,30),  nan,     nan], # Leg 4; PS deck. no correction
+                                            [datetime(2020,8,22,23,58),  1.3793, -0.8614], # Leg 5; installed 8/21, but data available now. 
+                                            [datetime(2020,8,31,6,8),    nan,     nan], # Leg 5; reset
+                                            [datetime(2020,9,1,11,31),   nan,     nan], # Leg 5; reset
+                                            [datetime(2020,9,14,5,48),   nan,     nan], # Leg 5; reset
+                                            [datetime(2020,9,19,9,44),   nan,     nan], # Leg 5; sled being moved for extend period. no correction
+                                            [datetime(2020,9,19,10,13),  nan,     nan], # Leg 5; sled/sledge intercomparison
+                                            [datetime(2020,9,20,8,8),    nan,     nan], # Leg 5; PS deck. no correction
+                                            [datetime(2020,9,26,6,2),    nan,     nan], # Leg 5; Ice Stn 2
+                                            [datetime(2020,9,26,6,15),   nan,     nan], # Leg 5; Ice Stn 2, sled being moved about. no correction
+                                            [datetime(2020,9,26,6,50),   nan,     nan], # Leg 5; Ice Stn 2
+                                            [datetime(2020,6,26,11,11),  nan,     nan], # Leg 5; PS deck. no correction
+                                            [datetime(2020,9,30,8,29),   nan,     nan], # Leg 5; Ice Stn 3
+                                            [datetime(2020,9,30,8,44),   nan,     nan], # Leg 5; Ice Stn 3, sled being moved about. no correction
+                                            [datetime(2020,9,30,8,51),   nan,     nan], # Leg 5; Ice Stn 3
+                                            [datetime(2020,9,30,14,11),  nan,     nan], # Leg 5; PS deck. no correction
+                                            [datetime(2020,10,5,0,0),    nan,     nan], # End.
+                                            ]),columns=['date', 'incx_offset', 'incy_offset'])
+    
+    asfs50_tilt_data.set_index(asfs50_tilt_data['date'],inplace=True)
+    
+    tilt_data = {}
+    tilt_data['asfs30'] = asfs30_tilt_data
+    tilt_data['asfs40'] = nan
+    tilt_data['asfs50'] = asfs50_tilt_data
+ 
     # program logic starts here, the logic flow goes like this:
     # #########################################################
     # 
@@ -543,7 +619,7 @@ def main(): # the main data crunching program
     print("\n We have retreived all slow data, now processing each day...\n")
     def process_station_day(curr_station, today, tomorrow, slow_data_today, day_q):
 
-        out_dir = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/version1/' # where level 2 data written?
+        out_dir = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/version2/' # where level 2 data written?
 
         printline(endline="\n")
         print("Retreiving level1 fast data for {} on {}\n".format(curr_station,today))
@@ -660,11 +736,10 @@ def main(): # the main data crunching program
         # Tilt correction 
         # commented out for now until the times for the correction are decided (need if statements onf dates here)  
         # and incx/y_offset are determined for those dates. SPN1 can come later still. ccox 1/26/21 
-               
-        #diffuse_flux = -1 # we don't have an spn1 so we model the error. later we can use it if we have it
-        #incx_offset = 0.0298 # for testing. actual value TBD
-        #incy_offset = -0.7043 # for testing. actual value TBD
-        #fl.tilt_corr(sdt,diffuse_flux,incx_offset,incy_offset) # modified sdt is returned
+        sdt['incx_offset'] = tilt_data[curr_station]['incx_offset'].reindex(index=sdt.index,method='pad').astype('float')
+        sdt['incy_offset'] = tilt_data[curr_station]['incy_offset'].reindex(index=sdt.index,method='pad').astype('float')
+        diffuse_flux = -1 # we don't have an spn1 so we model the error. later we can use it if we have it
+        fl.tilt_corr(sdt,diffuse_flux) # modified sdt is returned
 
         # ###################################################################################################
         # derive some useful parameters that we want to write to the output file

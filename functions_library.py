@@ -1919,15 +1919,15 @@ def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
 
 
 # Tilt correction
-def tilt_corr(df,diff,incx_offset,incy_offset):
+def tilt_corr(df,diff):
 
     # Performs a pyranometer tilt correction using a method developed from Long et al. (2010)
     # called from create_level2_product_asfs.py
     #
     # df: the dataframe for this day (sdt in create_level2_product_asfs.py)
     # diff: dataframe having the same index as df containing measured diffuse flux. if -1 signals no measuremnt available and the code will parameterize diffuse flux instead
-    # incx_offset: value of metek incX at last installation
-    # incy_offset: value of metek incY at last installation
+    # incx_offset: value of metek incX at last installation; passed through df
+    # incy_offset: value of metek incY at last installation; passed through df
 
     ###### (0) For documentation we will do this in the parlance of Long et al. (2010)
     G_t = df['down_short_hemisp'] # observed SWD in the tilted frame 
@@ -1982,9 +1982,9 @@ def tilt_corr(df,diff,incx_offset,incy_offset):
     # we cannot know the aspect of the sr30 precisely so we use the metek but the metek was installed with its own tilt so we remove that here
     # we assume that at installation the level was 0 (even if it wasn't) and we will correct for all CHANGE in the tilt from that moment
     # we also assume that for the affected period the RELATIVE orientation of sr30 and metek was a constant  
-    incX = df['metek_InclX_Avg'] - incx_offset
-    incY = df['metek_InclY_Avg'] - incy_offset
-    
+    incX = df['metek_InclX_Avg'] - df['incx_offset']
+    incY = df['metek_InclY_Avg'] - df['incy_offset']
+
     # this is the aspect of the unlevel plane of the thermopile
     aspect = np.mod(df['heading'] - np.rad2deg(np.arctan(np.cos(np.deg2rad(incY))/np.cos(np.deg2rad(incX)))),360)
     
@@ -1998,6 +1998,7 @@ def tilt_corr(df,diff,incx_offset,incy_offset):
     G = G_t * ((mu0 + D/N) / (mu_t + D/N))
         
     ###### (7) and insert the result back into the df then return it
+    G[~G.notnull()] = df['down_short_hemisp'] # where G is nan replace with original measurement. this happens when there is no correction to make
     df['down_short_hemisp'] = G
     
     return df
