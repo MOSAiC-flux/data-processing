@@ -166,7 +166,7 @@ def main(): # the main data crunching program
     #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
 
     if args.station: flux_stations = args.station.split(',')
-    else: flux_stations = ['asfs30']#['asfs50', 'asfs40', 'asfs30']
+    else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
@@ -403,6 +403,13 @@ def main(): # the main data crunching program
                                             ]),columns=['date', 'incx_offset', 'incy_offset'])
 
     asfs30_tilt_data.set_index(asfs30_tilt_data['date'],inplace=True)
+    
+    asfs40_tilt_data = pd.DataFrame(np.array([ # date               IncX_offset IncY_offset  
+                                            [datetime(2019,10,1,0,0),    nan,     nan], # Beg. MOSAiC in the dark. No corrections until spring!
+                                            [datetime(2020,10,5,0,0),    nan,     nan], # End.
+                                            ]),columns=['date', 'incx_offset', 'incy_offset'])
+    
+    asfs40_tilt_data.set_index(asfs40_tilt_data['date'],inplace=True)
                     
     asfs50_tilt_data = pd.DataFrame(np.array([ # date               IncX_offset IncY_offset  
                                             [datetime(2019,10,1,0,0),    nan,     nan], # Beg. MOSAiC in the dark. No corrections until spring!
@@ -439,7 +446,7 @@ def main(): # the main data crunching program
     
     tilt_data = {}
     tilt_data['asfs30'] = asfs30_tilt_data
-    tilt_data['asfs40'] = nan
+    tilt_data['asfs40'] = asfs40_tilt_data
     tilt_data['asfs50'] = asfs50_tilt_data
  
     # program logic starts here, the logic flow goes like this:
