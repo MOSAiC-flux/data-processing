@@ -69,9 +69,9 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
-# nthreads = 1
+#from multiprocessing.dummy import Process as P
+#from multiprocessing.dummy import Queue   as Q
+#nthreads = 1
 
 import numpy  as np
 import pandas as pd
@@ -380,6 +380,38 @@ def main(): # the main data crunching program
     mast_hdg_vals['date'] =  mast_hdg_dates
 
     mast_hdg_df = pd.DataFrame(mast_hdg_vals, index=mast_hdg_dates)
+    
+    
+    # recording some information on the manual alignments and azimuth readings for the tower-down data from 10/15 - 10/24.
+    # we will use this later in the wind calcs to make the adjustments
+    twr_hdg_dates_10m = pd.DataFrame(np.array([                  
+                                        # date  hdg 
+                                        [datetime(2019,10,15,0,0), nan], # sonic not mounted
+                                        [datetime(2019,10,24,5,3), nan],
+                                        ]),columns=['date', 'heading_tower'])
+    twr_hdg_dates_10m.set_index(twr_hdg_dates_10m['date'],inplace=True)
+    
+    twr_hdg_dates_6m = pd.DataFrame(np.array([                  
+                                        # date  hdg 
+                                        [datetime(2019,10,15,0,0), 27], # tower lying down, sonic upright
+                                        [datetime(2019,10,24,1,13), nan], # sonic/tower lying down
+                                        ]),columns=['date', 'heading_tower'])
+    twr_hdg_dates_6m.set_index(twr_hdg_dates_6m['date'],inplace=True)
+    
+    twr_hdg_dates_2m = pd.DataFrame(np.array([                  
+                                        # date  hdg 
+                                        [datetime(2019,10,15,0,0), 27], # tower lying down, sonic upright
+                                        [datetime(2019,10,22,3,37), 293.1], # spare sonic switched on, sonic north aligned
+                                        [datetime(2019,10,24,1,13), nan], # sonic/tower lying down
+                                        ]),columns=['date', 'heading_tower'])
+    twr_hdg_dates_2m.set_index(twr_hdg_dates_2m['date'],inplace=True)
+    
+    global twr_manual_hdg_data
+    twr_manual_hdg_data = {}
+    twr_manual_hdg_data['metek_10m'] = twr_hdg_dates_10m
+    twr_manual_hdg_data['metek_6m'] = twr_hdg_dates_6m
+    twr_manual_hdg_data['metek_2m'] = twr_hdg_dates_2m
+    
 
     # #####################################################################################################
     # Now that everything is defined, we read in the logger data for the date range requested and then
@@ -417,7 +449,7 @@ def main(): # the main data crunching program
     
     # The heading is in degree x 100 so convert. also we will do something simlar for the altitude
     slow_data['heading_tower'] = slow_data['gps_hdg']/100.0  # convert to degrees
-    slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise 
+    slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise     
     
     # The filter needs to be carried out in vector space. the filter is 6 hrs = 21600 sec
     unitv1 = np.cos(np.radians(slow_data['heading_tower'])) # degrees -> unit vector
@@ -1030,7 +1062,6 @@ def main(): # the main data crunching program
             #             metek x -> earth v, +West
             #             Have a look also at pg 21-23 of NEW_MANUAL_20190624_uSonic-3_Cage_MP_Manual for
             #             metek conventions. Pg 21 seems to have errors in the diagram?
-
             for inst in metek_inst_keys:
 
                 # Tower.
@@ -1038,7 +1069,15 @@ def main(): # the main data crunching program
                 # Inclinomters and heading used to rotate from body to earth coordinates
                 # Heading uses a filtered value to reduce noise, which was calculated earlier in this code
                 if 'mast' not in inst:
-                    th = logger_today['heading_tower'].reindex(index=fast_data_10hz[inst].index).interpolate()
+                    th = logger_today['heading_tower'].reindex(index=fast_data_10hz[inst].index).interpolate()  
+                    
+                    # if prior to raise day, we need to use some manual offsets from the tower heading
+                    if today < ( date_twr_raised - timedelta(hours=date_twr_raised.hour, minutes=date_twr_raised.minute, seconds=date_twr_raised.second) ) + timedelta(days=1):
+                        th2 = twr_manual_hdg_data[inst]['heading_tower'].reindex(index=th.index,method='pad').interpolate()
+                        th = th.fillna(value=th2)
+                        logger_today['heading_tower'].fillna(value=291.3) # the tower frame of reference will be persisted back from when it was first raised
+                    
+                    twr_manual_hdg_data[inst] 
                     ct_u, ct_v, ct_w = fl.tilt_rotation(fast_data_10hz[inst] [inst+'_incy'],
                                                         fast_data_10hz[inst] [inst+'_incx'],
                                                         th, 

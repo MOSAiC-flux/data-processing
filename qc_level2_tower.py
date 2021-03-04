@@ -167,7 +167,7 @@ def qc_tower(tower_data):
 
     # not very useful before the tower is up
     td['tower_ice_alt'] .loc[:date_twr_raised] = nan 
-    td['heading_tower'] .loc[:date_twr_raised] = 291.3 # just use the daily mean for raise day. prior to raise in Oct GPS was on its side and erratice. 291.3 is the average for the raise day as a surrogate
+    td['heading_tower'] .loc[:date_twr_raised] = nan # we are going to fill this in with manual obs for each sonic inividually when the wind is calculated in lvl2 
     td['sr50_dist']     .loc[:date_twr_raised] = nan # sr50 data is garbage when the tower is down
 
     return td

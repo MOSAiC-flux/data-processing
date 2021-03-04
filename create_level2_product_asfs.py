@@ -434,7 +434,7 @@ def main(): # the main data crunching program
                                             [datetime(2020,9,26,6,2),    nan,     nan], # Leg 5; Ice Stn 2
                                             [datetime(2020,9,26,6,15),   nan,     nan], # Leg 5; Ice Stn 2, sled being moved about. no correction
                                             [datetime(2020,9,26,6,50),   nan,     nan], # Leg 5; Ice Stn 2
-                                            [datetime(2020,6,26,11,11),  nan,     nan], # Leg 5; PS deck. no correction
+                                            [datetime(2020,9,26,11,11),  nan,     nan], # Leg 5; PS deck. no correction
                                             [datetime(2020,9,30,8,29),   nan,     nan], # Leg 5; Ice Stn 3
                                             [datetime(2020,9,30,8,44),   nan,     nan], # Leg 5; Ice Stn 3, sled being moved about. no correction
                                             [datetime(2020,9,30,8,51),   nan,     nan], # Leg 5; Ice Stn 3
