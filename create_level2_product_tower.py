@@ -69,9 +69,9 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-#from multiprocessing.dummy import Process as P
-#from multiprocessing.dummy import Queue   as Q
-#nthreads = 1
+from multiprocessing.dummy import Process as P
+from multiprocessing.dummy import Queue   as Q
+nthreads = 1
 
 import numpy  as np
 import pandas as pd
@@ -340,47 +340,41 @@ def main(): # the main data crunching program
     if len(licor_heights) != len(licor_dates):
         fatal('something went awry... this is ... not the best')
 
+
+
     # mast dates and headings w.r.t. tower from available notes and a deductions, assumptions
     # mast_hdg_dates map to mast_hdg_vals 1 to 1        
     # ccox made an effort, but without heights and with so many changes to the mast between 12/1 and 12/9, without notes the adjustments are arbitrarily set to match the 10 m data, which has not benefits. We can revisit later. I 'll leave it where I left off, a combination of my guesses adn Ola's notes.            
-    mast_hdg_dates   = [datetime(2019,10,15,0,0)    , # Beginning of time; just a placeholder
-                        datetime(2019,10,26,7,0)    , # Tower raised to 30 m; Ola's notes based on manual heading reading on 00:56:55 Oct 30, 2019
-                        datetime(2019,11,18,12,50)  , # Tower falls down; Ola's notes
-                        datetime(2019,11,28,4,30)   , # Sonic tests at 2 m; Ola's notes, says he's guessing. The results suggest there is a problem so some adjustments have been made
-                        datetime(2019,11,29,0,0)    , # added by ccox based on comparison to early Dec, see above
-                        datetime(2019,12,1,9,51),
-                        datetime(2019,12,1,23,58),
-                        datetime(2019,12,2,23,58),
-                        datetime(2019,12,3,23,58),
-                        datetime(2019,12,4,23,58),  
-                        datetime(2019,12,5,23,58),  
-                        datetime(2019,12,6,6,27), 
-                        datetime(2019,12,8,0,0)     , # ccox
-                        datetime(2019,12,8,12,42)   , # ccox
-                        datetime(2019,12,8,14,1)    , # Not sure what is going on on 12/8-12/9, 
-                                                      # Ola's notes, says he's guessing
-                        datetime(2019,12,9,0,0)     , # ccox 
-                        datetime(2019,12,9,7,31)    , # Placeholder, see next line
-                        datetime(2020,3,17,12,0)]     # Chris took a reading here. However, note that
-                                                      # the tower and mast had ben seperated on 3/11
-                                                      # so this is difficult to interpret.
-    mast_hdg_vals = {}
-
-    mast_hdg_vals['mast_hdg'] =  [nan, 40.7,  205.1, 205.1, 196.6, 268.6, 268.6, 276.1, 279.1,
-                                  282.6, 286.6, 104.1, 214.7, 291.2, 215, 193.9, 215, 228]
+    
+    # mast_hdg:
     # These are the manual readings at the mast. The final position could be replaced with 99.1 from
     # 3/17 (first obs since Dec), but this was after teh 3/11 lead.
-    mast_hdg_vals['gps_hdg'] = [nan, 290.7, 290.7, 291.2, 291.2, 281.7, 282.1, 284.2, 286.5, 288.9, 291.3,
-                                291.9, 292.9, 290,   290, 290,   290, 291.3]
-
+      
+    # gps_hdg:
     # These are the manual readings at the tower when the mast obs were made. The final position could
     # be replaced with 199.6 from 3/17 (first obs since Dec), but this was after teh 3/11 lead. Cox
     # adjusted some using the values from thee filtered tower gps when the date of the reading (NOT
     # the date of the change from mast_hdg_dates!) was recorded
-    mast_hdg_vals['date'] =  mast_hdg_dates
-
-    mast_hdg_df = pd.DataFrame(mast_hdg_vals, index=mast_hdg_dates)
+    mast_hdg_df = pd.DataFrame(np.array([
+        # date         mast_hdg  gps_hdg
+        [datetime(2019,10,15,0,0),   nan,      nan  ], # Beginning of time; just a placeholder. Sonic not mounted
+        [datetime(2019,10,19,5,49),  10,       291.0], # Sonic mounted on low mast
+        [datetime(2019,10,26,7,0),   40.7,     291.2], # Tower raised to 30 m; Ola's notes based on manual heading reading on 00:56:55 Oct 30, 2019. I have two versions of the second column: 290.7 & 291.2
+        [datetime(2019,11,18,12,50), 205.1,    290.7], # Tower falls down; Ola's notes
+        [datetime(2019,11,28,4,30),  200.0,    291.0], # Mast sonic mounted on 2m boom after repair from fall
+        [datetime(2019,12,1,9,50),   268.8,    281.7], # ccox
+        [datetime(2019,12,1,23,58),  286.0,    291.0], # Mast sonic mounted on repaired 2m boom after repair from fall .chris thinks first colums is 268.6 & second sol is 282.1
+        #[datetime(2019,12,6,6,27),   104.1,    291.9], # ccox
+        #[datetime(2019,12,8,0,0),    214.7,    292.9], # ccox
+        #[datetime(2019,12,8,12,42),  291.2,    290.0], # ccox
+        [datetime(2019,12,8,14,0),   215.0,    290.0], # Mast raised as far as possible
+        [datetime(2019,12,9,0,0),    193.9,    290.0], # ccox
+        [datetime(2019,12,9,7,30),   228.0,    291.5], # Mast raised with remaining useable tubes
+        [datetime(2020,3,17,12,0),   228.0,    291.3], # Chris took a reading here. However, note that the tower and mast had ben seperated on 3/11 so this is difficult to interpret.
+        ]),columns=['date','mast_hdg','gps_hdg'])
     
+    mast_hdg_df.set_index(mast_hdg_df['date'],inplace=True)
+   
     
     # recording some information on the manual alignments and azimuth readings for the tower-down data from 10/15 - 10/24.
     # we will use this later in the wind calcs to make the adjustments
@@ -925,10 +919,10 @@ def main(): # the main data crunching program
                     fast_data[inst][inst+'_y'].loc[datetime(2020,4,13,12,0,0):datetime(2020,4,14,10,0,0)] = nan
                     fast_data[inst][inst+'_z'].loc[datetime(2020,4,13,12,0,0):datetime(2020,4,14,10,0,0)] = nan
                     # The Dec re-setup
-                    fast_data[inst][inst+'_T'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
-                    fast_data[inst][inst+'_x'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
-                    fast_data[inst][inst+'_y'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
-                    fast_data[inst][inst+'_z'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                    #fast_data[inst][inst+'_T'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                    #fast_data[inst][inst+'_x'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                    #fast_data[inst][inst+'_y'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
+                    #fast_data[inst][inst+'_z'].loc[datetime(2019,12,1,9,51,0):datetime(2019,12,9,7,29,0)] = nan
 
 
 
@@ -1099,7 +1093,7 @@ def main(): # the main data crunching program
                         else:
                             meth = 'pad' 
 
-                        mast_hdg_series = np.mod(logger_today['heading_tower'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360)                    
+                        mast_hdg_series = np.mod(logger_today['heading_tower'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360).astype('float')                    
 
                         # if we are working on the mast but we don't have a v102 we have to set to missing
                         # values, although we can report our estiamte of the heading
