@@ -543,10 +543,10 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     'cvcs',     # Cospectrum
     'cuvs',     # Cospectrum
     'fs'])      # Frequency vector
-
+    
     # Sanity check: Reject series if it is too short, less than 2^13 = 8192 points = 13.6 min @ 10 Hz
     if npt < 8192:
-        verboseprint('  No valid data for sonic at height '+np.str(z_level_n))
+        verboseprint('  No valid data for sonic at height (np<8192) '+np.str(z_level_n))
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
         turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
@@ -1843,7 +1843,7 @@ def cor_ice_A10(bulk_input):
 
 
 # QCRAD
-def qcrad(df,sw_range,lw_range,swd_swu_std,lwd_lwu_std,D1,D5,D11,D12,D13,D14,D15,D16,A0):
+def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
 
     # Screen for outliers in the radiation data using select tests from
     # Long and Shi (2008) https://doi.org/10.2174/1874282300802010023
@@ -1869,13 +1869,10 @@ def qcrad(df,sw_range,lw_range,swd_swu_std,lwd_lwu_std,D1,D5,D11,D12,D13,D14,D15
     #
     # Shortwave
     #
-
+    
     # (1) PPL
     df['down_short_hemisp'].mask( (df['down_short_hemisp']<sw_range[0]) | (df['down_short_hemisp']>sw_range[1]) , inplace=True)
     df['up_short_hemisp'].mask( (df['up_short_hemisp']<sw_range[0]) | (df['up_short_hemisp']>sw_range[1]) , inplace=True)
-    
-    df['down_short_hemisp'].mask( (df['sr30_swd_IrrC_Std']>swd_swu_std[0]) , inplace=True)
-    df['up_short_hemisp'].mask( (df['sr30_swu_IrrC_Std']>swd_swu_std[1]) , inplace=True) 
 
     # (2) Rayleigh Limit
     RL = 209.3*mu0 - 708.3*mu0**2 + 1128.7*mu0**3 - 911.2*mu0**4 + 287.85*mu0**5 + 0.046725*mu0*df['atmos_pressure'].mean()
@@ -1900,10 +1897,6 @@ def qcrad(df,sw_range,lw_range,swd_swu_std,lwd_lwu_std,D1,D5,D11,D12,D13,D14,D15
     # (1) PPL
     df['down_long_hemisp'].mask( (df['down_long_hemisp']<lw_range[0]) | (df['down_long_hemisp']>lw_range[1]) , inplace=True)
     df['up_long_hemisp'].mask( (df['up_long_hemisp']<lw_range[0]) | (df['up_long_hemisp']>lw_range[1]) , inplace=True) 
-    
-    df['down_long_hemisp'].mask( (df['ir20_lwd_Wm2_Std']>lwd_lwu_std[0]) , inplace=True)
-    df['up_long_hemisp'].mask( (df['ir20_lwu_Wm2_Std']>lwd_lwu_std[1]) , inplace=True) 
-     
      
     # (2) Tair
     Tair = (df['temp']+273.15).interpolate()

@@ -338,6 +338,7 @@ def main(): # the main data crunching program
             for iq, qq in enumerate(q_list):
                 qq.get()
             q_list = []
+        #import gc; gc.collect() 
 
     print('---------------------------------------------------------------------------------------------')
     print('All done! Netcdf output files can be found in: {}'.format(level1_dir))

@@ -1,7 +1,6 @@
 # #####################################################################
-# these functions take the full dataset and return the same  dataset
+# this file functions take the full dataset and return the same  dataset
 # with more nans. if you provide a subset of data it will work though.
-# 
 
 import numpy  as np
 import pandas as pd
@@ -24,6 +23,9 @@ def qc_tower(tower_data):
     td = tower_data 
     
     date_twr_raised = date(2019, 10, 24, 5, 30)
+
+    # #####################################################################################
+    # manual flagging -> nans for specific periods
 
     # something went horribly wrong with the pressure sensor during the leg 3 newdle reboot  
     td['mast_P']         .loc[date(2020,3,13,0,0,0)    :date(2020,5,13,0,0,0)]    = nan 

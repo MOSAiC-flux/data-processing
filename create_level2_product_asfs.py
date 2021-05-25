@@ -89,9 +89,9 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-#from multiprocessing.dummy import Process as P
-#from multiprocessing.dummy import Queue   as Q
-#nthreads = 1
+from multiprocessing.dummy import Process as P
+from multiprocessing.dummy import Queue   as Q
+nthreads = 1
 
 import numpy  as np
 import pandas as pd
@@ -142,9 +142,6 @@ def main(): # the main data crunching program
     co2_mass = 44      # ... ever obvious?
     sb       = 5.67e-8 # stefan-boltzmann
     emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Warren and so on
-    
-    # what is sonic_z for the flux stations
-    sonic_z       = 3.8 # m
 
     # there are two command line options that effect processing, the start and end date...
     # ... if not specified it runs over all the data. format: '20191001' AKA '%Y%m%d'
@@ -230,8 +227,6 @@ def main(): # the main data crunching program
                                          # QCRAD thresholds & coefficents    
     sw_range          = (-4   ,1000)     # SWD & SWU max [Wm^2]
     lw_range          = (50  ,400)       # LWD & LWU max [Wm^2] 
-    lwd_lwu_std       = (15  , 5)        # Max 1 min Std in Wm^2; ind 0 is lwd, ind 1 is lwu  
-    swd_swu_std       = (250, 250)       # Max 1 min Std in Wm^2; ind 0 is swd, ind 1 is swu   
     D1                = 1.15             # SWD CCL for Alert, which seems to work well here too (less data than climatology to check against!)
     D5                = 0.9              # SWU. Bumbed up a little from 0.88 used at Alert.
     D11               = 0.62             # LWD<->Tair low (bumped up from 0.58 at Alert)
@@ -743,7 +738,7 @@ def main(): # the main data crunching program
                     sdt[param].iloc[lo:hi] = nan
 
         # Radiation
-        sdt = fl.qcrad(sdt,sw_range,lw_range,swd_swu_std,lwd_lwu_std,D1,D5,D11,D12,D13,D14,D15,D16,A0)
+        sdt = fl.qcrad(sdt,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0)
         
         # Tilt correction 
         # commented out for now until the times for the correction are decided (need if statements onf dates here)  
@@ -927,8 +922,9 @@ def main(): # the main data crunching program
         # interval. Then the result is indexed onto a complete grid for the
         # whole day, which is nominally 1 hour = 36000 samples at 10 Hz
         # Missing data (like NOAA Services blackouts) are nan
+ 
         fdt_10hz = fdt.resample('100ms').mean()
-        fdt_10hz = fdt_10hz.reindex(index=Hz10_today)
+        fdt_10hz = fdt_10hz.reindex(index=Hz10_today, method='nearest', tolerance='50ms')
 
         # ~~~~~~~~~~~~~~~~~ (4) Do the Tilt Rotation  ~~~~~~~~~~~~~~~~~~~~~~
         print("... cartesian tilt rotation. Translating body -> earth coordinates.")
@@ -1029,9 +1025,8 @@ def main(): # the main data crunching program
                                        'metek_w':'w',
                                        'metek_T':'T'}, inplace=True)
             licor_10hz = fdt_10hz[['licor_h2o', 'licor_co2']].copy()
-          
+
             for win_len in range(0,len(integ_time_turb_flux)):
-               
                 integration_window = integ_time_turb_flux[win_len]
                 flux_freq_str = '{}T'.format(integration_window)
                 flux_time_today   = pd.date_range(today, today+timedelta(1), freq=flux_freq_str) # flux calc intervals
@@ -1066,7 +1061,7 @@ def main(): # the main data crunching program
                     # make th1e turbulent flux calculations via Grachev module
                     v = False
                     if verbose: v = True;
-                    
+                    sonic_z       = 3.3 # what is sonic_z for the flux stations
                     data = fl.grachev_fluxcapacitor(sonic_z, metek_in, licor_data, 'g/m3', 'mg/m3', Pr_time_i, T_time_i, Q_time_i, verbose=v)
                     data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True) # Sanity check on Cd. Ditch the run if it fails
 
@@ -1143,7 +1138,7 @@ def main(): # the main data crunching program
                 bulk_input['Q']  = sdt['mixing_ratio'][minutes_today]/1000  # air moisture mixing ratio          (kg/kg)
                 bulk_input['zi'] = empty_data+600                         # inversion height                   (m) wild guess
                 bulk_input['P']  = sdt['atmos_pressure'][minutes_today]    # surface pressure                   (mb)
-                bulk_input['zu'] = empty_data+sonic_z                         # height of anemometer               (m)
+                bulk_input['zu'] = empty_data+3.3                         # height of anemometer               (m)
                 bulk_input['zt'] = empty_data+2                           # height of thermometer              (m)
                 bulk_input['zq'] = empty_data+2                           # height of hygrometer               (m)      
                 bulk_input = bulk_input.resample(str(integration_window)+'min',label='left').apply(fl.take_average)
