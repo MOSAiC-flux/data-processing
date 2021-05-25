@@ -87,7 +87,7 @@ Basically, this is the push for August through mid September by Cox that impleme
 - changed base time to Unix epoch for level 1 and level 2
 - changed filename convention for level 1 to be consistent with level 2 
  
-## Revision 1.4 1/1/2020 mgallagher
+## Revision 1.4 1/1/2021 mgallagher
 - modified level1/level2 timing conventions for level1 files to match ARM
 - replaced multithreading with multriprocessing and fixed netcdf bugs
     - ... long story, but finally figured it out
@@ -100,10 +100,25 @@ Basically, this is the push for August through mid September by Cox that impleme
 - new get_data function that's threaded and can pull in level1 or level2 files
 - manual qc and flagging has been refactored to a separate file for documentation
 
-## Revision 1.5 1/8/2020 ccox
+## Revision 1.5 1/8/2021 ccox
 - remove the relative cal offset from tower temperatures (set to 0). Ola is calculating this and offsets will be entered later when he has them
 - heading median filter from 86400 s window -> 21600 s (24 hr -> 6 hr)
 - heading median filtering perfomed in unit vector space to accomodate rotations past 0/360 degrees
+
+## Revision 1.99 5/1/2021 mgallagher
+- ARM radiation included as a level2 datastream component
+- 10hz normalized fast file output for turbulence calculation verification, etc et. al. 
+- product reorg, now there is mosmet 1 min files and mosseb 10min files that include turbulent values
+- thus there are no more independent turbulence files
+- implementation of Ola's met calibration offsets
+- attribution for datastreams including ARM and Leeds, as well as data provenance
+
+## Revision 1.99 5/10/2021 mgallagher
+- implementation of QC flagging system
+- each variable now also includes flags for specific QC scenarios
+
+
+
 
 
 
