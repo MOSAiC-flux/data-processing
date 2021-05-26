@@ -61,7 +61,7 @@ from asfs_data_definitions import define_level1_slow, define_level1_fast
 
 from qc_level2_asfs import qc_stations
 
-from get_data_functions import get_flux_data
+from get_data_functions import get_flux_data, get_arm_radiation_data
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
 
@@ -89,9 +89,9 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-from multiprocessing.dummy import Process as P
-from multiprocessing.dummy import Queue   as Q
-nthreads = 1
+#from multiprocessing.dummy import Process as P
+#from multiprocessing.dummy import Queue   as Q
+#nthreads = 1
 
 import numpy  as np
 import pandas as pd
@@ -163,7 +163,7 @@ def main(): # the main data crunching program
     if args.path: data_dir = args.path
     else: data_dir = '/Projects/MOSAiC/'
     leica_dir = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
-    #leica_dir = f'{data_dir}/partner_data/AWI/polarstern/WXstation/'
+    arm_dir = '/Projects/MOSAiC_internal/partner_data/'
 
     if args.station: flux_stations = args.station.split(',')
     else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
@@ -270,6 +270,11 @@ def main(): # the main data crunching program
                                 datetime(2020,5,5,0),                  # BGC1LOG
                                 datetime(2020,5,7,11,37),              # BGC1
                                 datetime(2020,6,30,0,0),               # L2
+                                datetime(2020,8,21,16,30),             # Met City
+                                datetime(2020,9,4,10,18),              # Hinterland Pond
+                                datetime(2020,9,24,5,16),              # Ice Station 1
+                                datetime(2020,9,26,6,20),              # Ice Station 2
+                                datetime(2020,9,30,7,50)               # Ice Station 3
                                 ]
         
     init_asfs30['init_dist']  = [
@@ -278,7 +283,12 @@ def main(): # the main data crunching program
                                 sqrt((-17.9+K_offset)/K_offset)*206.9, # Ballooon Town
                                 nan,                                   # BGC1LOG
                                 sqrt((-9.7+K_offset)/K_offset)*192.7,  # BGC1
-                                nan                                    # L2
+                                nan,                                   # L2
+                                sqrt((-0.3+K_offset)/K_offset)*203.2,  # Met City
+                                sqrt((-0.9+K_offset)/K_offset)*205.4,  # Hinterland Pond
+                                nan,                                   # Ice Station 1
+                                nan,                                   # Ice Station 2
+                                nan                                    # Ice Station 3
                                 ]
         
     init_asfs30['init_depth'] = [
@@ -287,7 +297,12 @@ def main(): # the main data crunching program
                                 66,             # Balloon Town
                                 nan,            # BGC1LOG
                                 36.1,           # BGC1. last snow depth from asfs50 sr50 in this spot on 5/7...for continuity
-                                nan             # L2. Depth reported as difficult to quantify in melting state
+                                nan,            # L2. Depth reported as difficult to quantify in melting state
+                                0,              # Met City
+                                0,              # Hinterland Pond
+                                nan,            # Ice Station 1
+                                nan,            # Ice Station 2
+                                nan             # Ice Station 3
                                 ]    
         
     init_asfs30['init_loc']   = [
@@ -295,8 +310,13 @@ def main(): # the main data crunching program
                                 'LOG',          # LOG
                                 'Balloon_Town', # Ballooon Town
                                 'BGC1LOG',      # BGC1LOG
-                                'L2',           # back to L2!
-                                'L2'            # staying?
+                                'BGC1',         # BGC1
+                                'L2',           # L2
+                                'MC',           # Met City
+                                'HP',           # Hinterland Pond
+                                'IS1',          # Ice Station 1
+                                'IS2',          # Ice Station 2
+                                'IS3'           # Ice Station 3 
                                 ]       
 
 
@@ -326,7 +346,11 @@ def main(): # the main data crunching program
                                 datetime(2020,4,14,12,45),             # BGC1
                                 datetime(2020,6,24,0),                 # LOG
                                 datetime(2020,6,29,13,0),              # FYI - First Year Ice
-                                datetime(2020,7,10,12,20)              # FYI, same as before but moved a few feet and re-initialized
+                                datetime(2020,7,10,12,20),             # FYI, same as before but moved a few feet and re-initialized
+                                datetime(2020,8,21,15,0),              # ASFS50 Leg 5 position at CO Lead Site
+                                datetime(2020,9,19,9,46),              # Remote Sensing Site
+                                datetime(2020,9,26,6,20),              # Ice Station 2
+                                datetime(2020,9,30,7,50)               # Ice Station 3
                                 ]
         
     init_asfs50['init_dist']  = [
@@ -335,7 +359,11 @@ def main(): # the main data crunching program
                                 sqrt((-17.7+K_offset)/K_offset)*198.6, # BGC1
                                 nan,                                   # LOG
                                 nan,                                   # FYI - First Year Ice
-                                sqrt((nan+K_offset)/K_offset)*208.0    # FYI - First Year Ice 
+                                sqrt((0+K_offset)/K_offset)*208.0,     # FYI - First Year Ice 
+                                sqrt((-0.3+K_offset)/K_offset)*202.9,  # ASFS50 Leg 5 position at CO Lead Site
+                                nan,                                   # Remote Sensing Site
+                                nan,                                   # Ice Station 2
+                                nan                                    # Ice Station 3
                                 ]
                                 
         
@@ -345,7 +373,11 @@ def main(): # the main data crunching program
                                 32,                                    # BGC1
                                 nan,                                   # LOG
                                 nan,                                   # FYI - First Year Ice. Depth reported not quantifiable in melting state.
-                                5                                      # FYI - First Year Ice. "soft-to-hard interface was 5cm down"
+                                5,                                     # FYI - First Year Ice. "soft-to-hard interface was 5cm down"
+                                0,                                     # ASFS50 Leg 5 position at CO Lead Site 
+                                nan,                                   # Remote Sensing Site
+                                nan,                                   # Ice Station 2
+                                nan                                    # Ice Station 3
                                 ]    
         
     init_asfs50['init_loc']   = [
@@ -354,7 +386,11 @@ def main(): # the main data crunching program
                                 'BGC1',                                # BGC1
                                 'LOG',                                 # LOG  
                                 'FYI',                                 # FYI - First Year Ice
-                                'FYI'                                  # FYI - First Year Ice
+                                'FYI',                                 # FYI - First Year Ice
+                                'COlead',                              # ASFS50 Leg 5 position at CO Lead Site
+                                'RS',                                  # Remote Sensing Site 
+                                'IS2',                                 # Ice Station 2
+                                'IS3'                                  # Ice Station 3
                                 ]       
     
     # Set the index
@@ -688,12 +724,11 @@ def main(): # the main data crunching program
         sdt['zenith_apparent']  = fl.despike(sdt['zenith_apparent'],2,5,'no')
         sdt['azimuth']  = fl.despike(sdt['azimuth'],2,5,'no')
 
-        # IR20 ventilation bias. The IRT was heated with 1.5 W. If the ventilator fan was off, the analysis suggests that
-        # the heat was improperly diffused causing a positive bias in the instrument resulting in a bias calculated at
-        # 1.42 Wm2. the mechanism is unknown because the effect should be to mimic ir-loss as a backflow voltage as the
-        # heating escapes most effectively from the top.
-        sdt['up_long_hemisp'].loc[sdt['ir20_lwu_fan_Avg'] < 400] = sdt['up_long_hemisp']-1.42
-        sdt['down_long_hemisp'].loc[sdt['ir20_lwd_fan_Avg'] < 400] = sdt['down_long_hemisp']-1.42
+        # IR20 ventilation bias. The IRT was heated with 1.5 W. If the ventilator fan was off, lab & field analysis suggests that
+        # the heat was improperly diffused causing a positive bias in the instrument calculated at 1.42 Wm2 in the field and 
+        # 1.28 Wm2 in the lab. We will use the latter here.
+        sdt['up_long_hemisp'].loc[sdt['ir20_lwu_fan_Avg'] < 400] = sdt['up_long_hemisp']-1.28
+        sdt['down_long_hemisp'].loc[sdt['ir20_lwd_fan_Avg'] < 400] = sdt['down_long_hemisp']-1.28
 
         # IRT QC
         sdt['body_T_IRT']    .mask( (sdt['body_T_IRT']<irt_targ[0])    | (sdt['body_T_IRT']>irt_targ[1]) ,    inplace=True) # ppl
@@ -738,14 +773,18 @@ def main(): # the main data crunching program
                     sdt[param].iloc[lo:hi] = nan
 
         # Radiation
-        sdt = fl.qcrad(sdt,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0)
-        
+        sdt = fl.qcrad(sdt,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0)       
         # Tilt correction 
-        # commented out for now until the times for the correction are decided (need if statements onf dates here)  
-        # and incx/y_offset are determined for those dates. SPN1 can come later still. ccox 1/26/21 
+        # get the tilt data
         sdt['incx_offset'] = tilt_data[curr_station]['incx_offset'].reindex(index=sdt.index,method='pad').astype('float')
         sdt['incy_offset'] = tilt_data[curr_station]['incy_offset'].reindex(index=sdt.index,method='pad').astype('float')
-        diffuse_flux = -1 # we don't have an spn1 so we model the error. later we can use it if we have it
+        # get the diffuse flux from ARM. If ARM is missing or if the station is > 2 km away from the CO (i.e., an L-site), then parameterize it
+        arm_data, arm_version = get_arm_radiation_data(start_time, end_time, arm_dir, verbose, nthreads, pickle_dir)
+        if arm_data.empty or sdt.ship_distance.mean() > 2000:
+            diffuse_flux = -1 # we don't have an spn1 so we model the error. later we can use it if we have it
+        else:
+            diffuse_flux = arm_data.PSPdif.reindex(index=sdt.index)
+        # now run the correcting function      
         fl.tilt_corr(sdt,diffuse_flux) # modified sdt is returned
 
         # ###################################################################################################
@@ -958,13 +997,14 @@ def main(): # the main data crunching program
                                             sdt['heading'].reindex(fdt_10hz.index).interpolate(),\
                                             fdt_10hz['metek_y'], fdt_10hz['metek_x'], fdt_10hz['metek_z'])
 
-        fdt_10hz['metek_x'] = ct_v # x -> v on uSonic!
-        fdt_10hz['metek_y'] = ct_u # y -> u on uSonic!
+        # reassign corrected vals in meteorological convention
+        fdt_10hz['metek_x'] = ct_u 
+        fdt_10hz['metek_y'] = ct_v*-1
         fdt_10hz['metek_z'] = ct_w
 
         # start referring to xyz as uvw now
-        fdt_10hz.rename(columns={'metek_x':'metek_v'}, inplace=True)
-        fdt_10hz.rename(columns={'metek_y':'metek_u'}, inplace=True)
+        fdt_10hz.rename(columns={'metek_x':'metek_u'}, inplace=True)
+        fdt_10hz.rename(columns={'metek_y':'metek_v'}, inplace=True)
         fdt_10hz.rename(columns={'metek_z':'metek_w'}, inplace=True)
 
         # !!
@@ -979,8 +1019,9 @@ def main(): # the main data crunching program
 
         u_min = fdt_10hz['metek_u'].resample('1T',label='left').apply(fl.take_average)
         v_min = fdt_10hz['metek_v'].resample('1T',label='left').apply(fl.take_average)
+        w_min = fdt_10hz['metek_w'].resample('1T',label='left').apply(fl.take_average)
         ws = np.sqrt(u_min**2+v_min**2)
-        wd = np.mod((np.arctan2(-v_min,-u_min)*180/np.pi),360)
+        wd = np.mod((np.arctan2(-u_min,-v_min)*180/np.pi),360)
 
         # ~~~~~~~~~~~~~~~~~~ (5) Recalculate Stats ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # !!  Sorry... This is a little messed up. The original stats are read from the NOAA Services stats
@@ -989,8 +1030,11 @@ def main(): # the main data crunching program
         # reading the stats data in the first place?
         print('... recalculating NOAA Services style stats with corrected, rotated, and QCed values.')
 
-        sdt['wspd_vec_mean']     = ws
+        sdt['wspd_vec_mean'] = ws
         sdt['wdir_vec_mean'] = wd
+        sdt['wspd_u_mean']   = u_min
+        sdt['wspd_v_mean']   = v_min
+        sdt['wspd_w_mean']   = w_min
         sdt['temp_variance_metek']  = fdt_10hz['metek_T'].resample('1T',label='left').var()
         sdt['acoustic_temp']           = fdt_10hz['metek_T'].resample('1T',label='left').mean()
 

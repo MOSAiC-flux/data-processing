@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['1.99', '5/1/2021', 'mgallagher']
+    cv = ['1.999', '5/26/2021', 'ccox']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -33,7 +33,7 @@ def define_global_atts(file_type):
         'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
         'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
         'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
-        'system'           :'11 m Flux Tower',
+        'system'           :'Met City',
         'references'       :'', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
@@ -765,7 +765,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     middle_location_string ='second level on met city tower'
     top_location_string    ='third level on met city tower'
     mast_location_string   ='top of radio mast at met city'
-    arm_location_string    ='top of radio mast at met city'
+    arm_location_string    ='Met City'
 
     # platform
     tower_platform     = "11-m Met Tower"
@@ -1207,7 +1207,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : flux_funding,})
 
-    lev2_atts['subsurface_heat_flux_A']  .update({    'long_name'                              :'conductive flux from plate A',
+    lev2_atts['subsurface_heat_flux_A']  .update({    'long_name'                              :'conductive flux from plate A, defined positive upward',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Hukseflux HFP01',
                                                       'methods'                                :'Sensitivity 63.00/1000 [mV/(W/m2)]',
@@ -1218,7 +1218,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : flux_funding,})
 
-    lev2_atts['subsurface_heat_flux_B']  .update({    'long_name'                              :'conductive flux from plate B',
+    lev2_atts['subsurface_heat_flux_B']  .update({    'long_name'                              :'conductive flux from plate B, defined positive upward',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Hukseflux HFP01',
                                                       'methods'                                :'Sensitivity 63.91/1000 [mV/(W/m2)]',
@@ -1512,9 +1512,9 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'funding_sources'                        : flux_funding,})
 
     lev2_atts['wspd_u_mean_2m']          .update({    'long_name'                              :'Metek u-component',
-                                                      'cf_name'                                :'northward_wind',
+                                                      'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'u defined positive north in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
@@ -1523,9 +1523,9 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'funding_sources'                        : flux_funding,})
 
     lev2_atts['wspd_u_mean_6m']          .update({    'long_name'                              :'Metek u-component',
-                                                      'cf_name'                                :'northward_wind',
+                                                      'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'u defined positive north in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
@@ -1534,9 +1534,9 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'funding_sources'                        : flux_funding,})
 
     lev2_atts['wspd_u_mean_10m']         .update({    'long_name'                              :'Metek u-component',
-                                                      'cf_name'                                :'northward_wind',
+                                                      'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'u defined positive north in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
@@ -1545,22 +1545,20 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'funding_sources'                        : flux_funding,})
 
     lev2_atts['wspd_u_mean_mast']        .update({    'long_name'                              :'Metek u-component',
-                                                      'cf_name'                                :'northward_wind',
+                                                      'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'u defined positive north in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
- 
-
 
     lev2_atts['wspd_v_mean_2m']          .update({    'long_name'                              :'Metek v-component',
-                                                      'cf_name'                                :'westward_wind',
+                                                      'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'v defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
@@ -1569,9 +1567,9 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'funding_sources'                        : flux_funding,})
 
     lev2_atts['wspd_v_mean_6m']          .update({    'long_name'                              :'Metek v-component',
-                                                      'cf_name'                                :'westward_wind',
+                                                      'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'v defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
@@ -1580,9 +1578,9 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'funding_sources'                        : flux_funding,})
 
     lev2_atts['wspd_v_mean_10m']         .update({    'long_name'                              :'Metek v-component',
-                                                      'cf_name'                                :'westward_wind',
+                                                      'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'v defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
@@ -1591,9 +1589,9 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'funding_sources'                        : flux_funding,})
 
     lev2_atts['wspd_v_mean_mast']        .update({    'long_name'                              :'Metek v-component',
-                                                      'cf_name'                                :'westward_wind',
+                                                      'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'v defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1606,7 +1604,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_mean_2m']          .update({    'long_name'                              :'Metek w-component',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
@@ -1617,7 +1615,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_mean_6m']          .update({    'long_name'                              :'Metek w-component',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 :'6 m',
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
@@ -1628,7 +1626,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_mean_10m']         .update({    'long_name'                              :'Metek w-component',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
@@ -1639,7 +1637,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_mean_mast']        .update({    'long_name'                              :'Metek w-component',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1696,7 +1694,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_u_std_2m']           .update({    'long_name'                              :'u metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'u defined positive north in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
@@ -1707,7 +1705,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_v_std_2m']           .update({    'long_name'                              :'v metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'w defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
@@ -1718,7 +1716,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_std_2m']           .update({    'long_name'                              :'w metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
@@ -1740,7 +1738,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_u_std_6m']           .update({    'long_name'                              :'u metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'u defined positive north in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
@@ -1751,7 +1749,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_v_std_6m']           .update({    'long_name'                              :'v metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'v defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
@@ -1762,7 +1760,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_std_6m']           .update({    'long_name'                              :'w metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
@@ -1784,7 +1782,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_u_std_10m']          .update({    'long_name'                              :'u metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'u defined positive north in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
@@ -1795,7 +1793,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_v_std_10m']          .update({    'long_name'                              :'v metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'v defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
@@ -1806,7 +1804,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_std_10m']          .update({    'long_name'                              :'w metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
@@ -1828,7 +1826,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_u_std_mast']         .update({    'long_name'                              :'u metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'u defined positive west-to-east',
                                                       'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1840,7 +1838,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_v_std_mast']         .update({    'long_name'                              :'v metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'v defined positive east in right-hand coordinate system',
+                                                      'methods'                                :'v defined positive south-to-north',
                                                       'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1852,7 +1850,7 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     lev2_atts['wspd_w_std_mast']         .update({    'long_name'                              :'w metek obs standard deviation',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'w defined positive up in right-hand coordinate system',
+                                                      'methods'                                :'w defined positive up',
                                                       'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -2322,7 +2320,7 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['Hl_Webb']           .update({ 'long_name'          :'Webb density correction for the latent heat flux',
+    turb_atts['Hl_Webb']           .update({ 'long_name'          :'Latent heat flux with Webb density correction applied',
                                              'cf_name'            :'upward_latent_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
@@ -2344,7 +2342,7 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
        
-    turb_atts['CO2_flux_Webb']     .update({ 'long_name'          :'Webb density correction for the co2 mass flux',
+    turb_atts['CO2_flux_Webb']     .update({ 'long_name'          :'co2 mass flux with Webb density correction applied',
                                              'cf_name'            :'',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
@@ -4654,7 +4652,7 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
     
-    turb_atts['bulk_Hl_Webb_10m']  .update({ 'long_name'          :'lWebb density correction for the latent heat flux',
+    turb_atts['bulk_Hl_Webb_10m']  .update({ 'long_name'          :'Latent heat flux with Webb density correction applied',
                                              'cf_name'            :'',
                                              'instrument'         :'various',
                                              'methods'            :'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm, Webb et al. (1980) https://doi.org/10.1002/qj.49710644707',

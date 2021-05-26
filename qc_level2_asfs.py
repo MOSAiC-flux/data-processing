@@ -95,8 +95,9 @@ def qc_stations(curr_station, station_data):
         station_data['subsurface_heat_flux_A'] .loc[datetime(2020,3,5,18,23):datetime(2020,3,5,18,32)] = nan # probably when chris turned it back on?
         station_data['subsurface_heat_flux_B'] .loc[datetime(2020,3,5,18,23):datetime(2020,3,5,18,32)] = nan # probably when chris turned it back on?
 
-        # Fix the flux plates that were insalled upside down
+        # Fix the flux plates that were installed upside down
         station_data['subsurface_heat_flux_A'] = station_data['subsurface_heat_flux_A'] * -1
+        station_data['subsurface_heat_flux_B'].loc[datetime(2020,4,1,0,0):] = station_data['subsurface_heat_flux_B'].loc[datetime(2020,4,1,0,0):] * -1
 
         # A fan on the LWD failed during installation and Chris failed to notice :( It appeared to stay
         # clear until clearing skies midday 10/8. It was fixed again on Nov 6.  I'm manually screening
@@ -292,6 +293,7 @@ def qc_stations(curr_station, station_data):
 
         # Fix the flux plates that were insalled upside down
         station_data['subsurface_heat_flux_B'] = station_data['subsurface_heat_flux_B'] * -1
+        station_data['subsurface_heat_flux_A'].loc[datetime(2020,4,1,0,0):] = station_data['subsurface_heat_flux_A'].loc[datetime(2020,4,1,0,0):] * -1
 
         # Removing data from the flux plates prior to being buried in October and April
         station_data['subsurface_heat_flux_A'] .loc[datetime(2020,2,3,12,0):datetime(2020,2,5,12,0)] = nan # I think when L3 got flipped the plates were exposed??

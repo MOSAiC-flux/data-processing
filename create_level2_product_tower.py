@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-   
-from profilehooks import profile #debugging stuff
+#from profilehooks import profile #debugging stuff
  
 from tower_data_definitions import code_version
 code_version = code_version()
@@ -71,9 +71,9 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
-# nthreads = 1
+#from multiprocessing.dummy import Process as P
+#from multiprocessing.dummy import Queue   as Q
+#nthreads = 1
  
 import numpy  as np
 import pandas as pd
@@ -153,8 +153,8 @@ def main(): # the main data crunching program
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                  # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product/test/'        # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product/test/'        # where does level2 data go
+    level2_dir = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
     leica_dir = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
     arm_dir = '/Projects/MOSAiC_internal/partner_data/'
 
@@ -1258,16 +1258,18 @@ def main(): # the main data crunching program
                                                         fast_data_10hz[inst][inst+'_y'], # y -> v on USA-1!
                                                         fast_data_10hz[inst][inst+'_z'])
 
-                # reassign corrected vals
-                fast_data_10hz[inst][inst+'_y'] = ct_u
-                fast_data_10hz[inst][inst+'_x'] = ct_v
+                # reassign corrected vals in meteorological convention
+                fast_data_10hz[inst][inst+'_y'] = ct_v*-1      # met v = postivie northward
+                fast_data_10hz[inst][inst+'_x'] = ct_u  # met u = positive eastward
                 fast_data_10hz[inst][inst+'_z'] = ct_w
 
-                # start referring to xyz as uvw now (maybe we should keep both?)
-                fast_data_10hz[inst].rename(columns={inst+'_y' : inst+'_u',
-                                                     inst+'_x' : inst+'_v',
+                # start referring to xyz as uvw now
+                fast_data_10hz[inst].rename(columns={inst+'_y' : inst+'_v',
+                                                     inst+'_x' : inst+'_u',
                                                      inst+'_z' : inst+'_w',
                                                      }, errors="raise", inplace=True) 
+    
+                
 
             # Now we recalculate the 1 min average wind direction and speed from the u and v velocities in meteorological  convention
             print("... calculating a corrected set of slow wind speed and direction.")
@@ -1277,7 +1279,7 @@ def main(): # the main data crunching program
                 u_min = fast_data_10hz[inst] [inst+'_u'].resample('1T',label='left').apply(fl.take_average)
                 v_min = fast_data_10hz[inst] [inst+'_v'].resample('1T',label='left').apply(fl.take_average)
                 ws = np.sqrt(u_min**2+v_min**2)
-                wd = np.mod((np.arctan2(-v_min,-u_min)*180/np.pi),360)
+                wd = np.mod((np.arctan2(-u_min,-v_min)*180/np.pi),360)
                 metek_ws[inst] = ws
                 metek_wd[inst] = wd
 
@@ -1619,7 +1621,7 @@ def main(): # the main data crunching program
                 turb_data_dict[win_len] = turb_data.copy()
                 
         verboseprint('... writing to level2 netcdf files and calcuating averages for day: {}'.format(today))
- 
+
         # for level2 we are only writing out 1minute+ files so we
         logger_1min = logger_today.resample('1T', label='left').apply(fl.take_average)
         try: l2_data = pd.concat([logger_1min, stats_data], axis=1)
@@ -1772,7 +1774,7 @@ def get_fast_data(date, data_dir):
 
     return df_dict
 
-@profile
+#@profile
 def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z, turb_vars=None):
 
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00

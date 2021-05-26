@@ -917,11 +917,11 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     uc_csp = cucx
     vc_csp = cvcx
 
-    Hs            = wT_csp*rho*cp                                              # sensible heat flux (W/m2) - Based on the sonic temperature!!!
-    Hl            = wq_csp*Le*rho                                              # latent heat flux (W/m2)
-    Hl_Webb       = Le*qsm*(1.61*wq_csp/rho_d+(1+1.61*sigma)*wT_csp/(temp+tdk)) # Webb (1980) eq. 24, right-side term
-    CO2_flux      = wc_csp                                                     # co2 mass flux (mg m^-2 s^-1)
-    CO2_flux_Webb = csm*(1.61*wq_csp/rho_d+(1+1.61*sigma)*wT_csp/(temp+tdk)) # Webb (1980) eq. 24, right-side term
+    Hs            = wT_csp*rho*cp                                                         # sensible heat flux (W/m2) - Based on the sonic temperature!!!
+    Hl            = wq_csp*Le*rho                                                         # latent heat flux (W/m2)
+    Hl_Webb       = Hl+(Le*qsm*(1.61*wq_csp/rho_d+(1+1.61*sigma)*wT_csp/(temp+tdk)))      # Webb (1980, eq. 24) corrected
+    CO2_flux      = wc_csp                                                                # co2 mass flux (mg m^-2 s^-1)
+    CO2_flux_Webb = CO2_flux + (csm*(1.61*wq_csp/rho_d+(1+1.61*sigma)*wT_csp/(temp+tdk))) # Webb (1980, eq. 24) corrected
     Tstar         = -wT_csp/np.abs(ustar) # the temperature scale
     
     
@@ -1825,7 +1825,7 @@ def cor_ice_A10(bulk_input):
 
     # Webb et al. correction following Fairall et al 1996 Eqs. 21 and 22
     wbar=1.61*(hlb/rhoa/Le)+(1+1.61*Q)*(hsb/rhoa/cpa)/ta
-    hl_webb=rhoa*Le*wbar*Q
+    hl_webb=hlb+(rhoa*Le*wbar*Q)
     
     # compute transfer coeffs relative to du @meas. ht
     Cd=tau/rhoa/du**2
@@ -1941,37 +1941,42 @@ def tilt_corr(df,diff):
     G_clr = a_coef*mu0**b_coef # clear-sky flux
     
     ###### (2) Get your diffuse, either by parameterizing or measurement passed as argument
-    if diff == -1: # if we did not observe diffuse
-        # (i) Calcualte Rayleigh Limit
-        #   Using STREAMER 3.1, arctic summer stdatm, no aerosols, and albedo scaled such that sza=70 is albedo = 0.8
-        diff_calc_891_noaerosol  = [131.94,131.54,130.29,128.21,125.32,121.65,117.23,112.09,106.27, 99.82, 92.77,85.14,76.96,68.21,58.83,48.63,37.13,22.99,0.8]
-        diff_calc_1010_noaerosol = [146.39,145.95,144.52,142.17,138.90,134.74,129.74,123.92,117.35,110.05,102.07,93.46,84.23,74.37,63.82,52.39,39.60,24.09,0.8]
-        RL = np.polyval(np.polyfit(np.cos(np.deg2rad(np.linspace(0,90,19))),diff_calc_1010_noaerosol,4),mu0)
-        RL[mu0 < 0] = 0
-        RL = pd.DataFrame(data=RL,columns=['RL'],index=df.index)
-        
-        # (ii) Define a variable, sky transmissivity
-        #   Only use data where the SZA < 88 degrees: when the sun is below this, no correction will be made
-        trans = G_t/G_clr
+    # First Parameterize
+    # (i) Calcualte Rayleigh Limit
+    #   Using STREAMER 3.1, arctic summer stdatm, no aerosols, and albedo scaled such that sza=70 is albedo = 0.8
+    diff_calc_891_noaerosol  = [131.94,131.54,130.29,128.21,125.32,121.65,117.23,112.09,106.27, 99.82, 92.77,85.14,76.96,68.21,58.83,48.63,37.13,22.99,0.8]
+    diff_calc_1010_noaerosol = [146.39,145.95,144.52,142.17,138.90,134.74,129.74,123.92,117.35,110.05,102.07,93.46,84.23,74.37,63.82,52.39,39.60,24.09,0.8]
+    RL = np.polyval(np.polyfit(np.cos(np.deg2rad(np.linspace(0,90,19))),diff_calc_1010_noaerosol,4),mu0)
+    RL[mu0 < 0] = 0
+    RL = pd.DataFrame(data=RL,columns=['RL'],index=df.index)
     
-        # (iii) Parameterize the diffuse fraction
-        #
-        # (a) define a variable, diffuse fraction
-        diff_fract = np.nan*G_t
-        #
-        # (b) identify the clear skies (very) loosely based on Long and Ackerman (2000) by thresholding sky transmissivity and time variance
-        smoothed_cre = (G_t-G_clr).interpolate(method='pad').rolling(11,min_periods=1,center=True).mean() 
-        ind_clr = (trans > 0.7) & (abs(smoothed_cre) < 100) | (G_t > G_clr)
-        diff_fract.loc[ind_clr] = RL['RL'].where(ind_clr)/G_t.where(ind_clr)
-        #
-        # (c) identify the cloudy skies and use a parameterization based on D-ICE
-        ind_cld = (ind_clr==False) & (~np.isnan(trans)) & (df['zenith_true'] < 89.9)
-        diff_fract.loc[ind_cld] = (0.94958*G_t.where(ind_cld) - 5.8128)/G_t.where(ind_cld)
-        
-        # (iv) estimate D
-        D = G_t*diff_fract # diffuse flux
-    else:
+    # (ii) Define a variable, sky transmissivity
+    #   Only use data where the SZA < 88 degrees: when the sun is below this, no correction will be made
+    trans = G_t/G_clr
+
+    # (iii) Parameterize the diffuse fraction
+    #
+    # (a) define a variable, diffuse fraction
+    diff_fract = np.nan*G_t
+    #
+    # (b) identify the clear skies (very) loosely based on Long and Ackerman (2000) by thresholding sky transmissivity and time variance
+    smoothed_cre = (G_t-G_clr).interpolate(method='pad').rolling(11,min_periods=1,center=True).mean() 
+    ind_clr = (trans > 0.7) & (abs(smoothed_cre) < 100) | (G_t > G_clr)
+    diff_fract.loc[ind_clr] = RL['RL'].where(ind_clr)/G_t.where(ind_clr)
+    #
+    # (c) identify the cloudy skies and use a parameterization based on D-ICE
+    ind_cld = (ind_clr==False) & (~np.isnan(trans)) & (df['zenith_true'] < 89.9)
+    diff_fract.loc[ind_cld] = (0.94958*G_t.where(ind_cld) - 5.8128)/G_t.where(ind_cld)
+
+    D_param =  G_t*diff_fract # diffuse flux
+
+    # Now, if a measurement is available use it and fill gaps with the parameterization
+    if isinstance(diff,pd.Series): # if we did not observe diffuse
         D = diff # formality. this is the observed diff
+        D = D_param.mask(D>-9000,D) # if there are any missing values, use the paramerterization    
+    else:       
+        # (iv) estimate D
+        D = D_param # diffuse flux
         
     ###### (3) from D, calculate N and D_t
     D_t = D # Diffuse at the tilted sensor. formality. We set tilted diffuse to measured (parameterized) diffuse because as Chuck says "diffuse is aptly named"

@@ -27,6 +27,10 @@ def qc_tower(tower_data):
     # #####################################################################################
     # manual flagging -> nans for specific periods
 
+    # Fix the flux plates that were insalled upside down
+    td['fp_A_Wm2'] = td['fp_A_Wm2'] * -1
+    td['fp_B_Wm2'] = td['fp_B_Wm2'] * -1
+
     # something went horribly wrong with the pressure sensor during the leg 3 newdle reboot  
     td['mast_P']         .loc[date(2020,3,13,0,0,0)    :date(2020,5,13,0,0,0)]    = nan 
     td['mast_RH']        .loc[date(2019,11,26,12,14,0) :date(2019,11,26,12,45,0)] = nan 

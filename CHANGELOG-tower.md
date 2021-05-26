@@ -117,7 +117,25 @@ Basically, this is the push for August through mid September by Cox that impleme
 - implementation of QC flagging system
 - each variable now also includes flags for specific QC scenarios
 
-
+## Revision 1.999 5/26/2020 ccox
+(some of this is asfs)
+- Webb correction recalculated to be flux with correction applied (rather than just the correction) and attributes updated accordingly
+- Fixed type in bulk_Hl_Webb_10m
+- Added “defined positive upwards” clarity to flux plate long_names. Tower & ASFS
+- Global attribute “11 m flux tower” to “Met City”
+- Added get_arm_radiation_data to create_level2_product_asfs.py 
+- When available PSPdif (PSPglobal*SPN1dif/SPN1tot) is used to correct SR30 SWD for tilt, else parametrized. Missing values from ARM replaced with param.
+- Flipped all tower flux plate data *-1 so it is defined as positive upward = positive ocean warms ice, as in autumn
+- Flipped ASFS30’s FPB beginning Apr 1.
+- Flipped ASFS50’s FPA beginning Apr 1.
+- Assigned location attribute for arm to be “Met City”
+- Updated the IR20 bias coefficient from 1.42 to 1.28
+- Updated attributes for tower/mast wind vectors to be met convention: U = west-to-east (eastward) and V = south-to-north (northward)
+- Added u,v,w min means to ASFS level 2 and attributes as above
+- Changed all u,v conventions to be meteorological, as above, for tower, mast, and asfs
+- Refined height reporting in ASFS attributes
+- Several typos were found in the tower and ASFS attributes and were corrected
+- Added metadata for SR50 initialization for Leg 5
 
 
 
