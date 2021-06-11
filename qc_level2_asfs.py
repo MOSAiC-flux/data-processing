@@ -80,7 +80,11 @@ def qc_stations(curr_station, station_data):
         station_data['temp']     .loc[datetime(2020,3,30,12,27)  :datetime(2020,3,31,2,52)]   = nan
         station_data['dew_point'] .loc[datetime(2020,3,30,12,27)  :datetime(2020,3,31,2,52)]   = nan
         station_data['temp']     .loc[datetime(2020,3,31,10,41)  :datetime(2020,3,31,15,0)]   = nan
-        station_data['dew_point'] .loc[datetime(2020,3,31,10,41)  :datetime(2020,3,31,15,0)]   = nan
+        station_data['dew_point'] .loc[datetime(2020,3,31,10,41)  :datetime(2020,3,31,15,0)]   = nan  
+        station_data['temp']     .loc[datetime(2020,5,5,9,9)    :datetime(2020,5,5,9,14)]    = nan
+        station_data['dew_point'] .loc[datetime(2020,5,5,9,9)     :datetime(2020,5,5,9,14)]   = nan
+        station_data['temp']     .loc[datetime(2020,5,5,14,43)    :datetime(2020,5,5,14,44)]    = nan
+        station_data['dew_point'] .loc[datetime(2020,5,5,14,43)     :datetime(2020,5,5,14,44)]   = nan
 
         station_data['rh'] .loc[datetime(2020,3,31,10,41):datetime(2020,3,31,15,0)] = nan
 
@@ -95,7 +99,7 @@ def qc_stations(curr_station, station_data):
         station_data['subsurface_heat_flux_A'] .loc[datetime(2020,3,5,18,23):datetime(2020,3,5,18,32)] = nan # probably when chris turned it back on?
         station_data['subsurface_heat_flux_B'] .loc[datetime(2020,3,5,18,23):datetime(2020,3,5,18,32)] = nan # probably when chris turned it back on?
 
-        # Fix the flux plates that were installed upside down
+        # Fix the flux plates that were insalled upside down
         station_data['subsurface_heat_flux_A'] = station_data['subsurface_heat_flux_A'] * -1
         station_data['subsurface_heat_flux_B'].loc[datetime(2020,4,1,0,0):] = station_data['subsurface_heat_flux_B'].loc[datetime(2020,4,1,0,0):] * -1
 
@@ -127,8 +131,15 @@ def qc_stations(curr_station, station_data):
         station_data['down_short_hemisp'] .loc[datetime(2020,4,26,1,7)   :datetime(2020,4,26,1,13)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,26,2,8)   :datetime(2020,4,26,2,12)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,26,9,18)  :datetime(2020,4,26,9,29)]  = nan
-        station_data['down_short_hemisp'] .loc[datetime(2020,4,27,9,25)  :datetime(2020,4,26,9,35)]  = nan
-
+        station_data['down_short_hemisp'] .loc[datetime(2020,4,27,9,25)  :datetime(2020,4,27,9,35)]  = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,5,10,21,20) :datetime(2020,5,10,21,26)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,5,10,22,17) :datetime(2020,5,10,22,28)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,22,18,13) :datetime(2020,6,22,18,20)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,30,22,6)  :datetime(2020,6,30,22,19)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,7,22,19,6)  :datetime(2020,7,22,19,19)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,7,22,19,59) :datetime(2020,7,22,20,9)]  = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,8,6,1,12)   :datetime(2020,8,6,2,8)]    = nan
+        
         # a couple others that snuck through
         station_data['down_short_hemisp'] .loc[datetime(2020,3,31,14,48):datetime(2020,3,31,14,50)] = nan 
         station_data['down_short_hemisp'] .loc[datetime(2020,4,7,12,36):datetime(2020,4,7,12,37)] = nan 
@@ -180,6 +191,10 @@ def qc_stations(curr_station, station_data):
         station_data['ship_bearing']    .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
         station_data['ice_alt']         .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
         station_data['heading'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
+                       
+        # acoustic temp
+        station_data['acoustic_temp'] .loc[datetime(2019,11,10,13,58) :datetime(2019,11,12,0,0)] = nan
+        station_data['acoustic_temp'] .loc[datetime(2020,3,31,23,7) :datetime(2020,3,31,23,8)] = nan
 
     elif 'asfs40' in curr_station:
 
@@ -266,10 +281,10 @@ def qc_stations(curr_station, station_data):
         station_data['dew_point']     .loc[datetime(2020,9,25,12,38) :datetime(2020,9,25,13,3)]  = nan
 
         # Temp weirdness at on/off
-        station_data['temp']         .loc[datetime(2020,1,22,1,28) :datetime(2020,1,23,0,15)]   = nan
-        station_data['dew_point']     .loc[datetime(2020,1,22,1,28) :datetime(2020,1,23,0,15)]   = nan
+        station_data['temp']         .loc[datetime(2020,1,22,21,28) :datetime(2020,1,23,0,15)]   = nan
+        station_data['dew_point']     .loc[datetime(2020,1,22,21,28) :datetime(2020,1,23,0,15)]   = nan
         station_data['temp']         .loc[datetime(2020,4,4,16,45) :datetime(2020,4,5,12,0)]    = nan
-        station_data['dew_point']     .loc[datetime(2020,4,5,12,0)  :datetime(2020,4,5,12,0)]    = nan
+        station_data['dew_point']     .loc[datetime(2020,4,4,16,45)  :datetime(2020,4,5,12,0)]    = nan
 
         # ??
         station_data['temp']         .loc[datetime(2019,12,6,12,23):datetime(2019,12,6,13,12)]  = nan
@@ -277,8 +292,8 @@ def qc_stations(curr_station, station_data):
         station_data['rh'] .loc[datetime(2019,12,6,12,23):datetime(2019,12,6,13,12)]  = nan
 
         # zeros that are isolated and fall through the auto-qc
-        station_data['temp']         .loc[datetime(2020,2,5,5,45)  :datetime(2020,2,5,6,0)]     = nan
-        station_data['dew_point']     .loc[datetime(2020,2,5,5,45)  :datetime(2020,2,5,6,0)]     = nan
+        station_data['temp']         .loc[datetime(2020,2,5,5,24)  :datetime(2020,2,5,6,0)]     = nan
+        station_data['dew_point']     .loc[datetime(2020,2,5,5,24)  :datetime(2020,2,5,6,0)]     = nan
         station_data['temp']         .loc[datetime(2020,4,4,10,48) :datetime(2020,4,4,18,0)]    = nan
         station_data['dew_point']     .loc[datetime(2020,4,4,10,48) :datetime(2020,4,4,18,0)]    = nan    
         station_data['body_T_IRT']           .loc[datetime(2020,4,4,9,36)  :datetime(2020,4,5,14,24)]   = nan
@@ -320,39 +335,38 @@ def qc_stations(curr_station, station_data):
         station_data['down_short_hemisp'] .loc[datetime(2020,4,22,12,33) :datetime(2020,4,22,12,35)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,22,22,10) :datetime(2020,4,22,22,15)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,22,23,3)  :datetime(2020,4,22,23,29)] = nan
-        station_data['up_short_hemisp'] .loc[datetime(2020,4,22,22,55) :datetime(2020,4,22,23,29)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,4,22,22,55) :datetime(2020,4,22,23,29)] = nan
 
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,8,22)  :datetime(2020,4,23,8,24)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,8,56)  :datetime(2020,4,23,8,58)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,10,13) :datetime(2020,4,23,10,15)] = nan
-        station_data['down_short_hemisp'] .loc[datetime(2020,4,23,10,13) :datetime(2020,4,23,10,14)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,10,23) :datetime(2020,4,23,10,31)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,10,35) :datetime(2020,4,23,10,37)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,11,57) :datetime(2020,4,23,12,1)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,12,33) :datetime(2020,4,23,12,35)] = nan 
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,22,12) :datetime(2020,4,23,22,17)] = nan
-        station_data['down_short_hemisp'] .loc[datetime(2020,4,23,22,47) :datetime(2020,4,23,23,7)]  = nan 
-        station_data['up_short_hemisp'] .loc[datetime(2020,4,23,22,47) :datetime(2020,4,23,23,7)]  = nan 
+        station_data['down_short_hemisp'] .loc[datetime(2020,4,23,22,47) :datetime(2020,4,23,23,8)]  = nan 
+        station_data['up_short_hemisp']   .loc[datetime(2020,4,23,22,47) :datetime(2020,4,23,23,7)]  = nan 
         station_data['down_short_hemisp'] .loc[datetime(2020,4,23,23,21) :datetime(2020,4,23,23,28)] = nan 
-        station_data['up_short_hemisp'] .loc[datetime(2020,4,23,23,21) :datetime(2020,4,23,23,28)] = nan 
+        station_data['up_short_hemisp']   .loc[datetime(2020,4,23,23,21) :datetime(2020,4,23,23,28)] = nan 
 
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,8,24)  :datetime(2020,4,24,8,26)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,8,58)  :datetime(2020,4,24,9,1)]   = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,10,15) :datetime(2020,4,24,10,18)] = nan
-        station_data['down_short_hemisp'] .loc[datetime(2020,4,24,10,25) :datetime(2020,4,24,10,37)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,4,24,10,24) :datetime(2020,4,24,10,37)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,11,57) :datetime(2020,4,24,11,59)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,12,33) :datetime(2020,4,24,12,34)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,22,13) :datetime(2020,4,24,22,17)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,22,59) :datetime(2020,4,24,23,9)]  = nan
-        station_data['up_short_hemisp'] .loc[datetime(2020,4,24,22,59) :datetime(2020,4,24,23,9)]  = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,4,24,22,59) :datetime(2020,4,24,23,9)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,24,23,22) :datetime(2020,4,24,23,25)] = nan
-        station_data['up_short_hemisp'] .loc[datetime(2020,4,24,23,21) :datetime(2020,4,24,23,30)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,4,24,23,21) :datetime(2020,4,24,23,30)] = nan
 
         station_data['down_short_hemisp'] .loc[datetime(2020,4,25,22,11) :datetime(2020,4,25,22,14)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,25,23,2)  :datetime(2020,4,25,23,14)] = nan
-        station_data['up_short_hemisp'] .loc[datetime(2020,4,25,22,59) :datetime(2020,4,25,23,14)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,4,25,22,59) :datetime(2020,4,25,23,14)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,25,23,19) :datetime(2020,4,25,23,23)] = nan
-        station_data['up_short_hemisp'] .loc[datetime(2020,4,25,23,19) :datetime(2020,4,25,23,23)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,4,25,23,19) :datetime(2020,4,25,23,23)] = nan
 
         station_data['down_short_hemisp'] .loc[datetime(2020,4,26,8,29)  :datetime(2020,4,26,8,31)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,26,9,4)   :datetime(2020,4,26,9,7)]   = nan
@@ -364,6 +378,7 @@ def qc_stations(curr_station, station_data):
         station_data['down_short_hemisp'] .loc[datetime(2020,4,27,9,12)  :datetime(2020,4,27,9,15)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,27,10,29) :datetime(2020,4,27,10,41)] = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,4,27,12,2)  :datetime(2020,4,27,12,5)]  = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,4,30,10,31) :datetime(2020,4,30,10,39)] = nan
 
         station_data['down_short_hemisp'] .loc[datetime(2020,5,2,8,40)   :datetime(2020,5,2,8,41)]   = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,5,2,9,18)   :datetime(2020,5,2,9,21)]   = nan
@@ -371,7 +386,30 @@ def qc_stations(curr_station, station_data):
         station_data['down_short_hemisp'] .loc[datetime(2020,5,2,11,55)  :datetime(2020,5,2,11,57)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,5,2,12,33)  :datetime(2020,5,2,12,35)]  = nan
         station_data['down_short_hemisp'] .loc[datetime(2020,5,2,22,19)  :datetime(2020,5,2,22,24)]  = nan
-
+        
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,21,8,57)  :datetime(2020,6,21,9,2)]   = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,21,14,3)  :datetime(2020,6,21,14,45)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,21,14,48) :datetime(2020,6,21,15,35)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,22,8,47)  :datetime(2020,6,22,8,52)]  = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,22,12,52) :datetime(2020,6,22,12,56)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,22,12,58) :datetime(2020,6,22,13,4)]  = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,22,13,7)  :datetime(2020,6,22,13,8)]  = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,22,13,43) :datetime(2020,6,22,14,17)] = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,6,22,14,24) :datetime(2020,6,22,15,36)] = nan
+        
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,21,8,57)  :datetime(2020,6,21,9,2)]   = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,21,14,3)  :datetime(2020,6,21,14,45)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,21,14,48) :datetime(2020,6,21,15,35)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,22,8,47)  :datetime(2020,6,22,8,52)]  = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,22,12,52) :datetime(2020,6,22,12,56)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,22,12,58) :datetime(2020,6,22,13,4)]  = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,22,13,7)  :datetime(2020,6,22,13,8)]  = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,22,13,43) :datetime(2020,6,22,14,17)] = nan
+        station_data['up_short_hemisp']   .loc[datetime(2020,6,22,14,24) :datetime(2020,6,22,15,36)] = nan
+        
+        station_data['down_short_hemisp'] .loc[datetime(2020,7,1,2,55)   :datetime(2020,7,1,3,3)]    = nan
+        station_data['down_short_hemisp'] .loc[datetime(2020,8,6,1,12)   :datetime(2020,8,6,2,3)]    = nan
+           
         # and a couple other hiccups
         station_data['down_short_hemisp'] .loc[datetime(2020,4,4,9,36)   :datetime(2020,4,5,14,24)]  = nan
         station_data['up_short_hemisp'] .loc[datetime(2020,4,4,9,36)   :datetime(2020,4,5,14,24)]  = nan
@@ -383,6 +421,11 @@ def qc_stations(curr_station, station_data):
         station_data['ship_bearing']    .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
         station_data['ice_alt']         .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
         station_data['heading'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan
+        
+        # acoustic temp
+        station_data['acoustic_temp'] .loc[datetime(2020,1,22,21,56) :datetime(2020,1,22,22,50)] = nan
+        station_data['acoustic_temp'] .loc[datetime(2020,8,5,9,54)   :datetime(2020,8,5,9,55)]   = nan
+
 
     return station_data;
 

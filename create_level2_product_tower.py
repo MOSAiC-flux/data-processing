@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-   
-#from profilehooks import profile #debugging stuff
- 
 from tower_data_definitions import code_version
 code_version = code_version()
 
@@ -39,11 +37,12 @@ code_version = code_version()
 #
 # ######################################################################################################
 
+# import our code modules
 from tower_data_definitions import define_global_atts, define_level2_variables, define_turb_variables
 from tower_data_definitions import define_10hz_variables, define_level1_slow, define_level1_fast
-
-from qc_level2_tower import qc_tower
-from get_data_functions import get_flux_data, get_arm_radiation_data
+from qc_level2_tower        import qc_tower
+from get_data_functions     import get_flux_data, get_arm_radiation_data
+from site_metadata          import metcity_metadata
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
 
@@ -64,16 +63,18 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 32  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 12 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-#from multiprocessing.dummy import Process as P
-#from multiprocessing.dummy import Queue   as Q
-#nthreads = 1
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+# nthreads = 1
+ 
+from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd
@@ -152,9 +153,9 @@ def main(): # the main data crunching program
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
-    level1_dir = data_dir+'/tower/1_level_ingest/'                  # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
+    level1_dir = data_dir+'/tower/1_level_ingest/'              # where does level1 data live?
+    level2_dir = data_dir+'/tower/2_level_product/test/'        # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/test/'        # where does level2 data go
     leica_dir = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
     arm_dir = '/Projects/MOSAiC_internal/partner_data/'
 
@@ -183,6 +184,9 @@ def main(): # the main data crunching program
     print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
     printline()
 
+    global mc_site_metadata
+    mc_site_metadata = metcity_metadata()
+
     # thresholds! limits that can warn you about bad data!
     # these aren't used yet but should be used to warn about spurious data
     irt_targ          = (-80  ,5)    # IRT surface brightness temperature limits [Celsius]
@@ -200,7 +204,8 @@ def main(): # the main data crunching program
     incl_range        = (-90  ,90)   # The inclinometer on the metek
     twr_alt_lim       = (-3.5,10.2)  # tower +/- 3sigma on the altitude data
     mst_alt_lim       = (-4.5,7.6)   # mast +/- 3sigma on the altitude data
-    cd_lim            = (-2.3e-3,1.5e-2)  # drag coefficinet sanity check. really it can't be < 0, but a small negative threshold allows for empiracally defined (from EC) 3 sigma noise distributed about 0.
+    cd_lim            = (-2.3e-3,1.5e-2)  # drag coefficinet sanity check. really it can't be < 0, but a small negative
+                                          # threshold allows for empiracally defined (from EC) 3 sigma noise distributed about 0
     
     # various calibration params
     # ##########################
@@ -214,53 +219,7 @@ def main(): # the main data crunching program
     #ir20      = (50,400)  # LWD & LWU [Wm^2] (FYI, 315 W/m2 ~ 0 C)
     #ir20_case = (-80,10)  # IR20 instrument case temperature [C]
 
-    # from Ola's original code... these are events that are important/relevant to data processing
-    # here they are stored as a list of tuple pairs, (date, event_description)...
-    # ... I would like to do this in a more clever way but haven't had the time to get to it
-    
-    # instrument heights after tower raised
-    date_twr_raised = datetime(2019, 10, 24, 5, 30)
-    
-    events = []
-    events.append( (datetime(2019,10,22,1,0),   'move WXT away from lowest boom') )
-    events.append( (datetime(2019,10,22,5,0),   'replace 2m sonic w spare (S/N 7255)') )
-    events.append( (datetime(2019,10,24,1,0),   'rotate & calibrate GPS') )
-    events.append( (datetime(2019,10,25,1,25),  'put in second flux plate - under Apogee') )
-    events.append( (date_twr_raised,            'raised met tower; sonics N oriented to GPS N') )
-    events.append( (datetime(2019,10,26,1,0),   'move WXT to mast') )
-    events.append( (datetime(2019,10,26,8,0),   '30-m mast raised') )
-    events.append( (datetime(2019,10,29,0,47),  'adjusted orientation of 2-m sonic slightly clockwise') )
-    events.append( (datetime(2019,11,1,5,20),   'lowered Licor from 6 m to 2 m') )
-
-    # these are important instrument parameters stored as a list of tuple pairs, (datetime, param_value)
-    # #################################################################################################
-    # tower instrument heights before tower was raised-estimates, i.e. while laying down... why keep?
-    sonic_height_on_ground      = [(1.15,1.25,1.3)] # height from tower base plate (m)
-    vasaila_T_height_on_ground  = [(1.05,1.2,1.25)] # height from tower base plate (m)
-    vasaila_Rh_height_on_ground = [(1.05,1.2,1.25)] # height from tower base plate (m)
-    vasaila_P_height_on_ground  = [(1.2)]
-    GPS_height_on_ground        = [(1)]
-    SR50_height_on_ground       = [(1)]
-
-
-    sonic_height_raised      = [(2.66, 5.68, 10.54)] # height from tower base plate (m)
-    vasaila_T_height_raised  = [(1.65, 5.44, 9.34)]  # height from tower base plate (m)
-    vasaila_Rh_height_raised = [(1.45, 5.24, 9.14)]  # height from tower base plate (m)
-    vasaila_P_height_raised  = [(1.65)]
-    GPS_height_raised        = [(2)]
-    SR50_height_raised       = [(2)]
-    
-    # mast gps height for ice alt calc
-    twr_GPS_height_raised_precise = [(1.985)] # estimate of height above ice surface on 10/25 = 2.3 cm snow + 179 cm SR50 + 9 cm SR50 sensor len + 1.25 cm pipe rad + 6.9 cm gps height
-    mst_GPS_height_raised_precise = [(0.799)] # 27 cm snow depth + 46 cm Hardigg box height + 6.9 cm gps height. the
-                                              # snow depth is and average of the two nearby (~5 m) obs, 17 and 37
-                                              # cm; it was in a transiton into a drifted ridge
-    
-    # Some other dates
-    fpA_bury_date = datetime(2019,10,24,5,48) 
-    fpB_bury_date = datetime(2019,10,25,1,35) 
-
-    # these are the parameters associated with these dates, also stored in a list of tuples
+    # Ola says he's guessed at some of these... ... ...
     mast_params = {}
     mast_dates  = []
     mast_params['mast_hdg'] = []
@@ -276,7 +235,6 @@ def main(): # the main data crunching program
     mast_dates.append(datetime(2019,12,8,14,00))  # 6) raising mast to 23 m, a pause?
     mast_dates.append(datetime(2019,12,9,7,30))   # 7) reached 23 m
 
-    # Ola says he's guessed at some of these... ... ...
     mast_params['mast_hdg'].append(nan)
     mast_params['mast_hdg'].append(40.7)
     mast_params['mast_hdg'].append(40.7)
@@ -300,53 +258,10 @@ def main(): # the main data crunching program
     mast_params['mast_sonic_heights'].append(3.78)
     mast_params['mast_sonic_heights'].append(18.4)
     mast_params['mast_sonic_heights'].append(23.28)
-
-    # sanity check, prolly not necessary
-    if len(mast_params['mast_hdg']) != len(mast_dates)\
-    or len(mast_params['gps_hdg_mast_setup']) != len(mast_dates)\
-    or len(mast_params['mast_sonic_heights']) != len(mast_dates):
-        fatal('something went awry... this is not good')
-
-    # WXT transitions, dates/times, & heights:
-    wxt_dates   = []
-    wxt_heights = []
-    wxt_dates.append(datetime(2019,10,19,6,0))   # 1) WXT on 2-m level on unraised tower
-    wxt_dates.append(datetime(2019,10,22,1,0))   # 2) WXT put more upright near 8m level on unraised tower
-    wxt_dates.append(datetime(2019,10,24,5,30))  # 3) tower raised WXT at 2 m height
-    wxt_dates.append(datetime(2019,10,26,1,0))   # 4) WXT moved to mast tripod
-    wxt_dates.append(datetime(2019,10,26,7,0))   # 5) mast raised to 30 m
-    wxt_dates.append(datetime(2019,11,18,12,50)) # 6) mast collapses (WXT still running)
-    wxt_dates.append(datetime(2019,11,19,10,30)) # 7) WXT removed and brought onboard
-    wxt_dates.append(datetime(2019,11,28,5,0))   # 8) WXT mounted on 2-mtower boom
-    wxt_dates.append(datetime(2019,12,8,14,0))   # 9) WXT moved to mast and raised to 23 m
-    wxt_dates.append(datetime(2019,12,9,7,30))   # 10) reached 23m
-    wxt_heights.append(1.1)
-    wxt_heights.append(1.5)
-    wxt_heights.append(2)
-    wxt_heights.append(3.2)
-    wxt_heights.append(30.76)
-    wxt_heights.append(0)
-    wxt_heights.append(nan)
-    wxt_heights.append(2)
-    wxt_heights.append(17.5)
-    wxt_heights.append(22.37)
-    if len(wxt_heights) != len(wxt_dates):
-        fatal('something went awry... this is bad')
-
-    # licor transitions, dates/times, & heights:
-    licor_dates   = []
-    licor_heights = []
-    licor_dates.append(datetime(2019,10,19,6,0))  # 1) on unraised tower at 6-m height
-    licor_dates.append(datetime(2019,10,24,5,30)) # 2) on raised tower at 6-m height
-    licor_dates.append(datetime(2019,11,1,5,0))   # 3) moved to two meters... cause it doesn't stay clean
-    licor_heights.append(1.5)
-    licor_heights.append(5.18)
-    licor_heights.append(2.35)
-
-    if len(licor_heights) != len(licor_dates):
-        fatal('something went awry... this is ... not the best')
-
-
+ 
+    # Some other dates
+    fpA_bury_date = datetime(2019,10,24,5,48) 
+    fpB_bury_date = datetime(2019,10,25,1,35) 
 
     # mast dates and headings w.r.t. tower from available notes and a deductions, assumptions
     # mast_hdg_dates map to mast_hdg_vals 1 to 1        
@@ -451,6 +366,14 @@ def main(): # the main data crunching program
     # this. For missing data we forward pad to reduce edge effects but report nan in the padded space.
     print('\n... band-pass median filter applied to heading... unthreaded and a bit slow.... must be done') 
 
+    # mast gps height for ice alt calc
+    twr_GPS_height_raised_precise = [(1.985)] # estimate of height above ice surface on 10/25:
+                                              # = 2.3 cm snow + 179 cm SR50 + 9 cm SR50 sensor len + 1.25 cm pipe rad + 6.9 cm gps height
+
+    mst_GPS_height_raised_precise = [(0.799)] # 27 cm snow depth + 46 cm Hardigg box height + 6.9 cm gps height. the
+                                              # snow depth is and average of the two nearby (~5 m) obs, 17 and 37
+                                              # cm; it was in a transiton into a drifted ridge
+
     # The heading is in degree x 100 so convert. also we will do something simlar for the altitude
     slow_data['heading_tower'] = slow_data['gps_hdg']/100.0  # convert to degrees
     slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise     
@@ -542,13 +465,9 @@ def main(): # the main data crunching program
             day_q.put(False); return
         else: verboseprint(f"... processing all data for {today_str}!!! ")
 
-        # has the licor moved today?
-        licor_index = 0 
-        for li, ld in enumerate(licor_dates) :
-            if today >= ld:
-                licor_index = li
-                break
-        licor_z = licor_heights[licor_index]
+        # have the instruments moved today?
+        licor_z = mc_site_metadata.get_instr_metadata('licor', 'height', today, True)[0]
+        wxt_z   = mc_site_metadata.get_instr_metadata('sensor_P_mast', 'height', today, True)[0]
 
         # has the mast moved today?
         mast_index = 0 
@@ -561,15 +480,8 @@ def main(): # the main data crunching program
         gps_hdg_mast_setup = mast_params['gps_hdg_mast_setup'][mast_index]
         mast_sonic_height  = mast_params['mast_sonic_heights'][mast_index]
 
-        # has the wxt moved today?
-        wxt_index = 0 
-        for wi, wd in enumerate( wxt_dates) : 
-            if today >= wd:
-                wxt_index = wi-1
-                break
-        wxt_z = wxt_heights[wxt_index]
-
         verboseprint(f"... automated, thresholds/despiking/etc, data QC {mast_index}")
+
         # missing met data comes as '0' instead of NaN... good stuff
         zeros_list = ['vaisala_RH_2m','vaisala_RH_6m','vaisala_RH_10m', 'mast_RH','vaisala_P_2m','mast_P','sr50_dist']
         for param in zeros_list: # make the zeros nans
@@ -761,7 +673,8 @@ def main(): # the main data crunching program
         bm1 = -0.58002206*1e4; b0 = 0.13914993*1e1; b1 = -0.48640239*1e-1; b2 = 0.41764768*1e-4;     
         b3  = -0.14452093*1e-7;     b4  = 6.5459673
 
-        t2m = sd['vaisala_T_2m']; t6m = sd['vaisala_T_6m']; t10m = sd['vaisala_T_10m']; tmm = sd['mast_T']
+        t2m  = sd['vaisala_T_2m']+K_offset;  t6m = sd['vaisala_T_6m']+K_offset; 
+        t10m = sd['vaisala_T_10m']+K_offset; tmm = sd['mast_T']+K_offset
 
         o2m = t2m - ( c0*t2m**0 + c1*t2m**1 + c2*t2m**2 + c3*t2m**3 )
         Pws2 = np.exp( ( bm1*o2m**-1 + b0*o2m**0 + b1*o2m**1 + b2*o2m**2 + b3*o2m**3 ) + b4*np.log(o2m) ) # [Pa]
@@ -794,6 +707,8 @@ def main(): # the main data crunching program
 
         sd['mast_RH']             .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
             sd['mast_RH']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.86
+
+        dm(locals(),0)
 
         # sr50 dist QC then in m & snow depth in cm, both corrected for
         # temperature, snwdpth_meas is height in cm on oct 27 2019
@@ -938,25 +853,25 @@ def main(): # the main data crunching program
         # there's probably a more clever way to do this
         slow_data.rename(inplace=True, columns =\
                          {
-                             'vaisala_T_2m'       : 'temp_2m'           ,
-                             'vaisala_T_6m'       : 'temp_6m'           ,
-                             'vaisala_T_10m'      : 'temp_10m'          ,
-                             'mast_T'             : 'temp_mast'         ,
-                             'vaisala_Td_2m'      : 'dew_point_2m'       ,
-                             'vaisala_Td_6m'      : 'dew_point_6m'       ,
-                             'vaisala_Td_10m'     : 'dew_point_10m'      ,
-                             'vaisala_RH_2m'      : 'rh_2m'   ,
-                             'vaisala_RH_6m'      : 'rh_6m'   ,
-                             'vaisala_RH_10m'     : 'rh_10m'  ,
-                             'mast_RH'            : 'rh_mast' ,
-                             'vaisala_P_2m'       : 'atmos_pressure_2m'       ,
-                             'mast_P'             : 'atmos_pressure_mast'             ,    
-                             'apogee_body_T'      : 'body_T_IRT'                ,       
-                             'apogee_targ_T'      : 'brightness_temp_surface'             ,    
-                             'fp_A_mV'            : 'flux_plate_A_mv'           ,  
-                             'fp_B_mV'            : 'flux_plate_B_mv'           ,  
-                             'fp_A_Wm2'           : 'subsurface_heat_flux_A'          , 
-                             'fp_B_Wm2'           : 'subsurface_heat_flux_B'          ,
+                             'vaisala_T_2m'    : 'temp_2m',
+                             'vaisala_T_6m'    : 'temp_6m',
+                             'vaisala_T_10m'   : 'temp_10m',
+                             'mast_T'          : 'temp_mast',
+                             'vaisala_Td_2m'   : 'dew_point_2m',
+                             'vaisala_Td_6m'   : 'dew_point_6m',
+                             'vaisala_Td_10m'  : 'dew_point_10m',
+                             'vaisala_RH_2m'   : 'rh_2m',
+                             'vaisala_RH_6m'   : 'rh_6m',
+                             'vaisala_RH_10m'  : 'rh_10m',
+                             'mast_RH'         : 'rh_mast',
+                             'vaisala_P_2m'    : 'atmos_pressure_2m',
+                             'mast_P'          : 'atmos_pressure_mast',    
+                             'apogee_body_T'   : 'body_T_IRT',       
+                             'apogee_targ_T'   : 'brightness_temp_surface',    
+                             'fp_A_mV'         : 'flux_plate_A_mv',  
+                             'fp_B_mV'         : 'flux_plate_B_mv',  
+                             'fp_A_Wm2'        : 'subsurface_heat_flux_A', 
+                             'fp_B_Wm2'        : 'subsurface_heat_flux_B',
         }, errors="raise")
 
         # ###################################################################################################
@@ -979,20 +894,16 @@ def main(): # the main data crunching program
 
         # Nothing bad happened...  this probably doesn't really need to be a loop
         # get the right instrument heights for this day... goes in the day loop
-        if today < date_twr_raised:
-            sonic_z  = sonic_height_on_ground
-            Tvais_z  = vasaila_T_height_on_ground
-            RHvais_z = vasaila_Rh_height_on_ground
-            GPS_z    = vasaila_P_height_on_ground
-            Pvais_z  = GPS_height_on_ground
-            SR50_z   = SR50_height_on_ground
-        else:
-            sonic_z  = sonic_height_raised
-            Tvais_z  = vasaila_T_height_raised
-            RHvais_z = vasaila_Rh_height_raised
-            GPS_z    = vasaila_P_height_raised
-            Pvais_z  = GPS_height_raised
-            SR50_z   = SR50_height_raised
+        height_list = ['2m', '6m', '10m']
+        sonic_z = []; Tvais_z = []; RHvais_z = []
+        for ih, h in enumerate(height_list):
+            sonic_z.append  (mc_site_metadata.get_instr_metadata('sonic_'+h,     'height', today, True)[0])
+            Tvais_z.append  (mc_site_metadata.get_instr_metadata('sensor_T_'+h,  'height', today, True)[0])
+            RHvais_z.append (mc_site_metadata.get_instr_metadata('sensor_Rh_'+h, 'height', today, True)[0]) 
+
+        GPS_z    = mc_site_metadata.get_instr_metadata('GPS',         'height', today, True)[0]
+        Pvais_z  = mc_site_metadata.get_instr_metadata('sensor_P_2m', 'height', today, True)[0]
+        SR50_z   = mc_site_metadata.get_instr_metadata('SR50', 'height', today, True)[0]
 
         # raw data... ~20 Hz data, 5Mb files each hour...
         #                              !! Important !!
@@ -1198,6 +1109,7 @@ def main(): # the main data crunching program
                     th = logger_today['heading_tower'].reindex(index=fast_data_10hz[inst].index).interpolate()  
                     
                     # if prior to raise day, we need to use some manual offsets from the tower heading
+                    date_twr_raised = datetime(2019, 10, 24, 5, 30)  # instrument heights after tower raised
                     if today < ( date_twr_raised - timedelta(hours=date_twr_raised.hour, minutes=date_twr_raised.minute, seconds=date_twr_raised.second) ) + timedelta(days=1):
                         th2 = twr_manual_hdg_data[inst]['heading_tower'].reindex(index=th.index,method='pad').interpolate()
                         th = th.fillna(value=th2)
@@ -1413,10 +1325,12 @@ def main(): # the main data crunching program
                         licor_data = licor_10hz.loc[flux_time_today[time_i]-t_win:flux_time_today[time_i+1]+t_win].copy()  
                         if licor_z > 8: 
                             use_this_licor = suffix_list[2]
-                        if licor_z > 4 and licor_z < 8: 
+                        elif licor_z > 4 and licor_z < 8: 
                             use_this_licor = suffix_list[1] 
-                        if licor_z < 4: 
+                        elif licor_z < 4:
                             use_this_licor = suffix_list[0]
+                        else: # nan
+                            use_this_licor = '_2m'
 
                         # we need pressure and temperature these are just for calculation of constants so the
                         # 2m data should be close enough...the original code assumed a nominal pressure and
@@ -1438,7 +1352,7 @@ def main(): # the main data crunching program
                                             inst+'_w' : 'w',
                                             inst+'_T' : 'T',
                                             }, errors="raise", inplace=True)
-                        if 'mast' not in inst: sz = sonic_z[0][i_inst]
+                        if 'mast' not in inst: sz = sonic_z[i_inst]
                         else: sz = mast_sonic_height
                         data = fl.grachev_fluxcapacitor(sz, calc_data, licor_data, 'mmol/m3', 'mmol/m3',
                                                         Pr_time_i, T_time_i, Q_time_i, verbose=v)
@@ -1628,11 +1542,10 @@ def main(): # the main data crunching program
         except UnboundLocalError: l2_data = logger_1min # there was no fast data, rare
 
         # write out all the hard work that we've done
-        write_level2_10hz(fast_data_10hz.copy(), licor_10hz, today,  sonic_z, mast_sonic_height, licor_z)
-        write_level2_netcdf(l2_data.copy(), today, "1min", sonic_z, mast_sonic_height, licor_z)
+        write_level2_10hz(fast_data_10hz.copy(), licor_10hz, today)
+        write_level2_netcdf(l2_data.copy(), today, "1min")
         for win_len in range(0,len(integ_time_step)):
-            write_level2_netcdf(l2_data.copy(), today, f"{integ_time_step[win_len]}min",sonic_z, mast_sonic_height, \
-                                licor_z, turb_data_dict[win_len].copy())
+            write_level2_netcdf(l2_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data_dict[win_len].copy())
 
         print(f"... finally finished with day {today_str}, returning worker process to parent")
         day_q.put(True); return
@@ -1775,12 +1688,12 @@ def get_fast_data(date, data_dir):
     return df_dict
 
 #@profile
-def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z, turb_vars=None):
+def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
 
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
  
-    l2_atts, l2_cols = define_level2_variables(sonic_z, mast_height, licor_z)
+    l2_atts, l2_cols = define_level2_variables()
 
     short_name = "met"
     if timestep != "1min":
@@ -1794,7 +1707,7 @@ def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z, 
     netcdf_lev2 = Dataset(lev2_name, 'w', zlib=True)
 
     if isinstance(turb_vars, type(pd.DataFrame())):
-        turb_atts, turb_cols = define_turb_variables(sonic_z, mast_height, licor_z)
+        turb_atts, turb_cols = define_turb_variables()
     else: turb_atts = {}
 
     write_data_list = []
@@ -1866,6 +1779,14 @@ def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z, 
     for att_name, att_val in global_atts.items(): # write global attributes 
         netcdf_lev2.setncattr(att_name, att_val)
         
+
+    try: 
+        event_today, event_time = mc_site_metadata.get_site_metadata('events', date)
+        if event_today is not None:
+            netcdf_lev2.setncattr('event', f'{event_time.strftime("%Y-%m-%d %H:%M:%S")} -- {event_today}')
+    except Exception as e:
+        do_nothing = True#print(e)
+
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev2.createDimension('time', None)
 
@@ -1977,7 +1898,31 @@ def write_level2_netcdf(l2_data, date, timestep, sonic_z, mast_height, licor_z, 
         netcdf_lev2[var_name].setncattr('max_val', max_val)
         netcdf_lev2[var_name].setncattr('min_val', min_val)
         netcdf_lev2[var_name].setncattr('avg_val', avg_val)
+
         
+        try:
+            height_today, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date)
+
+            if height_today is None: 
+                curr_height, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date, True)
+                height_start = curr_height
+                height_end   = curr_height
+            else:
+                prev_height, prev_time = mc_site_metadata.get_var_metadata(var_name, 'height', date, True)
+                height_start = prev_height
+                height_end   = height_today
+
+            netcdf_lev2[var_name].setncattr('height_start', height_start)
+            netcdf_lev2[var_name].setncattr('height_end', height_end)
+            netcdf_lev2[var_name].setncattr('height_change_time', height_change_time.strftime('%Y-%m-%d %H:%M:%S'))
+
+            event_today, event_time = mc_site_metadata.get_var_metadata(var_name, 'events', date)
+            if event_today is not None:
+                netcdf_lev2[var_name].setncattr('event', f'{event_time.strftime("%Y-%m-%d %H:%M:%S")} -- {event_today}')
+
+        except Exception as e:
+            do_nothing = True # no height values found in mc_site_metadata for variable
+
         # add a percent_missing attribute to give a first look at "data quality"
         netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
 
@@ -2193,7 +2138,7 @@ def write_turb_netcdf(turb_data, date, sonic_z, mast_height, licor_z, win_len):
     netcdf_turb.close() # close and write files for today
     return True
 
-def write_level2_10hz(sonic_data, licor_data, date, sonic_z, mast_height, licor_z):
+def write_level2_10hz(sonic_data, licor_data, date):
 
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
@@ -2209,7 +2154,7 @@ def write_level2_10hz(sonic_data, licor_data, date, sonic_z, mast_height, licor_
     inst_dict['metek_mast'] = ('mast'  , sonic_data['metek_mast'])
     inst_dict['licor']      = ('licor' , licor_data)
 
-    fast_atts, fast_vars = define_10hz_variables(sonic_z, mast_height, licor_z) 
+    fast_atts, fast_vars = define_10hz_variables()
 
     print("... writing level1 fast data {}".format(date))
 

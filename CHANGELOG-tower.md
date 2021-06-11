@@ -105,7 +105,7 @@ Basically, this is the push for August through mid September by Cox that impleme
 - heading median filter from 86400 s window -> 21600 s (24 hr -> 6 hr)
 - heading median filtering perfomed in unit vector space to accomodate rotations past 0/360 degrees
 
-## Revision 1.99 5/1/2021 mgallagher
+## Revision 1.9 5/1/2021 mgallagher
 - ARM radiation included as a level2 datastream component
 - 10hz normalized fast file output for turbulence calculation verification, etc et. al. 
 - product reorg, now there is mosmet 1 min files and mosseb 10min files that include turbulent values
@@ -137,6 +137,11 @@ Basically, this is the push for August through mid September by Cox that impleme
 - Several typos were found in the tower and ASFS attributes and were corrected
 - Added metadata for SR50 initialization for Leg 5
 
+## Revision 1.9999 6/1/2020 mgallagher
+- implement "metadata" module for keeping track of site/instrument information that isn't pure data
+- this module could be used for anything that we want to write as netcdf attributes for different days 
+- heights are now written to netcdf files using information from this module 
+- other misc minor fixes associated with these changes
 
 
 

@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['1.999', '5/26/2021', 'ccox']
+    cv = ['1.9999', '6/1/2021', 'mgallagher']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -750,16 +750,11 @@ def define_level1_fast():
 
     return lev1_fast_atts, list(lev1_fast_atts.keys()).copy() 
  
-def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                               :
-
+def define_level2_variables():
+ 
     # these are the installation heights recorded.
     # it is a nominal height because the surface height changed in time
-    sonic_2m          = str(sonic_z[0][0])
-    sonic_6m          = str(sonic_z[0][1])
-    sonic_10m         = str(sonic_z[0][2])
-    mast_sonic_height = str(mast_sonic_height)
-    licor_z           = str(licor_z)  
-  
+   
     licor_location         ='first level on met city tower'
     bottom_location_string ='first level on met city tower'
     middle_location_string ='second level on met city tower'
@@ -787,31 +782,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
     flux_funding      = "National Science Foundation OPP1724551 and NOAA Physical Science Laborator"
     mast_funding      = "UK Natural Environment Research Council"
 
-    #'platform'                                                                                : tower_platform,
-    #'data_provenance'                                                                         : flux_slow_provenance,
-    #'measurement_source'                                                                      : flux_source,
-    #'funding_sources'                                                                         : flux_funding,
-
-    #'platform'                                                                                : tower_platform,
-    #'data_provenance'                                                                         : flux_fast_provenance,
-    #'measurement_source'                                                                      : flux_source,
-    #'funding_sources'                                                                         : flux_funding,
-
-    #'platform'                                                                                : mast_platform,
-    #'data_provenance'                                                                         : flux_slow_provenance,
-    #'measurement_source'                                                                      : mast_source,
-    #'funding_sources'                                                                         : mast_funding,
-
-    #'platform'                                                                                : mast_platform,
-    #'data_provenance'                                                                         : flux_fast_provenance,
-    #'measurement_source'                                                                      : mast_source,
-    #'funding_sources'                                                                         : mast_funding,
-
-    #'platform'                                                                                : radiation_platform,
-    #'data_provenance'                                                                         : radiation_provenance,
-    #'measurement_source'                                                                      : radiation_source,
-    #'funding_sources'                                                                         : radiation_funding,
- 
     lev2_atts = OrderedDict()
 
     lev2_atts['lat_tower']               = {'units'                                            :'degrees_north'}
@@ -1031,7 +1001,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Campbell Scientific SR50A',
                                                       'methods'                                :'unheated, temperature correction applied',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1042,7 +1011,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_temperature',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1053,7 +1021,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_temperature',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1064,7 +1031,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_emperature',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1075,7 +1041,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_temperature',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1087,7 +1052,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'dew_point_temperature',
                                                       'instrument'                             :'Vaisala PTU300',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1098,7 +1062,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'dew_point_temperature',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1109,7 +1072,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'dew_point_temperature',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1120,7 +1082,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'dew_point_temperatre',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1132,7 +1093,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'relative_humidity',
                                                       'instrument'                             :'Vaisala PTU300',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1143,7 +1103,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'relative humidity',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1154,7 +1113,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'relative humidity',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1165,7 +1123,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'relative humidity',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1177,7 +1134,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_pressure',
                                                       'instrument'                             :'Vaisala PTU 300',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : mast_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1188,7 +1144,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_pressure',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'digitally polled from instument',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1244,7 +1199,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'humidity_mixing_ratio',
                                                       'instrument'                             :'Vaisala PTU300',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1255,7 +1209,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'humidity_mixing_ratio',
                                                       'instrument'                             :'Vaisala PTU300',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1266,7 +1219,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'humidity_mixing_ratio',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1277,7 +1229,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'humidity_mixing_ratio',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1289,7 +1240,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala PTU300',
                                                       'methods'                                :'calculated from measured variables following Hyland & Wexler (1983)',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1300,7 +1250,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'calculated from measured variables following Hyland & Wexler (1983)',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1311,7 +1260,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'calculated from measured variables following Hyland & Wexler (1983)',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1322,7 +1270,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'calculated from measured variables following Hyland & Wexler (1983)',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1334,7 +1281,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala PTU300',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1345,7 +1291,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1356,7 +1301,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala HMT330',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1367,7 +1311,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1379,7 +1322,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1390,7 +1332,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1401,7 +1342,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1412,7 +1352,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1425,7 +1364,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1436,7 +1374,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1447,7 +1384,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1458,7 +1394,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1471,7 +1406,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Licor 7500-DS',
                                                       'methods'                                :'open-path optical gas analyzer, source data reported at 20 Hz',
-                                                      'height'                                 : licor_z,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1482,7 +1416,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Licor 7500-DS',
                                                       'methods'                                :'open-path optical gas analyzer, source data reported at 20 Hz',
-                                                      'height'                                 : licor_z,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1493,7 +1426,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_temperature',
                                                       'instrument'                             :'Licor 7500-DS',
                                                       'methods'                                :'thermistor positioned along strut of open-path optical gas analyzer, source data reported at 20 Hz',
-                                                      'height'                                 : licor_z,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1504,7 +1436,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'air_pressure',
                                                       'instrument'                             :'Licor 7500-DS',
                                                       'methods'                                :'pressure sensor located in electronics box. source data reported at 20 Hz',
-                                                      'height'                                 : licor_z,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1515,7 +1446,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1526,7 +1456,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1537,7 +1466,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1548,7 +1476,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'eastward_wind',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1559,7 +1486,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1570,7 +1496,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1581,7 +1506,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1592,7 +1516,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'northward_wind',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1605,7 +1528,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'w defined positive up',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1627,7 +1549,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'w defined positive up',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1638,7 +1559,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'w defined positive up',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1650,7 +1570,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1661,7 +1580,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1672,7 +1590,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1683,7 +1600,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1695,7 +1611,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1706,7 +1621,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1717,7 +1631,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'w defined positive up',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1728,7 +1641,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : sonic_2m,
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1739,7 +1651,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1750,7 +1661,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1761,7 +1671,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'w defined positive up',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1772,7 +1681,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : sonic_6m,
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1783,7 +1691,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1794,7 +1701,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1805,7 +1711,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'w defined positive up',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1816,7 +1721,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : sonic_10m,
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1827,7 +1731,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'u defined positive west-to-east',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1839,7 +1742,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'v defined positive south-to-north',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1851,7 +1753,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'w defined positive up',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1863,7 +1764,6 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
                                                       'methods'                                :'this is an acoustic temperature, not a thermodynamic temperature',
-                                                      'height'                                 : mast_sonic_height,
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1940,15 +1840,10 @@ def define_level2_variables(sonic_z, mast_sonic_height, licor_z)                
 
     return lev2_atts, list(lev2_atts.keys()).copy() 
 
-def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                                 :
+def define_turb_variables(): 
 
     # these are the installation heights recorded.
     # it is a nominal height because the surface height changed in time
-    sonic_2m = str(sonic_z[0][0])
-    sonic_6m = str(sonic_z[0][1])
-    sonic_10m = str(sonic_z[0][2])
-    mast_sonic_height = str(mast_sonic_height)
-    licor_z = str(licor_z)
     
     licor_location ='first level on flux tower'
     bottom_location_string ='first level on flux tower'
@@ -2269,7 +2164,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2280,7 +2174,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2291,7 +2184,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2302,7 +2194,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek USA-1 sonic anemometer',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2313,7 +2204,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'upward_latent_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2324,7 +2214,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'upward_latent_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2335,7 +2224,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2346,7 +2234,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
                                              'cf_name'            :'',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
                                              'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2355,7 +2242,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
         
     turb_atts['Cd_2m']             .update({ 'long_name'          :'Drag coefficient based on the momentum flux, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2364,7 +2250,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Cd_6m']             .update({ 'long_name'          :'Drag coefficient based on the momentum flux, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2373,7 +2258,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Cd_10m']            .update({ 'long_name'          :'Drag coefficient based on the momentum flux, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2382,7 +2266,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Cd_mast']           .update({ 'long_name'          :'Drag coefficient based on the momentum flux, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2391,7 +2274,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['ustar_2m']          .update({ 'long_name'          :'friction velocity (based only on the downstream, uw, stress components)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2400,7 +2282,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['ustar_6m']          .update({ 'long_name'          :'friction velocity (based only on the downstream, uw, stress components)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2409,7 +2290,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['ustar_10m']         .update({ 'long_name'          :'friction velocity (based only on the downstream, uw, stress components)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2418,7 +2298,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['ustar_mast']        .update({ 'long_name'          :'friction velocity (based only on the downstream, uw, stress components)',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2427,7 +2306,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Tstar_2m']          .update({ 'long_name'          :'temperature scale',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2436,7 +2314,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Tstar_6m']          .update({ 'long_name'          :'temperature scale',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2445,7 +2322,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Tstar_10m']         .update({ 'long_name'          :'temperature scale',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2454,7 +2330,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Tstar_mast']        .update({ 'long_name'          :'temperature scale',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2463,7 +2338,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['zeta_level_n_2m']   .update({ 'long_name'          :'Monin-Obukhov stability parameter, z/L, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2472,7 +2346,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['zeta_level_n_6m']   .update({ 'long_name'          :'Monin-Obukhov stability parameter, z/L, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2481,7 +2354,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['zeta_level_n_10m']  .update({ 'long_name'          :'Monin-Obukhov stability parameter, z/L, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2490,7 +2362,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['zeta_level_n_mast'] .update({ 'long_name'          :'Monin-Obukhov stability parameter, z/L, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2499,7 +2370,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wu_csp_2m']         .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2508,7 +2378,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wu_csp_6m']         .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2517,7 +2386,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wu_csp_10m']        .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2526,7 +2394,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wu_csp_mast']       .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2535,7 +2402,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wv_csp_2m']         .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2544,7 +2410,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wv_csp_6m']         .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2553,7 +2418,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wv_csp_10m']        .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2562,7 +2426,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wv_csp_mast']       .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2571,7 +2434,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uv_csp_2m']         .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2580,7 +2442,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uv_csp_6m']         .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2589,7 +2450,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uv_csp_10m']        .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2598,7 +2458,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uv_csp_mast']       .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2607,7 +2466,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wT_csp_2m']         .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2616,7 +2474,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wT_csp_6m']         .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2625,7 +2482,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wT_csp_10m']        .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2634,7 +2490,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wT_csp_mast']       .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2643,7 +2498,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['wq_csp']            .update({ 'long_name'          :'wq-covariance, vertical flux of q',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2652,7 +2506,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['wc_csp']            .update({ 'long_name'          :'wc-covariance, vertical flux of co2',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2661,7 +2514,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uT_csp_2m']         .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2670,7 +2522,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uT_csp_6m']         .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2679,7 +2530,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uT_csp_10m']        .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2688,7 +2538,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['uT_csp_mast']       .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2697,7 +2546,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['uq_csp']            .update({ 'long_name'          :'uq-covariance, vertical flux of q',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2706,7 +2554,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['uc_csp']            .update({ 'long_name'          :'uc-covariance, vertical flux of co2',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2715,7 +2562,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['vT_csp_2m']         .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2724,7 +2570,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['vT_csp_6m']         .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2733,7 +2578,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['vT_csp_10m']        .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2742,7 +2586,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['vT_csp_mast']       .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2751,7 +2594,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['vq_csp']            .update({ 'long_name'          :'vq-covariance, vertical flux q',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2760,7 +2602,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['vc_csp']            .update({ 'long_name'          :'vc-covariance, vertical flux c',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2769,7 +2610,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_u_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2778,7 +2618,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_u_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2787,7 +2626,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_u_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2796,7 +2634,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_u_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2805,7 +2642,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_v_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2814,7 +2650,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_v_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2823,7 +2658,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_v_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2832,7 +2666,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_v_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2841,7 +2674,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_w_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2850,7 +2682,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_w_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2859,7 +2690,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_w_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2868,7 +2698,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_w_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2877,7 +2706,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_T_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2886,7 +2714,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_T_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2895,7 +2722,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_T_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2904,7 +2730,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_T_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2913,7 +2738,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_uT_2m']         .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2922,7 +2746,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_uT_6m']         .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2931,7 +2754,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_uT_10m']        .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2940,7 +2762,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['phi_uT_mast']       .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2949,7 +2770,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_u_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2958,7 +2778,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_u_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2967,7 +2786,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_u_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2976,7 +2794,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_u_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2985,7 +2802,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_v_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2994,7 +2810,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_v_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3003,7 +2818,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_v_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3012,7 +2826,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_v_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3021,7 +2834,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_w_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3030,7 +2842,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_w_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3039,7 +2850,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_w_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3048,7 +2858,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_w_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3057,7 +2866,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_2m']        .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3066,7 +2874,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_6m']        .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3075,7 +2882,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_10m']       .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3084,7 +2890,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['epsilon_mast']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3093,7 +2898,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_epsilon_2m']    .update({ 'long_name'          :'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3102,7 +2906,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_epsilon_6m']    .update({ 'long_name'          :'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3111,7 +2914,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_epsilon_10m']   .update({ 'long_name'          :'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3120,7 +2922,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_epsilon_mast']  .update({ 'long_name'          :'Monin-Obukhov universal function Phi_epsilon based on the median epsilon, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3129,7 +2930,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
    
     turb_atts['nSu_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3138,7 +2938,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSu_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3147,7 +2946,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSu_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3156,7 +2954,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSu_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3165,7 +2962,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['nSv_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3174,7 +2970,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSv_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3183,7 +2978,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSv_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3192,7 +2986,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSv_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3201,7 +2994,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['nSw_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3210,7 +3002,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSw_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3219,7 +3010,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSw_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3228,7 +3018,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSw_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3237,7 +3026,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSt_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3246,7 +3034,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSt_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3255,7 +3042,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSt_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3264,7 +3050,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSt_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3273,7 +3058,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['nSq']               .update({ 'long_name'          :'Median spectral slope in the inertial subrange of q',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3282,7 +3066,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['nSc']               .update({ 'long_name'          :'Median spectral slope in the inertial subrange of co2',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3291,7 +3074,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Nt_2m']             .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3300,7 +3082,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Nt_6m']             .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3309,7 +3090,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Nt_10m']            .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3318,7 +3098,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Nt_mast']           .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3327,7 +3106,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_Nt_2m']         .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from 2 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3336,7 +3114,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_Nt_6m']         .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from 6 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3345,7 +3122,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_Nt_10m']        .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from 10 m',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3354,7 +3130,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phi_Nt_mast']       .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from the mast',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3363,7 +3138,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phix_2m']           .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3372,7 +3146,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phix_6m']           .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3381,7 +3154,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phix_10m']          .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3390,7 +3162,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Phix_mast']         .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3399,7 +3170,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaU_2m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3408,7 +3178,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaU_6m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3417,7 +3186,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaU_10m']        .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3426,7 +3194,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaU_mast']       .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3435,7 +3202,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaV_2m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3444,7 +3210,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaV_6m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3453,7 +3218,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaV_10m']        .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3462,7 +3226,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaV_mast']       .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3471,7 +3234,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaT_2m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3480,7 +3242,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaT_6m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3489,7 +3250,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaT_10m']        .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3498,7 +3258,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['DeltaT_mast']       .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the sonic temperature (trend)',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3507,7 +3266,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Deltaq']            .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of q (trend)',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3516,7 +3274,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Deltac']            .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of co2 (trend)',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3525,7 +3282,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_u_2m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3534,7 +3290,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_u_6m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3543,7 +3298,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_u_10m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3552,7 +3306,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_u_mast']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3561,7 +3314,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_v_2m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3570,7 +3322,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_v_6m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3579,7 +3330,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_v_10m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3588,7 +3338,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_v_mast']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3597,7 +3346,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_w_2m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3606,7 +3354,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_w_6m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3615,7 +3362,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_w_10m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3624,7 +3370,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_w_mast']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3633,7 +3378,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_T_2m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3642,7 +3386,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_T_6m']         .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3651,7 +3394,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_T_10m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3660,7 +3402,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_T_mast']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3669,7 +3410,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Kurt_q']            .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3678,7 +3418,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Kurt_c']            .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3687,7 +3426,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uw_2m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3696,7 +3434,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uw_6m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3705,7 +3442,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uw_10m']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3714,7 +3450,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uw_mast']      .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3723,7 +3458,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_vw_2m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3732,7 +3466,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_vw_6m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3741,7 +3474,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_vw_10m']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3750,7 +3482,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_vw_mast']      .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3759,7 +3490,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_wT_2m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3768,7 +3498,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_wT_6m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3777,7 +3506,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_wT_10m']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3786,7 +3514,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_wT_mast']      .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3795,7 +3522,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Kurt_wq']           .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3804,7 +3530,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
         
     turb_atts['Kurt_wc']           .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3813,7 +3538,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uT_2m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3822,7 +3546,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uT_6m']        .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3831,7 +3554,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uT_10m']       .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3840,7 +3562,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Kurt_uT_mast']      .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3849,7 +3570,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Kurt_uq']           .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3858,7 +3578,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Kurt_uc']           .update({ 'long_name'          :'Kurtosis',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3867,7 +3586,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_u_2m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3876,7 +3594,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_u_6m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3885,7 +3602,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_u_10m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3894,7 +3610,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_u_mast']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3903,7 +3618,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_v_2m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3912,7 +3626,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_v_6m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3921,7 +3634,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_v_10m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3930,7 +3642,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_v_mast']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3939,7 +3650,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_w_2m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3948,7 +3658,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_w_6m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3957,7 +3666,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_w_10m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3966,7 +3674,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_w_mast']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -3975,7 +3682,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_T_2m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3984,7 +3690,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_T_6m']         .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -3993,7 +3698,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_T_10m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4002,7 +3706,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_T_mast']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4011,7 +3714,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_q']            .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4020,7 +3722,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Skew_c']            .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4029,7 +3730,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Skew_uw_2m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4038,7 +3738,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_uw_6m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4047,7 +3746,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_uw_10m']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4056,7 +3754,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_uw_mast']      .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4065,7 +3762,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_vw_2m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4074,7 +3770,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_vw_6m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4083,7 +3778,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_vw_10m']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4092,7 +3786,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_vw_mast']      .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4101,7 +3794,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_wT_2m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4110,7 +3802,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_wT_6m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4119,7 +3810,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_wT_10m']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4128,7 +3818,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_wT_mast']      .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4137,7 +3826,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Skew_wq']           .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4146,7 +3834,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['Skew_wc']           .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4155,7 +3842,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_uT_2m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4164,7 +3850,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_uT_6m']        .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4173,7 +3858,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_uT_10m']       .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4182,7 +3866,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['Skew_uT_mast']      .update({ 'long_name'          :'Skewness',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4200,7 +3883,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
  
     turb_atts['sus_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4209,7 +3891,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sus_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4218,7 +3899,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['sus_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4227,7 +3907,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sus_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4236,7 +3915,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
  
     turb_atts['svs_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4245,7 +3923,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['svs_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4254,7 +3931,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['svs_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4263,7 +3939,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['svs_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4272,7 +3947,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['sws_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4281,7 +3955,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sws_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4290,7 +3963,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['sws_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4299,7 +3971,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sws_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4308,7 +3979,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sTs_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4317,7 +3987,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sTs_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4326,7 +3995,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['sTs_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4335,7 +4003,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sTs_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4344,7 +4011,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['sqs']               .update({ 'long_name'          :'smoothed power spectral density (Welch) of q on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4353,7 +4019,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['scs']               .update({ 'long_name'          :'smoothed power spectral density (Welch) of co2 on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4362,7 +4027,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwus_2m']           .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4371,7 +4035,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwus_6m']           .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4380,7 +4043,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwus_10m']          .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4389,7 +4051,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwus_mast']         .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4398,7 +4059,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['cwvs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4407,7 +4067,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwvs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4416,7 +4075,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwvs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4425,7 +4083,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwvs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4434,7 +4091,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuvs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4443,7 +4099,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuvs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4452,7 +4107,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuvs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4461,7 +4115,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuvs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4470,7 +4123,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['cwTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4479,7 +4131,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4488,7 +4139,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4497,7 +4147,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4506,7 +4155,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['cuTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4515,7 +4163,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4524,7 +4171,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4533,7 +4179,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4542,7 +4187,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
 
     turb_atts['cvTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_2m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4551,7 +4195,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cvTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_6m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4560,7 +4203,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cvTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : sonic_10m,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4569,7 +4211,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cvTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : mast_sonic_height,
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4578,7 +4219,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwqs']              .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and q on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4587,7 +4227,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cuqs']              .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and q on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4596,7 +4235,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cvqs']              .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and q on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4605,7 +4243,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cwcs']              .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and co2 on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4614,7 +4251,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cucs']              .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and co2 on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4623,7 +4259,6 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
     
     turb_atts['cvcs']              .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and co2 on frequency, fs',
                                              'cf_name'            :'',
-                                             'height'             : licor_z,
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4874,13 +4509,7 @@ def define_turb_variables(sonic_z, mast_sonic_height, licor_z)                  
  
     return turb_atts, list(turb_atts.keys()).copy() 
 
-def define_10hz_variables(sonic_z, mast_sonic_height, licor_z):
-
-    sonic_2m          = str(sonic_z[0][0])
-    sonic_6m          = str(sonic_z[0][1])
-    sonic_10m         = str(sonic_z[0][2])
-    mast_sonic_height = str(mast_sonic_height)
-    licor_z           = str(licor_z)  
+def define_10hz_variables():
  
     licor_location         = 'first level on met city tower'
     bottom_location_string = 'first level on met city tower'
@@ -4940,241 +4569,201 @@ def define_10hz_variables(sonic_z, mast_sonic_height, licor_z):
     atts_10hz['metek_2m_u']           .update({ 'long_name'  : 'wind velocity in u',
                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
-                                                'height'     : sonic_2m,
                                                 'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_v']           .update({  'long_name'  : 'wind velocity in v',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_w']           .update({  'long_name'  : 'wind velocity in w',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_T']           .update({  'long_name'  : 'acoustic temperature',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_heatstatus']  .update({  'long_name'  : 'sensor diagnostics code',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_hspd']        .update({  'long_name'  : 'horizontal wind speed',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_ts']          .update({  'long_name'  : 'wind direction',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_incx']        .update({  'long_name'  : 'sensor inclinometer pitch angle',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_2m_incy']        .update({  'long_name'  : 'sensor inclinometer roll angle',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
-                                                 'height'     : sonic_2m,
                                                  'location'   : bottom_location_string,})
 
     atts_10hz['metek_6m_u']           .update({  'long_name'  : 'wind velocity in u',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_v']           .update({  'long_name'  : 'wind velocity in v',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_w']           .update({  'long_name'  : 'wind velocity in w',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_T']           .update({  'long_name'  : 'acoustic temperature',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_heatstatus']  .update({  'long_name'  : 'sensor diagnostics code',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_hspd']        .update({  'long_name'  : 'horizontal wind speed',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_ts']          .update({  'long_name'  : 'wind direction',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_incx']        .update({  'long_name'  : 'sensor inclinometer pitch angle',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_6m_incy']        .update({  'long_name'  : 'sensor inclinometer roll angle',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
-                                                 'height'     : sonic_6m,
                                                  'location'   : middle_location_string,})
 
     atts_10hz['metek_10m_u']          .update({  'long_name'  : 'wind velocity in u',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_v']          .update({  'long_name'  : 'wind velocity in v',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_w']          .update({  'long_name'  : 'wind velocity in w',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_T']          .update({  'long_name'  : 'acoustic temperature',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_heatstatus'] .update({  'long_name'  : 'sensor diagnostics code',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_hspd']       .update({  'long_name'  : 'horizontal wind speed',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_ts']         .update({  'long_name'  : 'wind direction',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_incx']       .update({  'long_name'  : 'sensor inclinometer pitch angle',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_10m_incy']       .update({  'long_name'  : 'sensor inclinometer roll angle',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
-                                                 'height'     : sonic_10m,
                                                  'location'   : top_location_string,})
 
     atts_10hz['metek_mast_u']         .update({  'long_name'  : 'wind velocity in u',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : mast_sonic_height,
                                                  'location'   : mast_location_string,})
 
     atts_10hz['metek_mast_v']         .update({  'long_name'  : 'wind velocity in v',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : mast_sonic_height,
                                                  'location'   : mast_location_string,})
 
     atts_10hz['metek_mast_w']         .update({  'long_name'  : 'wind velocity in w',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : mast_sonic_height,
                                                  'location'   : mast_location_string,})
 
     atts_10hz['metek_mast_T']         .update({  'long_name'  : 'acoustic temperature',
                                                  'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : mast_sonic_height,
                                                  'location'   : mast_location_string,})
 
     atts_10hz['licor_diag']           .update({  'long_name'  : 'bit-packed diagnostic integer',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol; bits 0-3 = signal strength; bit 5 = PLL; bit 6 = detector temp; bit 7 = chopper temp',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     atts_10hz['licor_co2']            .update({  'long_name'  : 'CO2 gas density',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     atts_10hz['licor_h2o']            .update({  'long_name'  : 'water vapor density',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
     
     atts_10hz['licor_pr']             .update({  'long_name'  : 'air pressure',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     atts_10hz['licor_T']              .update({  'long_name'  : 'temperature at strut',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     atts_10hz['licor_co2_str']        .update({  'long_name'  : 'CO2 signal strength diagnostic',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; raw co2 reference signal relative to expected value',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     atts_10hz['licor_pll']            .update({  'long_name'  : 'phase lock loop',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = optical filter wheel rotating at correct rate',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     atts_10hz['licor_dt']             .update({  'long_name'  : 'detector temperature',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     atts_10hz['licor_ct']             .update({  'long_name'  : 'chopper temperature',
                                                  'instrument' : 'Licor 7500-DS',
                                                  'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
-                                                 'height'     : licor_z,
                                                  'location'   : licor_location,})
 
     return atts_10hz, list(atts_10hz.keys()).copy() 
