@@ -30,9 +30,9 @@ def define_global_atts(file_type):
         'institution'      :'CIRES, University of Colorado and NOAA Physical Sciences Laboratory',
         'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
         'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
-        'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
-        'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
-        'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
+        'project'          :'Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
+        'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program; Department of Energy Office of Science Atmospheric Radiation Measurement Program;',
+        'source'           :'Observations made during the Multidisciplinary drifting Observatory for the Study of Arctic Climate (MOSAiC 2019-2020) expedition PS-122',
         'system'           :'Met City',
         'references'       :'', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
@@ -48,10 +48,11 @@ def define_global_atts(file_type):
         global_atts['quality_control']  = 'This "Level 1" product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
     elif file_type == "level2":
-        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use it this data for any analyses.',
+        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use this data for any analyses.',
 
     elif file_type == "`10hz`":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
+        global_atts['Funding']          = 'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program'
 
     elif file_type == "turb":  # some specifics for the tubulence file
         global_atts['quality_control']  = 'The source data measured at 20 Hz was quality controlled. Variables relevant for quality control of the derived quantities supplied in this file are also supplied, but the derived quantities themselves are NOT quality-controlled.',
@@ -763,7 +764,7 @@ def define_level2_variables():
     arm_location_string    ='Met City'
 
     # platform
-    tower_platform     = "11-m Met Tower"
+    tower_platform     = "10-m Met Tower"
     mast_platform      = "X-m Mast"
     radiation_platform = "Radiation Station"
     
@@ -779,7 +780,7 @@ def define_level2_variables():
 
     # funding_sources
     radiation_funding = "Department of Energy, Office of Science, Biological and Environmental Research Program"
-    flux_funding      = "National Science Foundation OPP1724551 and NOAA Physical Science Laborator"
+    flux_funding      = "National Science Foundation OPP1724551 and NOAA Physical Science Laboratory"
     mast_funding      = "UK Natural Environment Research Council"
 
     lev2_atts = OrderedDict()
@@ -1043,7 +1044,7 @@ def define_level2_variables():
                                                       'methods'                                :'digitally polled from instument',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
-                                                      'measurement_source'                     : mast_source,
+                                                      'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
  
@@ -1084,7 +1085,7 @@ def define_level2_variables():
                                                       'methods'                                :'digitally polled from instument',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
-                                                      'measurement_source'                     : mast_source,
+                                                      'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
  
@@ -1125,7 +1126,7 @@ def define_level2_variables():
                                                       'methods'                                :'digitally polled from instument',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
-                                                      'measurement_source'                     : mast_source,
+                                                      'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
  
@@ -1146,7 +1147,7 @@ def define_level2_variables():
                                                       'methods'                                :'digitally polled from instument',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
-                                                      'measurement_source'                     : mast_source,
+                                                      'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
  
@@ -1225,13 +1226,13 @@ def define_level2_variables():
                                                       'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : flux_funding,})
 
-    lev2_atts['mixing_ratio_mast']       .update({    'long_name'                              :'mixing ratio derived using T/P/RH from HMT',
+    lev2_atts['mixing_ratio_mast']       .update({    'long_name'                              :'mixing ratio derived from WXT',
                                                       'cf_name'                                :'humidity_mixing_ratio',
                                                       'instrument'                             :'Vaisala WXT530',
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
-                                                      'measurement_source'                     : mast_source,
+                                                      'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
  
@@ -1272,7 +1273,7 @@ def define_level2_variables():
                                                       'methods'                                :'calculated from measured variables following Hyland & Wexler (1983)',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
-                                                      'measurement_source'                     : mast_source,
+                                                      'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
  
@@ -1313,7 +1314,7 @@ def define_level2_variables():
                                                       'methods'                                :'calculated from measured variables following Wexler (1976)',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
-                                                      'measurement_source'                     : mast_source,
+                                                      'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : mast_funding,
                                                       'location'                               : mast_location_string,}) 
  
@@ -1321,7 +1322,7 @@ def define_level2_variables():
     lev2_atts['wspd_vec_mean_2m']        .update({    'long_name'                              :'average metek wind speed',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1331,7 +1332,7 @@ def define_level2_variables():
     lev2_atts['wspd_vec_mean_6m']        .update({    'long_name'                              :'average metek wind speed',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1341,7 +1342,7 @@ def define_level2_variables():
     lev2_atts['wspd_vec_mean_10m']       .update({    'long_name'                              :'average metek wind speed',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1351,7 +1352,7 @@ def define_level2_variables():
     lev2_atts['wspd_vec_mean_mast']      .update({    'long_name'                              :'average metek wind speed',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1363,7 +1364,7 @@ def define_level2_variables():
     lev2_atts['wdir_vec_mean_2m']        .update({    'long_name'                              :'average metek wind direction',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1373,7 +1374,7 @@ def define_level2_variables():
     lev2_atts['wdir_vec_mean_6m']        .update({    'long_name'                              :'average metek wind direction',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'location'                               : middle_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1383,7 +1384,7 @@ def define_level2_variables():
     lev2_atts['wdir_vec_mean_10m']       .update({    'long_name'                              :'average metek wind direction',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek uSonic-Cage MP sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'location'                               : top_location_string,
                                                       'platform'                               : tower_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
@@ -1393,7 +1394,7 @@ def define_level2_variables():
     lev2_atts['wdir_vec_mean_mast']      .update({    'long_name'                              :'average metek wind direction',
                                                       'cf_name'                                :'',
                                                       'instrument'                             :'Metek USA-1 sonic anemometer',
-                                                      'methods'                                :'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                      'methods'                                :'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                       'platform'                               : mast_platform,
                                                       'data_provenance'                        : flux_slow_provenance,
                                                       'measurement_source'                     : mast_source,
@@ -1786,7 +1787,7 @@ def define_level2_variables():
                                                       'cf_name'                                :'surface_net_downward_longwave_flux',
                                                       'instrument'                             :'Eppley PIR',
                                                       'methods'                                :'hemispheric longwave radiation',
-                                                      'height'                                 :'2 m',
+                                                      'height'                                 :'3 m nominal',
                                                       'platform'                               : radiation_platform,
                                                       'data_provenance'                        : radiation_provenance,
                                                       'measurement_source'                     : radiation_source,
@@ -1797,7 +1798,7 @@ def define_level2_variables():
                                                       'cf_name'                                :'surface_net_downward_shortwave_flux',
                                                       'instrument'                             :'Eppley PSP',
                                                       'methods'                                :'hemispheric shortwave radiation',
-                                                      'height'                                 :'2 m',
+                                                      'height'                                 :'3 m nominal',
                                                       'platform'                               : radiation_platform,
                                                       'data_provenance'                        : radiation_provenance,
                                                       'measurement_source'                     : radiation_source,
@@ -1808,7 +1809,7 @@ def define_level2_variables():
                                                       'cf_name'                                :'surface_net_upward_longwave_flux',
                                                       'instrument'                             :'Eppley PIR',
                                                       'methods'                                :'hemispheric longwave radiation',
-                                                      'height'                                 :'2 m',
+                                                      'height'                                 :'1.5 m nominal',
                                                       'platform'                               : radiation_platform,
                                                       'data_provenance'                        : radiation_provenance,
                                                       'measurement_source'                     : radiation_source,
@@ -1819,7 +1820,7 @@ def define_level2_variables():
                                                       'cf_name'                                :'surface_net_upward_shortwave_flux',
                                                       'instrument'                             :'Eppley PSP',
                                                       'methods'                                :'hemispheric shortwave radiation',
-                                                      'height'                                 :'2 m',
+                                                      'height'                                 :'1.5 m nominal',
                                                       'platform'                               : radiation_platform,
                                                       'data_provenance'                        : radiation_provenance,
                                                       'measurement_source'                     : radiation_source,
@@ -1830,7 +1831,6 @@ def define_level2_variables():
                                                       'cf_name'                                :'surface_net_radiative_flux',
                                                       'instrument'                             :'PSP and PIR radiometers',
                                                       'methods'                                :'combined hemispheric radiation measurements',
-                                                      'height'                                 :'2 m',
                                                       'platform'                               : radiation_platform,
                                                       'data_provenance'                        : radiation_provenance,
                                                       'measurement_source'                     : radiation_source,
@@ -1852,8 +1852,8 @@ def define_turb_variables():
     mast_location_string   ='top of radio mast'
 
     # platform
-    tower_platform     = "11-m Met Tower"
-    mast_platform      = "X-m Mast"
+    tower_platform     = "10-m Met Tower"
+    mast_platform      = "met Mast"
     
     # data_provenance 
     flux_slow_provenance = "Based on data from the mosflxtowerslow.level1 datastream with doi  :xxxxxxxx" 
@@ -1864,7 +1864,7 @@ def define_turb_variables():
     mast_source      = "School of Earth and Environment, University of Leeds" 
 
     # funding_sources
-    flux_funding      = "National Science Foundation OPP1724551 and NOAA Physical Science Laborator"
+    flux_funding      = "National Science Foundation OPP1724551 and NOAA Physical Science Laboratory"
     mast_funding      = "UK Natural Environment Research Council"
 
     turb_atts = OrderedDict()
@@ -4518,6 +4518,11 @@ def define_10hz_variables():
     mast_location_string   = 'top of radio mast at met city'
     arm_location_string    = 'top of radio mast at met city'
 
+    # funding_sources
+    radiation_funding = "Department of Energy, Office of Science, Biological and Environmental Research Program"
+    flux_funding      = "National Science Foundation OPP1724551 and NOAA Physical Science Laboratory"
+    mast_funding      = "UK Natural Environment Research Council"
+
     atts_10hz = OrderedDict()
     
     # units defined here, other properties defined in 'update' call below
@@ -4566,205 +4571,245 @@ def define_10hz_variables():
     atts_10hz['licor_dt']             = {'units' : 'boolean' }
     atts_10hz['licor_ct']             = {'units' : 'boolean' }
 
-    atts_10hz['metek_2m_u']           .update({ 'long_name'  : 'wind velocity in u',
-                                                'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
-                                                'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_u']           .update({  'long_name'       : 'wind velocity in u',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_v']           .update({  'long_name'  : 'wind velocity in v',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_v']           .update({  'long_name'       : 'wind velocity in v',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_w']           .update({  'long_name'  : 'wind velocity in w',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_w']           .update({  'long_name'       : 'wind velocity in w',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_T']           .update({  'long_name'  : 'acoustic temperature',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_T']           .update({  'long_name'       : 'acoustic temperature',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_heatstatus']  .update({  'long_name'  : 'sensor diagnostics code',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_heatstatus']  .update({  'long_name'       : 'sensor diagnostics code',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_hspd']        .update({  'long_name'  : 'horizontal wind speed',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_hspd']        .update({  'long_name'       : 'horizontal wind speed',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_ts']          .update({  'long_name'  : 'wind direction',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_ts']          .update({  'long_name'       : 'wind direction',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_incx']        .update({  'long_name'  : 'sensor inclinometer pitch angle',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_incx']        .update({  'long_name'       : 'sensor inclinometer pitch angle',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_2m_incy']        .update({  'long_name'  : 'sensor inclinometer roll angle',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
-                                                 'location'   : bottom_location_string,})
+    atts_10hz['metek_2m_incy']        .update({  'long_name'       : 'sensor inclinometer roll angle',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : bottom_location_string,})
 
-    atts_10hz['metek_6m_u']           .update({  'long_name'  : 'wind velocity in u',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_u']           .update({  'long_name'       : 'wind velocity in u',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_v']           .update({  'long_name'  : 'wind velocity in v',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_v']           .update({  'long_name'       : 'wind velocity in v',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_w']           .update({  'long_name'  : 'wind velocity in w',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_w']           .update({  'long_name'       : 'wind velocity in w',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_T']           .update({  'long_name'  : 'acoustic temperature',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_T']           .update({  'long_name'       : 'acoustic temperature',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_heatstatus']  .update({  'long_name'  : 'sensor diagnostics code',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_heatstatus']  .update({  'long_name'       : 'sensor diagnostics code',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_hspd']        .update({  'long_name'  : 'horizontal wind speed',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_hspd']        .update({  'long_name'       : 'horizontal wind speed',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_ts']          .update({  'long_name'  : 'wind direction',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_ts']          .update({  'long_name'       : 'wind direction',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_incx']        .update({  'long_name'  : 'sensor inclinometer pitch angle',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_incx']        .update({  'long_name'       : 'sensor inclinometer pitch angle',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_6m_incy']        .update({  'long_name'  : 'sensor inclinometer roll angle',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
-                                                 'location'   : middle_location_string,})
+    atts_10hz['metek_6m_incy']        .update({  'long_name'       : 'sensor inclinometer roll angle',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : middle_location_string,})
 
-    atts_10hz['metek_10m_u']          .update({  'long_name'  : 'wind velocity in u',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_u']          .update({  'long_name'       : 'wind velocity in u',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_v']          .update({  'long_name'  : 'wind velocity in v',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_v']          .update({  'long_name'       : 'wind velocity in v',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_w']          .update({  'long_name'  : 'wind velocity in w',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_w']          .update({  'long_name'       : 'wind velocity in w',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_T']          .update({  'long_name'  : 'acoustic temperature',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_T']          .update({  'long_name'       : 'acoustic temperature',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_heatstatus'] .update({  'long_name'  : 'sensor diagnostics code',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_heatstatus'] .update({  'long_name'       : 'sensor diagnostics code',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; char 8 = heating setting (0=off,1=on,2=auto,3=auto and quality detection); char 9 = heating state (0=off,1=on/operational,2=on/faulty); char 10 = how many of 9 paths failed',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_hspd']       .update({  'long_name'  : 'horizontal wind speed',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_hspd']       .update({  'long_name'       : 'horizontal wind speed',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; based on x,y in sensor coordinate frame',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_ts']         .update({  'long_name'  : 'wind direction',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_ts']         .update({  'long_name'       : 'wind direction',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_incx']       .update({  'long_name'  : 'sensor inclinometer pitch angle',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_incx']       .update({  'long_name'       : 'sensor inclinometer pitch angle',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic east-west axis when viewing east to west',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_10m_incy']       .update({  'long_name'  : 'sensor inclinometer roll angle',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
-                                                 'location'   : top_location_string,})
+    atts_10hz['metek_10m_incy']       .update({  'long_name'       : 'sensor inclinometer roll angle',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol; inclination sensor embedded in anemometer sensor head; postive is anticlockwise about sonic south-north axis when viewing south to north',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : top_location_string,})
 
-    atts_10hz['metek_mast_u']         .update({  'long_name'  : 'wind velocity in u',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : mast_location_string,})
+    atts_10hz['metek_mast_u']         .update({  'long_name'       : 'wind velocity in u',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : mast_funding,
+                                                 'location'        : mast_location_string,})
 
-    atts_10hz['metek_mast_v']         .update({  'long_name'  : 'wind velocity in v',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : mast_location_string,})
+    atts_10hz['metek_mast_v']         .update({  'long_name'       : 'wind velocity in v',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : mast_funding,
+                                                 'location'        : mast_location_string,})
 
-    atts_10hz['metek_mast_w']         .update({  'long_name'  : 'wind velocity in w',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : mast_location_string,})
+    atts_10hz['metek_mast_w']         .update({  'long_name'       : 'wind velocity in w',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : mast_funding,
+                                                 'location'        : mast_location_string,})
 
-    atts_10hz['metek_mast_T']         .update({  'long_name'  : 'acoustic temperature',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : mast_location_string,})
+    atts_10hz['metek_mast_T']         .update({  'long_name'       : 'acoustic temperature',
+                                                 'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : mast_funding,
+                                                 'location'        : mast_location_string,})
 
-    atts_10hz['licor_diag']           .update({  'long_name'  : 'bit-packed diagnostic integer',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol; bits 0-3 = signal strength; bit 5 = PLL; bit 6 = detector temp; bit 7 = chopper temp',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_diag']           .update({  'long_name'       : 'bit-packed diagnostic integer',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol; bits 0-3 = signal strength; bit 5 = PLL; bit 6 = detector temp; bit 7 = chopper temp',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
-    atts_10hz['licor_co2']            .update({  'long_name'  : 'CO2 gas density',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_co2']            .update({  'long_name'       : 'CO2 gas density',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
-    atts_10hz['licor_h2o']            .update({  'long_name'  : 'water vapor density',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_h2o']            .update({  'long_name'       : 'water vapor density',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
     
-    atts_10hz['licor_pr']             .update({  'long_name'  : 'air pressure',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_pr']             .update({  'long_name'       : 'air pressure',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
-    atts_10hz['licor_T']              .update({  'long_name'  : 'temperature at strut',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_T']              .update({  'long_name'       : 'temperature at strut',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
-    atts_10hz['licor_co2_str']        .update({  'long_name'  : 'CO2 signal strength diagnostic',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; raw co2 reference signal relative to expected value',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_co2_str']        .update({  'long_name'       : 'CO2 signal strength diagnostic',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; raw co2 reference signal relative to expected value',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
-    atts_10hz['licor_pll']            .update({  'long_name'  : 'phase lock loop',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = optical filter wheel rotating at correct rate',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_pll']            .update({  'long_name'       : 'phase lock loop',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = optical filter wheel rotating at correct rate',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
-    atts_10hz['licor_dt']             .update({  'long_name'  : 'detector temperature',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_dt']             .update({  'long_name'       : 'detector temperature',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
-    atts_10hz['licor_ct']             .update({  'long_name'  : 'chopper temperature',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_ct']             .update({  'long_name'       : 'chopper temperature',
+                                                 'instrument'      : 'Licor 7500-DS',
+                                                 'methods'         : 'open-path optical gas analyzer, source data reported at 20 Hz; TCP/IP protocol; 1 = temperature near set point',
+                                                 'funding_sources' : flux_funding,
+                                                 'location'        : licor_location,})
 
     return atts_10hz, list(atts_10hz.keys()).copy() 
 

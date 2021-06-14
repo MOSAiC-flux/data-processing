@@ -349,7 +349,11 @@ class station_info(object):
 
             if not ffill:
                 date_requested = date(date_requested.year, date_requested.month, date_requested.day)
-                index_date = instr_md.index[instr_md.index.get_loc(date_requested, method='bfill')]
+                try:
+                    index_date = instr_md.index[instr_md.index.get_loc(date_requested, method='bfill')]
+                except KeyError as ke: # only happens if there is no data ahead of this point
+                    return None, None
+
                 if date(index_date.year, index_date.month, index_date.day) != date_requested: 
                     return None, None
             else:
@@ -367,7 +371,11 @@ class station_info(object):
 
             if not ffill: 
                 date_requested = date(date_requested.year, date_requested.month, date_requested.day)
-                index_date = instr_md.index[instr_md.index.get_loc(date_requested, method='bfill')]
+                try: 
+                    index_date = instr_md.index[instr_md.index.get_loc(date_requested, method='bfill')]
+                except KeyError as ke: # only happens if there is no data ahead of this point
+                    return None, None
+
                 if date(index_date.year, index_date.month, index_date.day) != date_requested: 
                     return None, None
             else:
@@ -384,7 +392,11 @@ class station_info(object):
 
             if not ffill: 
                 date_requested = date(date_requested.year, date_requested.month, date_requested.day)
-                index_date = site_md.index[site_md.index.get_loc(date_requested, method='bfill')]
+                try:
+                    index_date = site_md.index[site_md.index.get_loc(date_requested, method='bfill')]
+                except KeyError as ke: # only happens if there is no data ahead of this point
+                    return None, None
+
                 if date(index_date.year, index_date.month, index_date.day) != date_requested: 
                     return None, None
             else:

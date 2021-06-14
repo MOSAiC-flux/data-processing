@@ -79,16 +79,16 @@ import socket
 global nthreads 
 if '.psd.' in socket.gethostname():
     nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 8 # laptops don't tend to have 64 cores
+else: nthreads = 12 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
+# nthreads = 1
 # from multiprocessing.dummy import Process as P
 # from multiprocessing.dummy import Queue   as Q
-# nthreads = 1
-
+  
 from datetime  import datetime, timedelta
 from numpy     import sqrt
 from netCDF4   import Dataset, MFDataset
@@ -109,7 +109,7 @@ def main(): # the main data crunching program
 
     global trial, n_trial_files
     trial = False # FOR TESTING PURPOSES ONLY, takes random xxx files and cuts to save debugging time
-    n_trial_files = 2000
+    n_trial_files = 1000
 
     # the UNIX epoch... provides a common reference, used with base_time
     global epoch_time
@@ -121,11 +121,6 @@ def main(): # the main data crunching program
 
     global data_dir, level1_dir
 
-    flux_stations = ['asfs30', 'asfs40', 'asfs50'] # our beauties
-    apogee_switch_date = {}
-    apogee_switch_date['asfs30'] = datetime(2019,12,13,11,9,0) # 
-    apogee_switch_date['asfs40'] = datetime(2019,12,13,11,9,0) # 
-    apogee_switch_date['asfs50'] = datetime(2019,11,14,6,11,0) # 
 
     global nan, def_fill_int, def_fill_flt # make using nans look better
     nan = np.NaN
@@ -138,7 +133,10 @@ def main(): # the main data crunching program
     parser.add_argument('-s', '--start_time', metavar='str', help='beginning of processing period, Ymd syntax')
     parser.add_argument('-e', '--end_time', metavar='str', help='end  of processing period, Ymd syntax')
     parser.add_argument('-v', '--verbose', action ='count', help='print verbose log messages')
+    parser.add_argument('-a', '--station', metavar='str',help='asfs#0, if omitted all will be procesed')
     parser.add_argument('-p', '--path', metavar='str', help='base path to data up to, including /data/, include trailing slash')  # pass the base path to make it more mobile
+    parser.add_argument('-pd', '--pickledir', metavar='str',help='want to store a pickle of the data for debugging?')
+
     # add verboseprint function for extra info using verbose flag, ignore these 5 lines if you want
     args         = parser.parse_args()
     verbose      = True if args.verbose else False # use this to run segments of code via v/verbose flag
@@ -167,6 +165,12 @@ def main(): # the main data crunching program
     else:
         end_time = epoch_time.today() # any datetime object can provide current time
         end_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0, day=start_time.day)
+
+    if args.station: flux_stations = args.station.split(',')
+    else: flux_stations = ['asfs50', 'asfs40', 'asfs30'] # our beauties
+
+    if args.pickledir: pickle_dir=args.pickledir
+    else: pickle_dir=False
 
     # expand the load by 1 day to facilite gps processing    
     start_time = start_time-timedelta(1)
@@ -204,25 +208,13 @@ def main(): # the main data crunching program
     
     slow_atts, slow_vars = define_level1_slow()
     for curr_station in flux_stations:
-        # try to save some time and multithread the reading
-        slow_q_dict[curr_station] = Q()
-        # run the threads for retreiving data
-        P(target=get_slow_data, \
-               args=(curr_station, start_time, end_time, \
-                     slow_q_dict[curr_station])).start()
-
-        if nthreads < len(flux_stations):
-            slow_data[curr_station] = slow_q_dict[curr_station].get()
-
-    # wait to finish slow first, then get results from thread queue
-    if nthreads >= len(flux_stations):
-        for curr_station in  flux_stations:
-            slow_data[curr_station] = slow_q_dict[curr_station].get()
-
-            verboseprint("\n===================================================")
-            verboseprint("Data and observations provided by {}:".format(curr_station))
-            verboseprint('===================================================')
-            if verbose: slow_data[curr_station].info(verbose=True) # must be contained;
+        
+        slow_data[curr_station] = get_slow_data(curr_station, start_time, end_time, pickle_dir)
+        
+        verboseprint("\n===================================================")
+        verboseprint("Data and observations provided by {}:".format(curr_station))
+        verboseprint('===================================================')
+        if verbose: slow_data[curr_station].info(verbose=True) # must be contained;
 
     print("\n... got all slow data from files, exiting for timing")
 
@@ -296,9 +288,6 @@ def main(): # the main data crunching program
     # done this way so the code can be threaded
     def process_station_day(curr_station, slow_data_today, day_q):
 
-        # queue used to retreive data for today
-        if i_day % 1 == 0: print("\nCurrently processing level1 data for {} in {}".format(today, curr_station))
-
         # run the threads for retreiving data
         fast_data_today = get_fast_data(today, fast_file_list[curr_station],
                                         first_timestamp_list[curr_station], curr_station)
@@ -326,6 +315,11 @@ def main(): # the main data crunching program
             # end
 
         #if not slow_data_today.empty:
+
+        apogee_switch_date = {}
+        apogee_switch_date['asfs30'] = datetime(2019,12,13,11,9,0) # 
+        apogee_switch_date['asfs40'] = datetime(2019,12,13,11,9,0) # 
+        apogee_switch_date['asfs50'] = datetime(2019,11,14,6,11,0) # 
 
         if today == apogee_switch_date[curr_station].replace(hour=0, minute=0, second=0):
             targ_T = slow_data_today['apogee_targ_T_Avg'].copy()
@@ -391,25 +385,23 @@ def main(): # the main data crunching program
     for curr_station in flux_stations: q_dict[curr_station] = []
 
     # call processing by day then station (allows threading for processing a single days data)
-    for i_day, today in enumerate(day_series): # loop over the days in the processing range and get a list of files
-        tomorrow = today+day_delta
-        for curr_station in flux_stations:
-            slow_data_today = slow_data[curr_station][today:tomorrow]
+    for curr_station in flux_stations:
+        printline(endline=f"\n\n  Processing all requested days of data for {curr_station}\n\n"); printline()
+        day_ind = -1*nthreads
+        while day_ind < len(day_series): # loop over the days in the processing range and crunch away
+            day_ind += nthreads
+            q_list = []
+            for day_i in range(day_ind, day_ind+nthreads): # with nthreads parallel processing
+                if day_i >= len(day_series): continue
+                today    = day_series[day_i]
+                tomorrow = today+day_delta
+                sd_today = slow_data[curr_station][today:tomorrow]
+                q_today = Q()
+                P(target=process_station_day, args=(curr_station, sd_today, q_today)).start()
+                q_list.append((q_today, today))
+                
+            for qq, day in q_list: qq.get()
 
-            q_today = Q()
-            q_dict[curr_station].append(q_today)
-            P(target=process_station_day,
-              args=(curr_station, slow_data_today, q_today)).start()
-
-            if nthreads < len(flux_stations): 
-                q_dict[curr_station][0].get()
-                q_dict[curr_station] = []
-
-        if nthreads > 1: 
-            if (i_day+1) % nthreads_station == 0 or today == day_series[-1]:
-                for curr_station in flux_stations:
-                    for qq in q_dict[curr_station]: qq.get()
-                    q_dict[curr_station] = []
 
     printline()
     print('All done! Netcdf output files can be found in: {}'.format(level1_dir))
@@ -419,7 +411,7 @@ def main(): # the main data crunching program
 
 # pulls in logger text files from sdcard data and returns a dataframe and a list of data attributes (units, etc)
 # qq returns the results from a threaded call and is of Queue class
-def get_slow_data(station, start_time, end_time, qq): 
+def get_slow_data(station, start_time, end_time, pickle_dir): 
 
     searchdir = data_dir+station+'/0_level_raw/site_visits/'
 
@@ -457,68 +449,91 @@ def get_slow_data(station, start_time, end_time, qq):
         frame = pd.read_csv(dfile, parse_dates=[0], sep=',', na_values=na_vals,\
                             index_col=0, engine='c', names=cols)
         file_q.put(frame)
+
+    pickled_filename = f'{station}_raw_slow_df.pkl' # code_version is tacked on to this when run
+    was_pickled = False
+    if pickle_dir:
+        for root, dirs, files in os.walk(pickle_dir): # pretty stupid way to find the file
+            for filename in files:
+                if pickled_filename in filename:
+                    filename = pickle_dir+filename
+                    data_frame = pd.read_pickle(filename)
+                    name_words = filename.rpartition('_')[-1].rpartition('.')
+                    code_version = f"{name_words[0]}.{name_words[1]}"
+                    print(f" ... found and loaded pickle {filename} \n\n"); was_pickled = True
+                    break
+
+        if not was_pickled: print("... didn't find a pickle, we'll write one !!!\n\n")
         
     # divide the files into pools and call thread_read() on the list of files in parallel
-    nthreads_station = int(np.floor(nthreads/3))
-    if nthreads_station == 0 : nthreads_station=1
-    q_list = []
-    for file_i, data_file in enumerate(card_file_list):
+    if not was_pickled: 
+        
+        q_list = []
+        for file_i, data_file in enumerate(card_file_list):
 
-        if (file_i % 250 == 0) and file_i != 0:  
-            verboseprint("... at {} of {} for {} slow data".format(file_i, len(card_file_list),station))
+            if (file_i % 250 == 0) and file_i != 0:  
+                verboseprint("... at {} of {} for {} slow data".format(file_i, len(card_file_list),station))
 
-        file_q = Q()
-        q_list.append(file_q)
-        P(target=read_slow_csv, args=(data_file, file_q)).start()
+            file_q = Q()
+            q_list.append(file_q)
+            P(target=read_slow_csv, args=(data_file, file_q)).start()
 
-        if (file_i+1) % nthreads_station == 0 or data_file == card_file_list[-1]:
-            for fq in q_list:
-                new_frame = fq.get()
-                frame_list.append(new_frame)
-            q_list = []
-            if trial and n_trial_files<file_i: break
- 
-    print(f"... got all files read, got all threads back for {station}. now we concat")
-    data_frame = pd.concat(frame_list) # is concat computationally efficient?    
-    data_frame = data_frame.sort_index() # sort chronologically    
-    data_frame.drop_duplicates(inplace=True) # get rid of duplicates
-    data_frame = data_frame[start_time:end_time] # done gathering data, now narrow down to requested window
+            if (file_i+1) % nthreads == 0 or data_file == card_file_list[-1]:
+                for fq in q_list:
+                    new_frame = fq.get()
+                    frame_list.append(new_frame)
+                q_list = []
+                if trial and n_trial_files<file_i: break
 
-    # some sanity checks
-    n_dupes = ~data_frame.duplicated().size
-    if data_frame.empty: # 'fatal' is a print function defined at the bottom of this script that exits
-        print("No {} data for requested time range {} ---> {} ?\n".format(searchdir,start_time,end_time))
-        print("... Im sorry... no data will be created for {}".format(station))
-        qq.put(data_frame)
-        return
+        print(f"... got all files read, got all threads back for {station}. now we concat")
+        data_frame = pd.concat(frame_list) # is concat computationally efficient?    
+        data_frame = data_frame.sort_index() # sort chronologically    
+        data_frame.drop_duplicates(inplace=True) # get rid of duplicates
+        data_frame = data_frame[start_time:end_time] # done gathering data, now narrow down to requested window
 
-    if n_dupes > 0 : fl.fatal("... there were {} duplicates for {} in this time range!!\n you got duped, dying".format(n_dupes, searchdir))
+        # some sanity checks
+        n_dupes = ~data_frame.duplicated().size
+        if data_frame.empty: # 'fatal' is a print function defined at the bottom of this script that exits
+            print("No {} data for requested time range {} ---> {} ?\n".format(searchdir,start_time,end_time))
+            print("... Im sorry... no data will be created for {}".format(station))
+            return data_frame
 
-    # now, reindex for every second in range and fill with nans so that the we commplete record
-    mins_range = pd.date_range(start_time, end_time, freq='T') # all the minutes today, for obs
-    try:
-        data_frame = data_frame.reindex(labels=mins_range, copy=False)
-    except Exception as ee:
-        printline()
-        print("There was an exception reindexing for {}".format(searchdir))
-        print(' ---> {}'.format(ee))
-        printline()
-        print(data_frame.index[data_frame.index.duplicated()])
-        print("...dropping these duplicate indexes... ")
-        printline()
-        data_frame = data_frame.drop(data_frame.index[data_frame.index.duplicated()], axis=0)
-        print(" There are now {} duplicates in DF".format(len(data_frame[data_frame.index.duplicated()])))
-        print(" There are now {} duplicates in timeseries".format(len(mins_range[mins_range.duplicated()])))
-        data_frame = data_frame.reindex(labels=mins_range, copy=False)
+        if n_dupes > 0 : fl.fatal("... there were {} duplicates for {} in this time range!!\n you got duped, dying".format(n_dupes, searchdir))
 
-    # why doesn't the dataframe constructor use the name from cols for the index name??? silly
-    data_frame.index.name = data_cols[0]
-    
-    # now we subtract 1 min from the index so that the times mark the beginning rather than the end of the 1 min avg time, more conventional-like
-    data_frame.index = data_frame.index-pd.Timedelta(1,unit='min')  
-    
+        # now, reindex for every second in range and fill with nans so that the we commplete record
+        mins_range = pd.date_range(start_time, end_time, freq='T') # all the minutes today, for obs
+        try:
+            data_frame = data_frame.reindex(labels=mins_range, copy=False)
+        except Exception as ee:
+            printline()
+            print("There was an exception reindexing for {}".format(searchdir))
+            print(' ---> {}'.format(ee))
+            printline()
+            print(data_frame.index[data_frame.index.duplicated()])
+            print("...dropping these duplicate indexes... ")
+            printline()
+            data_frame = data_frame.drop(data_frame.index[data_frame.index.duplicated()], axis=0)
+            print(" There are now {} duplicates in DF".format(len(data_frame[data_frame.index.duplicated()])))
+            print(" There are now {} duplicates in timeseries".format(len(mins_range[mins_range.duplicated()])))
+            data_frame = data_frame.reindex(labels=mins_range, copy=False)
+
+        # why doesn't the dataframe constructor use the name from cols for the index name??? silly
+        data_frame.index.name = data_cols[0]
+
+        # now we subtract 1 min from the index so that the times mark the beginning rather than the end of the 1 min avg time, more conventional-like
+        data_frame.index = data_frame.index-pd.Timedelta(1,unit='min')  
+
+        if pickle_dir:
+            print("\n\n!!! You requested to pickle the dataframe for speed !!!")
+            print(f"... right now we're writing it to this directory {pickled_filename}")
+            print("... copy this manually to a ramdisk somewhere for bonus speed points")
+            print("... must be symlinked here to be seen by this routine")
+            print("...\n... this takes a minute, patience\n\n")
+            data_frame.to_pickle(f"{pickle_dir}/{pickled_filename}.pkl")
+
     # sort data by time index and return data_frame to queue
-    qq.put(data_frame)
+    return data_frame
+    
 
 # finds all files for station, returning a list of the timestamps from
 # the first lines of each file and a sorted list of filenames
@@ -588,8 +603,8 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
     data_atts, data_cols = define_level1_fast()
 
     day_delta        = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
-    # half_day_delta = pd.to_timedelta(43200000000 ,unit='us') # we want to eliminate interpolation boundary conds
-    eighth_day_delta = pd.to_timedelta(10800000000 ,unit='us') # we want to eliminate interpolation boundary conds
+    half_day_delta = pd.to_timedelta(43200000000 ,unit='us') # we want to eliminate interpolation boundary conds
+    #eighth_day_delta = pd.to_timedelta(10800000000 ,unit='us') # we want to eliminate interpolation boundary conds
 
     na_vals = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"','']
 
@@ -598,8 +613,8 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
 
     # we search for data outside of today because we need to interpolate timestamps...
     # ... a quarter day is too much but... too much might be good enough
-    ldb = date-eighth_day_delta           # lower_date_bound for data to pull in for today
-    udb = date+day_delta+eighth_day_delta # upper_date_bound for data to pull in for today
+    ldb = date-half_day_delta           # lower_date_bound for data to pull in for today
+    udb = date+day_delta+half_day_delta # upper_date_bound for data to pull in for today
 
     inds_to_use = [i for i, tstamp in enumerate(first_timestamp_list) if (tstamp>ldb and tstamp<udb)]
 
@@ -658,8 +673,13 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
     # not quite done. now we subtract 5 sec (length of the scan) from the index so that the times mark the beginning rather than the end
     full_frame.index = full_frame.index-pd.Timedelta(5,unit='sec')
 
-    return_frame = full_frame[date:date+day_delta]
+    return_frame = full_frame.sort_index()
+    return_frame = return_frame[date:date+day_delta]
+    return_frame = return_frame.drop_duplicates()
     n_entries    = return_frame.index.size
+    
+    if any(return_frame.duplicated()): 
+        raise Exception
 
     verboseprint("... {}/1728000 fast entries on {} for {}, representing {}% data coverage"
                  .format(n_entries, date, curr_station, round((n_entries/1728000)*100.,2)))

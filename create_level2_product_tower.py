@@ -708,8 +708,6 @@ def main(): # the main data crunching program
         sd['mast_RH']             .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
             sd['mast_RH']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.86
 
-        dm(locals(),0)
-
         # sr50 dist QC then in m & snow depth in cm, both corrected for
         # temperature, snwdpth_meas is height in cm on oct 27 2019
         sd['sr50_dist'].mask( (sd['sr50_dist']<sr50d[0])  | (sd['sr50_dist']>sr50d[1]) , inplace=True) # ppl
@@ -1699,7 +1697,7 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
     if timestep != "1min":
         short_name = 'seb'
     out_dir  = level2_dir
-    file_str = '/mosflxtower{}.level2.{}.{}.nc'.format(short_name, timestep,date.strftime('%Y%m%d.%H%M%S'))
+    file_str = '/mos{}.metcity.level2v2.{}.{}.nc'.format(short_name, timestep,date.strftime('%Y%m%d.%H%M%S'))
 
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
@@ -1731,12 +1729,12 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
             if turb_vars[var_name].isnull().all():
                 if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
                     turb_vars[var_name] = np.float64(turb_vars[var_name])     
-                elif turb_vars[var_name][0].size > 1:
-                    if turb_vars[var_name][0].dtype == object: # happens when all fast data is missing...
-                        turb_vars[var_name] = np.float64(turb_vars[var_name])
-                else:         
-                    if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
-                        turb_vars[var_name] = np.float64(turb_vars[var_name])
+            elif turb_vars[var_name][0].size > 1:
+                if turb_vars[var_name][0].dtype == object: # happens when all fast data is missing...
+                    turb_vars[var_name] = np.float64(turb_vars[var_name])
+            else:         
+                if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
+                    turb_vars[var_name] = np.float64(turb_vars[var_name])
                         # create variable, # dtype inferred from data file via pandas
             if 'fs' in var_name:
                 netcdf_lev2.createDimension('freq', turb_vars[var_name][0].size)   
@@ -1899,7 +1897,6 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
         netcdf_lev2[var_name].setncattr('min_val', min_val)
         netcdf_lev2[var_name].setncattr('avg_val', avg_val)
 
-        
         try:
             height_today, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date)
 
@@ -2168,16 +2165,74 @@ def write_level2_10hz(sonic_data, licor_data, date):
         return False
 
     out_dir       = level2_dir
-    file_str_fast = 'moswind10hz.level2.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
+    file_str_fast = 'moswind10hz.metcity.level2v2.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
     
     lev1_fast_name  = '{}/{}'.format(out_dir, file_str_fast)
 
-    global_atts_fast = define_global_atts("fast") # global atts for level 1 and level 2
+    global_atts_fast = define_global_atts("10hz") # global atts for level 1 and level 2
 
     netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w',zlib=True)
 
     for att_name, att_val in global_atts_fast.items(): # write the global attributes to fast
         netcdf_lev1_fast.setncattr(att_name, att_val)
+
+    # create standardized time dimension for file
+    netcdf_lev1_fast.createDimension(f'time', None)
+
+    fms = sonic_data['metek_2m'].index[0]
+    beginning_of_time = fms 
+
+    # base_time, ARM spec, the difference between the time of the first data point and the BOT
+    today_midnight = datetime(fms.year, fms.month, fms.day)
+    beginning_of_time = fms 
+
+    # create the three 'bases' that serve for calculating the time arrays
+    et  = np.datetime64(epoch_time)
+    bot = np.datetime64(beginning_of_time)
+    tm  =  np.datetime64(today_midnight)
+
+    # first write the int base_time, the temporal distance from the UNIX epoch
+    base_fast = netcdf_lev1_fast.createVariable(f'base_time', 'i') # seconds since
+    base_fast[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])
+
+    base_atts = {'string'              : '{}'.format(bot),
+                 'long_name'           : 'Base time since Epoch',
+                 'units'               : 'seconds since {}'.format(et),
+                 'ancillary_variables' : 'time_offset',}
+
+    t_atts_fast   = {'units'     : 'milliseconds since {}'.format(tm),
+                     'delta_t'   : '0000-00-00 00:00:00.001',
+                     'long_name' : 'Time offset from midnight',
+                     'calendar'  : 'standard',}
+
+    bt_atts_fast   = {'units'    : 'milliseconds since {}'.format(bot),
+                      'delta_t'   : '0000-00-00 00:00:00.001',
+                      'long_name' : 'Time offset from base_time',
+                      'calendar'  : 'standard',}
+
+    bt_fast_dti = pd.DatetimeIndex(sonic_data['metek_2m'].index.values)   
+    fast_dti    = pd.DatetimeIndex(sonic_data['metek_2m'].index.values)
+
+    # set the time dimension and variable attributes to what's defined above
+    t_fast      = netcdf_lev1_fast.createVariable(f'time', 'd',f'time') 
+    bt_fast     = netcdf_lev1_fast.createVariable(f'time_offset', 'd',f'time') 
+
+    bt_fast_delta_ints = np.floor((bt_fast_dti - bot).total_seconds()*1000)      # milliseconds
+    fast_delta_ints    = np.floor((fast_dti - tm).total_seconds()*1000)      # milliseconds
+
+    bt_fast_ind = pd.Int64Index(bt_fast_delta_ints)
+    t_fast_ind  = pd.Int64Index(fast_delta_ints)
+
+    t_fast[:]   = t_fast_ind.values
+    bt_fast[:]  = bt_fast_ind.values
+
+    for att_name, att_val in t_atts_fast.items():
+        netcdf_lev1_fast[f'time'].setncattr(att_name,att_val)
+    for att_name, att_val in base_atts.items():
+        netcdf_lev1_fast[f'base_time'].setncattr(att_name,att_val)
+    for att_name, att_val in bt_atts_fast.items():
+        netcdf_lev1_fast[f'time_offset'].setncattr(att_name,att_val)
+
 
     # loop through the 4 instruments and set vars in each group based on the strings contained in those vars.
     # a bit sketchy but better than hardcoding things... probably. can at least be done in loop
@@ -2189,61 +2244,6 @@ def write_level2_10hz(sonic_data, licor_data, date):
 
         #curr_group = netcdf_lev1_fast.createGroup(inst) 
 
-        netcdf_lev1_fast.createDimension(f'time_{inst_str}', None)
-
-        fms = inst_data.index[0]
-        beginning_of_time = fms 
-
-        # base_time, ARM spec, the difference between the time of the first data point and the BOT
-        today_midnight = datetime(fms.year, fms.month, fms.day)
-        beginning_of_time = fms 
-
-        # create the three 'bases' that serve for calculating the time arrays
-        et  = np.datetime64(epoch_time)
-        bot = np.datetime64(beginning_of_time)
-        tm  =  np.datetime64(today_midnight)
-
-        # first write the int base_time, the temporal distance from the UNIX epoch
-        base_fast = netcdf_lev1_fast.createVariable(f'base_time_{inst_str}', 'i') # seconds since
-        base_fast[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])
-
-        base_atts = {'string'              : '{}'.format(bot),
-                     'long_name'           : 'Base time since Epoch',
-                     'units'               : 'seconds since {}'.format(et),
-                     'ancillary_variables' : 'time_offset',}
-
-        t_atts_fast   = {'units'     : 'milliseconds since {}'.format(tm),
-                         'delta_t'   : '0000-00-00 00:00:00.001',
-                         'long_name' : 'Time offset from midnight',
-                         'calendar'  : 'standard',}
-
-        bt_atts_fast   = {'units'    : 'milliseconds since {}'.format(bot),
-                          'delta_t'   : '0000-00-00 00:00:00.001',
-                          'long_name' : 'Time offset from base_time',
-                          'calendar'  : 'standard',}
-
-        bt_fast_dti = pd.DatetimeIndex(inst_data.index.values)   
-        fast_dti    = pd.DatetimeIndex(inst_data.index.values)
-
-        # set the time dimension and variable attributes to what's defined above
-        t_fast      = netcdf_lev1_fast.createVariable(f'time_{inst_str}', 'd',f'time_{inst_str}') 
-        bt_fast     = netcdf_lev1_fast.createVariable(f'time_offset_{inst_str}', 'd',f'time_{inst_str}') 
-
-        bt_fast_delta_ints = np.floor((bt_fast_dti - bot).total_seconds()*1000)      # milliseconds
-        fast_delta_ints    = np.floor((fast_dti - tm).total_seconds()*1000)      # milliseconds
-
-        bt_fast_ind = pd.Int64Index(bt_fast_delta_ints)
-        t_fast_ind  = pd.Int64Index(fast_delta_ints)
-
-        t_fast[:]   = t_fast_ind.values
-        bt_fast[:]  = bt_fast_ind.values
-
-        for att_name, att_val in t_atts_fast.items():
-            netcdf_lev1_fast[f'time_{inst_str}'].setncattr(att_name,att_val)
-        for att_name, att_val in base_atts.items():
-            netcdf_lev1_fast[f'base_time_{inst_str}'].setncattr(att_name,att_val)
-        for att_name, att_val in bt_atts_fast.items():
-            netcdf_lev1_fast[f'time_offset_{inst_str}'].setncattr(att_name,att_val)
             
         used_vars = [] # used to sanity check and make sure no vars get left out of the file by using string ids
         for var_name, var_atts in fast_atts.items():
@@ -2271,7 +2271,7 @@ def write_level2_10hz(sonic_data, licor_data, date):
                 var_tmp   = inst_data[var_name].values
         
             try:
-                var_fast = netcdf_lev1_fast.createVariable(var_name, var_dtype, f'time_{inst_str}', zlib=True)
+                var_fast = netcdf_lev1_fast.createVariable(var_name, var_dtype, f'time', zlib=True)
                 var_fast[:] = var_tmp # compress fast data via zlib=True
 
             except Exception as e:

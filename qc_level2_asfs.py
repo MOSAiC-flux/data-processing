@@ -22,25 +22,6 @@ emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Wa
 def qc_stations(curr_station, station_data):
 
     if 'asfs30' in curr_station:
-
-        #
-        # Recalibrate IR20s. The logger code saved the raw and offered a preliminary cal that ignored the minor terms. We can do better.
-        #
-        coef_S = 12.15/1000
-        coef_a = -16.36e-6
-        coef_b = 2.62e-3
-        coef_c = 0.9541
-        term = (coef_a*station_data['ir20_lwd_DegC_Avg']**2 + coef_b*station_data['ir20_lwd_DegC_Avg'] + coef_c)
-        station_data['down_long_hemisp'] = station_data['ir20_lwd_mV_Avg'] / (coef_S * term) + sb * (station_data['ir20_lwd_DegC_Avg']+273.15)**4
-
-
-        coef_S = 12.48/1000
-        coef_a = -16.25e-6
-        coef_b = 2.62e-3
-        coef_c = 0.9541
-        term = (coef_a*station_data['ir20_lwu_DegC_Avg']**2 + coef_b*station_data['ir20_lwu_DegC_Avg'] + coef_c)
-        station_data['up_long_hemisp'] = station_data['ir20_lwu_mV_Avg'] / (coef_S * term) + sb * (station_data['ir20_lwu_DegC_Avg']+273.15)**4
-        #
         # ##############
         #
         # When the RH sensor is powered, it needs to warm up and so you get bd data for 20 min or so.
@@ -198,38 +179,21 @@ def qc_stations(curr_station, station_data):
 
     elif 'asfs40' in curr_station:
 
-        #
-        # Recalibrate IR20s. The logger code saved the raw and offered a preliminary cal that ignored the minor terms. We can do better.
-        #
-        coef_S = 9.52/1000
-        coef_a = -15.75e-6
-        coef_b = 2.53e-3
-        coef_c = 0.9556
-        term = (coef_a*station_data['ir20_lwd_DegC_Avg']**2 + coef_b*station_data['ir20_lwd_DegC_Avg'] + coef_c)
-        station_data['down_long_hemisp'] = station_data['ir20_lwd_mV_Avg'] / (coef_S * term) + sb * (station_data['ir20_lwd_DegC_Avg']+273.15)**4
-
-        coef_S = 8.99/1000
-        coef_a = -16.96e-6
-        coef_b = 2.30e-3
-        coef_c = 0.9608
-        term = (coef_a*station_data['ir20_lwu_DegC_Avg']**2 + coef_b*station_data['ir20_lwu_DegC_Avg'] + coef_c)
-        station_data['up_long_hemisp'] = station_data['ir20_lwu_mV_Avg'] / (coef_S * term) + sb * (station_data['ir20_lwu_DegC_Avg']+273.15)**4
-        #
         # ##############
         #
 
         # When the RH sensor is powered, it needs to warm up and so you get bd data for 20 min or so.
         # Also, some bad data around the time a station goes off. Hand-edited here.
-        station_data['rh'] .loc[datetime(2019,11,8,7,52):datetime(2019,11,8,9,28)] = nan 
-        station_data['rh'] .loc[datetime(2020,2,27,2,1):]                          = nan # that's all she wrote
-        station_data['dew_point']     .loc[datetime(2019,11,8,7,52):datetime(2019,11,8,9,28)] = nan 
-        station_data['dew_point']     .loc[datetime(2020,2,27,2,1):]                          = nan # that's all she wrote
+        station_data['rh']        .loc[datetime(2019,11,8,7,52)   :datetime(2019,11,8,9,28)]   = nan 
+        station_data['rh']        .loc[datetime(2020,2,27,2,1)    :]                           = nan # that's all she wrote
+        station_data['dew_point'] .loc[datetime(2019,11,8,7,52)   :datetime(2019,11,8,9,28)]   = nan 
+        station_data['dew_point'] .loc[datetime(2020,2,27,2,1)    :]                           = nan # that's all she wrote
 
         # Hiccup
-        station_data['temp']     .loc[datetime(2019,12,25,10,14):datetime(2019,12,25,10,14)] = nan
-        station_data['dew_point'] .loc[datetime(2019,12,25,10,14):datetime(2019,12,25,10,14)] = nan
-        station_data['temp']     .loc[datetime(2020,2,4,6,50):datetime(2020,2,4,6,50)] = nan
-        station_data['dew_point'] .loc[datetime(2020,2,4,6,50):datetime(2020,2,4,6,50)] = nan
+        station_data['temp']      .loc[datetime(2019,12,25,10,14) :datetime(2019,12,25,10,14)] = nan
+        station_data['dew_point'] .loc[datetime(2019,12,25,10,14) :datetime(2019,12,25,10,14)] = nan
+        station_data['temp']      .loc[datetime(2020,2,4,6,50)    :datetime(2020,2,4,6,50)]    = nan
+        station_data['dew_point'] .loc[datetime(2020,2,4,6,50)    :datetime(2020,2,4,6,50)]    = nan
 
         # Some nonsense in the FP that needed to go
         station_data['subsurface_heat_flux_A'] .loc[datetime(2019,10,15,5,23):datetime(2019,10,15,6,0)] = nan
@@ -243,25 +207,8 @@ def qc_stations(curr_station, station_data):
 
     elif 'asfs50' in curr_station:
 
-        # Recalibrate IR20s. The logger code saved the raw and offered a preliminary cal that ignored the minor terms. We can do better.
-        #
-        coef_S = 11.42/1000
-        coef_a = -16.05e-6
-        coef_b = 2.57e-3
-        coef_c = 0.9551
-        term = (coef_a*station_data['ir20_lwd_DegC_Avg']**2 + coef_b*station_data['ir20_lwd_DegC_Avg'] + coef_c)
-        station_data['down_long_hemisp'] = station_data['ir20_lwd_mV_Avg'] / (coef_S * term) + sb * (station_data['ir20_lwd_DegC_Avg']+273.15)**4
-
-        coef_S = 12.01/1000
-        coef_a = -16.58e-6
-        coef_b = 2.49e-3
-        coef_c = 0.9568
-        term = (coef_a*station_data['ir20_lwu_DegC_Avg']**2 + coef_b*station_data['ir20_lwu_DegC_Avg'] + coef_c)
-        station_data['up_long_hemisp'] = station_data['ir20_lwu_mV_Avg'] / (coef_S * term) + sb * (station_data['ir20_lwu_DegC_Avg']+273.15)**4
-        #
         # ##############
         #
-
         # When the RH sensor is powered, it needs to warm up and so you get bd data for 20 min or so.
         # Also, some bad data around the time a station goes off. Hand-edited here.
         station_data['rh'] .loc[                          :datetime(2019,10,10,1,14)] = nan # firing it up in October
@@ -415,17 +362,21 @@ def qc_stations(curr_station, station_data):
         station_data['up_short_hemisp'] .loc[datetime(2020,4,4,9,36)   :datetime(2020,4,5,14,24)]  = nan
 
         # some weirdness in the gps sometimes when the system shuts off
-        station_data['lat']     .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
-        station_data['lon']     .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
-        station_data['ship_distance']   .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
-        station_data['ship_bearing']    .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
-        station_data['ice_alt']         .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
-        station_data['heading'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan
+        station_data['lat']           .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+        station_data['lon']           .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+        station_data['ship_distance'] .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+        station_data['ship_bearing']  .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+        station_data['ice_alt']       .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan 
+        station_data['heading']       .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan
         
         # acoustic temp
         station_data['acoustic_temp'] .loc[datetime(2020,1,22,21,56) :datetime(2020,1,22,22,50)] = nan
         station_data['acoustic_temp'] .loc[datetime(2020,8,5,9,54)   :datetime(2020,8,5,9,55)]   = nan
 
+        # data gap due to fast data stream issues early on 
+        station_data['acoustic_temp'] .loc[datetime(2020,1,22,21,56) :datetime(2020,1,22,22,50)] = nan
+        station_data['acoustic_temp'] .loc[datetime(2020,8,5,9,54)   :datetime(2020,8,5,9,55)]   = nan
+        
 
     return station_data;
 

@@ -61,7 +61,7 @@ def get_flux_data(station, start_day, end_day, level,
         for root, dirs, files in os.walk(pickle_dir): # pretty stupid way to find the file
             for filename in files:
                 if pickled_filename in filename:
-                    filename = pickle_dir+ filename
+                    filename = pickle_dir+filename
                     df = pd.read_pickle(filename)
                     name_words = filename.rpartition('_')[-1].rpartition('.')
                     code_version = f"{name_words[0]}.{name_words[1]}"
@@ -94,14 +94,14 @@ def get_flux_data(station, start_day, end_day, level,
                 subdir   = f'/{level}_level_{level_str}/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
-                    file_str = f'/mosflx{station}{data_type}.level{level}.1min.{date_str}.nc'
-                    subdir = subdir+'version2/'
+                    file_str = f'/mos{data_type}.metcity.level{level}v2.1min.{date_str}.nc'
+                    subdir = subdir+'test/'
 
             else:
                 file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
                     file_str = f'/mos{station}{data_type}.level{level}.1min.{date_str}.nc'
-                    subdir = subdir+'version2/'
+                    subdir = subdir+'test/'
 
             files_dir = data_dir+station+subdir
             curr_file = files_dir+file_str

@@ -55,6 +55,8 @@ def define_global_atts(station_name, file_type):
 
     elif file_type == "level2":
         global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use it this data for any analyses.',
+    elif file_type == "10hz":
+        global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
 
     elif file_type == "turb":  # some specifics for the tubulence file
         global_atts['quality_control']  = 'The source data measured at 20 Hz was quality controlled. Variables relevant for quality control of the derived quantities supplied in this file are also supplied, but the derived quantities themselves are NOT quality-controlled.',
@@ -1948,3 +1950,54 @@ def define_turb_variables():
                                           'location'   : inst_boom_location_string,})
 
     return turb_atts, list(turb_atts.keys()).copy()
+
+
+def define_10hz_variables():
+
+    metek_location = "sonic mast at 3.8 m"
+    licor_location = "sonic mast at 3.8 m"
+
+    atts_10hz = OrderedDict()
+    
+    # units defined here, other properties defined in 'update' call below
+    atts_10hz['metek_u']           = {'units' : 'm/s'     }
+    atts_10hz['metek_v']           = {'units' : 'm/s'     }
+    atts_10hz['metek_w']           = {'units' : 'm/s'     }
+    atts_10hz['metek_T']           = {'units' : 'C'       }
+
+    atts_10hz['licor_co2']            = {'units' : 'mmol/m3' }
+    atts_10hz['licor_h2o']            = {'units' : 'mmol/m3' }
+
+    atts_10hz['metek_u']           .update({ 'long_name'  : 'wind velocity in u',
+                                                'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                                'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
+                                                'location'   : metek_location,})
+
+    atts_10hz['metek_v']           .update({  'long_name'  : 'wind velocity in v',
+                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'location'   : metek_location,})
+
+    atts_10hz['metek_w']           .update({  'long_name'  : 'wind velocity in w',
+                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'location'   : metek_location,})
+
+    atts_10hz['metek_T']           .update({  'long_name'  : 'acoustic temperature',
+                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                                 'location'   : metek_location,})
+
+
+    atts_10hz['licor_co2']            .update({  'long_name'  : 'CO2 gas density',
+                                                 'instrument' : 'Licor 7500-DS',
+                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                 'location'   : licor_location,})
+
+    atts_10hz['licor_h2o']            .update({  'long_name'  : 'water vapor density',
+                                                 'instrument' : 'Licor 7500-DS',
+                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                                 'location'   : licor_location,})
+
+    return atts_10hz, list(atts_10hz.keys()).copy() 
+
