@@ -245,11 +245,11 @@ def main(): # the main data crunching program
     D16               = 20               # LWU <-> LWD test. High side. As at Alert.
     A0                = 1                # albedo limit
 
-    # official "start" times, defined as EFOY-on on install day per Ola's notes
+    # official "start" times, defined as EFOY-on on install day per Station Book
     station_initial_start_time = {}
-    station_initial_start_time['asfs30'] = datetime(2019,10,5,3,15,0) 
-    station_initial_start_time['asfs40'] = datetime(2019,10,5,0,0,0)
-    station_initial_start_time['asfs50'] = datetime(2019,10,10,5,0,0) 
+    station_initial_start_time['asfs30'] = datetime(2019,10,7,2,14,0) 
+    station_initial_start_time['asfs40'] = datetime(2019,10,5,5,15,0)
+    station_initial_start_time['asfs50'] = datetime(2019,10,10,10,49,0) 
     
     # Load the ship track and reindex to slow_data, calculate distance [m] and bearing [deg from tower rel to true north, as wind direction]
     ship_df = pd.read_csv(leica_dir+'Leica_Sep20_2019_Oct01_2020_clean.dat',sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
@@ -277,8 +277,11 @@ def main(): # the main data crunching program
                                 datetime(2020,5,5,0),                  # BGC1LOG
                                 datetime(2020,5,7,11,37),              # BGC1
                                 datetime(2020,6,30,0,0),               # L2
+                                datetime(2020,8,2,14,20),              # Back on board
                                 datetime(2020,8,21,16,30),             # Met City
                                 datetime(2020,9,4,10,18),              # Hinterland Pond
+                                datetime(2020,9,19,10,33),             # Remote Sensing
+                                datetime(2020,9,20,4,53),              # Back on board
                                 datetime(2020,9,24,5,16),              # Ice Station 1
                                 datetime(2020,9,26,6,20),              # Ice Station 2
                                 datetime(2020,9,30,7,50)               # Ice Station 3
@@ -290,9 +293,12 @@ def main(): # the main data crunching program
                                 sqrt((-17.9+K_offset)/K_offset)*206.9, # Ballooon Town
                                 nan,                                   # BGC1LOG
                                 sqrt((-9.7+K_offset)/K_offset)*192.7,  # BGC1
-                                nan,                                   # L2
+                                sqrt((-2.0+K_offset)/K_offset)*208.8,  # L2
+                                nan,                                   # Back on board
                                 sqrt((-0.3+K_offset)/K_offset)*203.2,  # Met City
                                 sqrt((-0.9+K_offset)/K_offset)*205.4,  # Hinterland Pond
+                                nan,                                   # Remote Sensing
+                                nan,                                   # Back on board
                                 nan,                                   # Ice Station 1
                                 nan,                                   # Ice Station 2
                                 nan                                    # Ice Station 3
@@ -304,9 +310,12 @@ def main(): # the main data crunching program
                                 66,             # Balloon Town
                                 nan,            # BGC1LOG
                                 36.1,           # BGC1. last snow depth from asfs50 sr50 in this spot on 5/7...for continuity
-                                nan,            # L2. Depth reported as difficult to quantify in melting state
+                                0,              # L2. Depth reported as difficult to quantify in melting state
+                                nan,            # Back on board
                                 0,              # Met City
                                 0,              # Hinterland Pond
+                                nan,            # Remote Sensing
+                                nan,            # Back on board
                                 nan,            # Ice Station 1
                                 nan,            # Ice Station 2
                                 nan             # Ice Station 3
@@ -330,18 +339,22 @@ def main(): # the main data crunching program
                                                                       # ASFS 40 ---------------------------
     init_asfs40['init_date']  = [
                                 station_initial_start_time['asfs40']  # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                datetime(2019,12,22,8,43),            # Discontinuity in SR50 during site visit ...resetting
                                 ]
         
     init_asfs40['init_dist']  = [
                                 sqrt((-7.75+K_offset)/K_offset)*201.8 # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                sqrt((-28.4+K_offset)/K_offset)*219.7 # Discontinuity in SR50 during site visit ...resetting
                                 ]
         
     init_asfs40['init_depth'] = [
                                 8.3                                   # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                16.1                                  # Discontinuity in SR50 during site visit ...resetting
                                 ]    
         
     init_asfs40['init_loc']   = [
                                 'L1'                                  # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
+                                'L1'                                  # Discontinuity in SR50 during site visit ...resetting
                                 ]       
 
 
@@ -354,8 +367,10 @@ def main(): # the main data crunching program
                                 datetime(2020,6,24,0),                 # LOG
                                 datetime(2020,6,29,13,0),              # FYI - First Year Ice
                                 datetime(2020,7,10,12,20),             # FYI, same as before but moved a few feet and re-initialized
+                                datetime(2020,7,30,13,40),             # Back on board
                                 datetime(2020,8,21,15,0),              # ASFS50 Leg 5 position at CO Lead Site
                                 datetime(2020,9,19,9,46),              # Remote Sensing Site
+                                datetime(2020,9,20,4,50),              # Back on board
                                 datetime(2020,9,26,6,20),              # Ice Station 2
                                 datetime(2020,9,30,7,50)               # Ice Station 3
                                 ]
@@ -367,8 +382,10 @@ def main(): # the main data crunching program
                                 nan,                                   # LOG
                                 nan,                                   # FYI - First Year Ice
                                 sqrt((0+K_offset)/K_offset)*208.0,     # FYI - First Year Ice 
+                                nan,                                   # Back on board
                                 sqrt((-0.3+K_offset)/K_offset)*202.9,  # ASFS50 Leg 5 position at CO Lead Site
                                 nan,                                   # Remote Sensing Site
+                                nan,                                   # Back on board
                                 nan,                                   # Ice Station 2
                                 nan                                    # Ice Station 3
                                 ]
@@ -381,8 +398,10 @@ def main(): # the main data crunching program
                                 nan,                                   # LOG
                                 nan,                                   # FYI - First Year Ice. Depth reported not quantifiable in melting state.
                                 5,                                     # FYI - First Year Ice. "soft-to-hard interface was 5cm down"
+                                nan,                                   # Back on board
                                 0,                                     # ASFS50 Leg 5 position at CO Lead Site 
                                 nan,                                   # Remote Sensing Site
+                                nan,                                   # Back on board
                                 nan,                                   # Ice Station 2
                                 nan                                    # Ice Station 3
                                 ]    
@@ -837,15 +856,15 @@ def main(): # the main data crunching program
                                                                        sdt['temp']+K_offset,
                                                                        sdt['atmos_pressure'],
                                                                        0)
-            sdt['rhi']          = rhi2
+            sdt['rhi']                  = rhi2
             sdt['abs_humidity_vaisala'] = a2
-            sdt['vapor_pressure']           = Pw2
-            sdt['mixing_ratio']           = x2
+            sdt['vapor_pressure']       = Pw2
+            sdt['mixing_ratio']         = x2
 
             # snow depth in cm, corrected for temperature
-            sdt['sr50_dist']  = sdt['sr50_dist']*sqrt((sdt['temp']+K_offset)/K_offset)*100
-            sdt['snow_depth'] = idt['init_dist'] - sdt['sr50_dist'] + idt['init_depth']
-
+            sdt['sr50_dist']  = sdt['sr50_dist']*sqrt((sdt['temp']+K_offset)/K_offset)
+            sdt['snow_depth'] = idt['init_dist'] + (idt['init_depth']-sdt['sr50_dist']*100)
+            
             # net radiation
             sdt['radiation_LWnet'] = sdt['down_long_hemisp']-sdt['up_long_hemisp']
             sdt['radiation_SWnet'] = sdt['down_short_hemisp']-sdt['up_short_hemisp']
