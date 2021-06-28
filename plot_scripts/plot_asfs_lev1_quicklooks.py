@@ -81,7 +81,7 @@ def main(): # the main data crunching program
     leg_list   = [leg1_start,leg2_start,leg3_start,leg4_start,leg5_start,mosaic_end]
 
     global sleds_to_plot, code_version # code_version is the *production* code and is pulled in from nc files later
-    sleds_to_plot = ('asfs30','asfs40','asfs50')
+    sleds_to_plot = ('asfs30',)#'asfs40','asfs50')
 
     # what are we plotting? dict key is the full plot name, value is another dict...
     # ... of subplot titles and the variables to put on each subplot
@@ -189,7 +189,7 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks/asfs/1_level/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks_test/asfs/1_level/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 
