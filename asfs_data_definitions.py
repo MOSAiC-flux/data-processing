@@ -22,7 +22,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('2.0', '5/26/2021', 'ccox')
+    cv = ('1.999', '5/26/2021', 'ccox')
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"

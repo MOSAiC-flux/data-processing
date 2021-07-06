@@ -2145,10 +2145,10 @@ def write_level2_10hz(sonic_data, licor_data, date):
     # in fast_atts to know which atts to apply to which group/variable, the
     # data is the value of the search string, a dict of dicts...
     inst_dict = {}
-    inst_dict['metek_2m']   = ('2m'    , sonic_data['metek_2m']  )
-    inst_dict['metek_6m']   = ('6m'    , sonic_data['metek_6m']  )
-    inst_dict['metek_10m']  = ('10m'   , sonic_data['metek_10m'] )
-    inst_dict['metek_mast'] = ('mast'  , sonic_data['metek_mast'])
+    inst_dict['metek_2m']   = ('2m'    , sonic_data['metek_2m'][date:tomorrow]  )
+    inst_dict['metek_6m']   = ('6m'    , sonic_data['metek_6m'][date:tomorrow]  )
+    inst_dict['metek_10m']  = ('10m'   , sonic_data['metek_10m'][date:tomorrow] )
+    inst_dict['metek_mast'] = ('mast'  , sonic_data['metek_mast'][date:tomorrow])
     inst_dict['licor']      = ('licor' , licor_data)
 
     fast_atts, fast_vars = define_10hz_variables()
@@ -2189,7 +2189,7 @@ def write_level2_10hz(sonic_data, licor_data, date):
     # create the three 'bases' that serve for calculating the time arrays
     et  = np.datetime64(epoch_time)
     bot = np.datetime64(beginning_of_time)
-    tm  =  np.datetime64(today_midnight)
+    tm  = np.datetime64(today_midnight)
 
     # first write the int base_time, the temporal distance from the UNIX epoch
     base_fast = netcdf_lev1_fast.createVariable(f'base_time', 'i') # seconds since
@@ -2232,7 +2232,6 @@ def write_level2_10hz(sonic_data, licor_data, date):
         netcdf_lev1_fast[f'base_time'].setncattr(att_name,att_val)
     for att_name, att_val in bt_atts_fast.items():
         netcdf_lev1_fast[f'time_offset'].setncattr(att_name,att_val)
-
 
     # loop through the 4 instruments and set vars in each group based on the strings contained in those vars.
     # a bit sketchy but better than hardcoding things... probably. can at least be done in loop

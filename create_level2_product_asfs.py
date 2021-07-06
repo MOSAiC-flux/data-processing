@@ -82,7 +82,7 @@ import os, inspect, argparse, time, sys
 import socket 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -328,12 +328,9 @@ def main(): # the main data crunching program
                                 'BGC1LOG',      # BGC1LOG
                                 'BGC1',         # BGC1
                                 'L2',           # L2
-                                'Onboard',      # onboard
                                 'MC',           # Met City
                                 'HP',           # Hinterland Pond
-                                'RS',           # Remote sensing
-                                'Onboard',      # onboard
-                                'IS1',          # 
+                                'IS1',          # Ice Station 1
                                 'IS2',          # Ice Station 2
                                 'IS3'           # Ice Station 3 
                                 ]       
@@ -341,23 +338,23 @@ def main(): # the main data crunching program
 
                                                                       # ASFS 40 ---------------------------
     init_asfs40['init_date']  = [
-                                station_initial_start_time['asfs40'],  # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                station_initial_start_time['asfs40']  # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
                                 datetime(2019,12,22,8,43),            # Discontinuity in SR50 during site visit ...resetting
                                 ]
         
     init_asfs40['init_dist']  = [
-                                sqrt((-7.75+K_offset)/K_offset)*201.8, # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
-                                sqrt((-28.4+K_offset)/K_offset)*219.7, # Discontinuity in SR50 during site visit ...resetting
+                                sqrt((-7.75+K_offset)/K_offset)*201.8 # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                sqrt((-28.4+K_offset)/K_offset)*219.7 # Discontinuity in SR50 during site visit ...resetting
                                 ]
         
     init_asfs40['init_depth'] = [
-                                8.3,                                   # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
-                                16.1,                                  # Discontinuity in SR50 during site visit ...resetting
+                                8.3                                   # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                16.1                                  # Discontinuity in SR50 during site visit ...resetting
                                 ]    
         
     init_asfs40['init_loc']   = [
-                                'L1',                                  # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
-                                'L1',                                  # Discontinuity in SR50 during site visit ...resetting
+                                'L1'                                  # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
+                                'L1'                                  # Discontinuity in SR50 during site visit ...resetting
                                 ]       
 
 
@@ -416,10 +413,8 @@ def main(): # the main data crunching program
                                 'LOG',                                 # LOG  
                                 'FYI',                                 # FYI - First Year Ice
                                 'FYI',                                 # FYI - First Year Ice
-                                'Onboard',      # onboard
                                 'COlead',                              # ASFS50 Leg 5 position at CO Lead Site
                                 'RS',                                  # Remote Sensing Site 
-                                'Onboard',      # onboard
                                 'IS2',                                 # Ice Station 2
                                 'IS3'                                  # Ice Station 3
                                 ]       
@@ -1486,7 +1481,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
     short_name = "met"
     if timestep != "1min":
         short_name = 'seb'
-    file_str = 'mos{}.{}.level2v2.{}.{}.nc'.format(short_name,curr_station,timestep,date.strftime('%Y%m%d.%H%M%S'))
+    file_str = 'mos{}{}.level2.{}.{}.nc'.format(curr_station,short_name,timestep,date.strftime('%Y%m%d.%H%M%S'))
     
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
@@ -1724,7 +1719,7 @@ def write_level2_10hz(curr_station, sonic_data, licor_data, date, out_dir):
         print("!!! no data on day {}, returning from fast write without writing".format(date))
         return False
 
-    file_str_fast = 'moswind10hz.{}.level2v2.10hz.{}.nc'.format(curr_station, date.strftime('%Y%m%d.%H%M%S'))
+    file_str_fast = 'moswind10hz.{}.level2v2.{}.nc'.format(curr_station, date.strftime('%Y%m%d.%H%M%S'))
     
     lev2_10hz_name  = '{}/{}'.format(out_dir, file_str_fast)
 
