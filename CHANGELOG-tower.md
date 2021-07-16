@@ -143,5 +143,10 @@ Basically, this is the push for August through mid September by Cox that impleme
 - heights are now written to netcdf files using information from this module 
 - other misc minor fixes associated with these changes
 
+## Revision 2.0 7/15/21 
+- Added initialization metadata for the tower in Legs 4 & 5. In Leg 4 two initializations, the original tower raise and after SR50 moved on the boom.
+- Fixed error in U, V caught by Byron 7/15/21
+- Re-checked and updated attribute corrections from Matt “level2 version2 — updated summary and information” email
+- Made version 1.9999 to 2.0
 
 

@@ -85,12 +85,12 @@ Turbulence
 - new get_data function that's threaded and can pull in level1 or level2 files
 - manual qc and flagging has been refactored to a separate file for documentation
 
-## Revision 1.5 1/8/2020 ccox
+## Revision 1.5 1/8/2021 ccox
 - rh equilibration periods in asfs50 legs 4/5 removed
 - heading median filter from 86400 s window -> 21600 s (24 hr -> 6 hr)
 - heading median filtering perfomed in unit vector space to accomodate rotations past 0/360 degrees
 
-## Revision 1.999 5/26/2020 ccox
+## Revision 1.999 5/26/2021 ccox
 (some of this is tower)
 - Webb correction recalculated to be flux with correction applied (rather than just the correction) and attributes updated accordingly
 - Fixed type in bulk_Hl_Webb_10m
@@ -110,6 +110,11 @@ Turbulence
 - Several typos were found in the tower and ASFS attributes and were corrected
 - Added metadata for SR50 initialization for Leg 5
 
+## Revision 2.0 7/15/21 
+- Added initialization metadata for the tower in Legs 4 & 5. In Leg 4 two initializations, the original tower raise and after SR50 moved on the boom.
+- Fixed error in U, V caught by Byron 7/15/21
+- Re-checked and updated attribute corrections from Matt “level2 version2 — updated summary and information” email
+- Made version 1.9999 to 2.0
 
 
 

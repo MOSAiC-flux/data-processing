@@ -22,7 +22,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('1.999', '5/26/2021', 'ccox')
+    cv = ('2.0', '7/15/2021', 'ccox')
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -37,7 +37,7 @@ def define_global_atts(station_name, file_type):
         'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
         'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
         'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
-        'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
+        'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
         'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
         'system'           :'{}'.format(station_name),
         'references'       :'', 
@@ -1123,14 +1123,14 @@ def define_level2_variables():
     lev2_atts['wspd_vec_mean']         .update({'long_name'     : 'average metek wind speed',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                'methods'       : 'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                 'height'        : sonic_height,
                                                 'location'      : inst_mast_location_string,})
         
     lev2_atts['wdir_vec_mean']         .update({'long_name'     : 'average metek wind direction',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                'methods'       : 'derived from hozirontal wind components after coordinate transformation from body to earth reference frame',
+                                                'methods'       : 'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
                                                 'height'        : sonic_height,
                                                 'location'      : inst_mast_location_string,})
     

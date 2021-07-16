@@ -64,7 +64,7 @@ from qc_level2_asfs import qc_stations
 from get_data_functions import get_flux_data, get_arm_radiation_data
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
-from debug_functions import drop_me as dm
+#from debug_functions import drop_me as dm
 
 # Ephemeris
 # SPA is NREL's (Ibrahim Reda's) emphemeris calculator that all those BSRN/ARM radiometer geeks use ;) 
@@ -89,11 +89,11 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-# nthreads = 1
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
+nthreads = 1
+from multiprocessing.dummy import Process as P
+from multiprocessing.dummy import Queue   as Q
      
-from debug_functions import drop_me as dm
+#from debug_functions import drop_me as dm
 
 import numpy  as np
 import pandas as pd
@@ -173,7 +173,7 @@ def main(): # the main data crunching program
     arm_dir   = '/Projects/MOSAiC_internal/partner_data/'
     
     if args.station: flux_stations = args.station.split(',')
-    else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
+    else: flux_stations = ['asfs50'] #['asfs50', 'asfs40', 'asfs30']
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
@@ -284,7 +284,8 @@ def main(): # the main data crunching program
                                 datetime(2020,9,20,4,53),              # Back on board
                                 datetime(2020,9,24,5,16),              # Ice Station 1
                                 datetime(2020,9,26,6,20),              # Ice Station 2
-                                datetime(2020,9,30,7,50)               # Ice Station 3
+                                datetime(2020,9,30,7,50),              # Ice Station 3
+                                datetime(2020,10,1,0,0)                # end
                                 ]
         
     init_asfs30['init_dist']  = [
@@ -301,7 +302,8 @@ def main(): # the main data crunching program
                                 nan,                                   # Back on board
                                 nan,                                   # Ice Station 1
                                 nan,                                   # Ice Station 2
-                                nan                                    # Ice Station 3
+                                nan,                                   # Ice Station 3
+                                nan                                    # end
                                 ]
         
     init_asfs30['init_depth'] = [
@@ -318,7 +320,8 @@ def main(): # the main data crunching program
                                 nan,            # Back on board
                                 nan,            # Ice Station 1
                                 nan,            # Ice Station 2
-                                nan             # Ice Station 3
+                                nan,            # Ice Station 3
+                                nan             # end
                                 ]    
         
     init_asfs30['init_loc']   = [
@@ -328,33 +331,41 @@ def main(): # the main data crunching program
                                 'BGC1LOG',      # BGC1LOG
                                 'BGC1',         # BGC1
                                 'L2',           # L2
+                                'PS',           # Back on board
                                 'MC',           # Met City
                                 'HP',           # Hinterland Pond
+                                'RS',           # Remote Sensing
+                                'PS',           # Back on board
                                 'IS1',          # Ice Station 1
                                 'IS2',          # Ice Station 2
-                                'IS3'           # Ice Station 3 
+                                'IS3',          # Ice Station 3 
+                                'PS'            # end
                                 ]       
 
 
                                                                       # ASFS 40 ---------------------------
     init_asfs40['init_date']  = [
-                                station_initial_start_time['asfs40']  # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
-                                datetime(2019,12,22,8,43),            # Discontinuity in SR50 during site visit ...resetting
+                                station_initial_start_time['asfs40'],  # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                datetime(2019,12,22,8,43),             # Discontinuity in SR50 during site visit ...resetting
+                                datetime(2020,3,1,0,0)                 # end 
                                 ]
         
     init_asfs40['init_dist']  = [
-                                sqrt((-7.75+K_offset)/K_offset)*201.8 # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
-                                sqrt((-28.4+K_offset)/K_offset)*219.7 # Discontinuity in SR50 during site visit ...resetting
+                                sqrt((-7.75+K_offset)/K_offset)*201.8, # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                sqrt((-28.4+K_offset)/K_offset)*219.7, # Discontinuity in SR50 during site visit ...resetting
+                                nan                                    # end
                                 ]
         
     init_asfs40['init_depth'] = [
-                                8.3                                   # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
-                                16.1                                  # Discontinuity in SR50 during site visit ...resetting
+                                8.3,                                   # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                16.1,                                  # Discontinuity in SR50 during site visit ...resetting
+                                nan                                    # end
                                 ]    
         
     init_asfs40['init_loc']   = [
-                                'L1'                                  # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
-                                'L1'                                  # Discontinuity in SR50 during site visit ...resetting
+                                'L1',                                  # L2 distance (201.8 cm) and 2-m Tvais (-7.75 C) at 0430 UTC Oct 7, 2019 
+                                'L1',                                  # Discontinuity in SR50 during site visit ...resetting
+                                'NA'                                   # end
                                 ]       
 
 
@@ -372,7 +383,8 @@ def main(): # the main data crunching program
                                 datetime(2020,9,19,9,46),              # Remote Sensing Site
                                 datetime(2020,9,20,4,50),              # Back on board
                                 datetime(2020,9,26,6,20),              # Ice Station 2
-                                datetime(2020,9,30,7,50)               # Ice Station 3
+                                datetime(2020,9,30,7,50),              # Ice Station 3
+                                datetime(2020,10,1,0,0)                # end
                                 ]
         
     init_asfs50['init_dist']  = [
@@ -387,7 +399,8 @@ def main(): # the main data crunching program
                                 nan,                                   # Remote Sensing Site
                                 nan,                                   # Back on board
                                 nan,                                   # Ice Station 2
-                                nan                                    # Ice Station 3
+                                nan,                                   # Ice Station 3
+                                nan                                    # end
                                 ]
                                 
         
@@ -403,7 +416,8 @@ def main(): # the main data crunching program
                                 nan,                                   # Remote Sensing Site
                                 nan,                                   # Back on board
                                 nan,                                   # Ice Station 2
-                                nan                                    # Ice Station 3
+                                nan,                                   # Ice Station 3
+                                nan                                    # end
                                 ]    
         
     init_asfs50['init_loc']   = [
@@ -413,10 +427,13 @@ def main(): # the main data crunching program
                                 'LOG',                                 # LOG  
                                 'FYI',                                 # FYI - First Year Ice
                                 'FYI',                                 # FYI - First Year Ice
+                                'PS',                                  # Back on board
                                 'COlead',                              # ASFS50 Leg 5 position at CO Lead Site
                                 'RS',                                  # Remote Sensing Site 
+                                'PS',                                  # Back on board
                                 'IS2',                                 # Ice Station 2
-                                'IS3'                                  # Ice Station 3
+                                'IS3',                                 # Ice Station 3
+                                'PS'                                   # end
                                 ]       
     
     # Set the index
@@ -428,7 +445,6 @@ def main(): # the main data crunching program
     init_data['asfs30'] = init_asfs30
     init_data['asfs40'] = init_asfs40
     init_data['asfs50'] = init_asfs50
-    
     
     # Metadata for the radiometer tilt correction. We need a priori (i.e., when level prior to change in orientation) knowledge 
     # of the offsets between Metek inclinometer and SWD. Dates are begining of period and values should be persisted until the 
@@ -610,7 +626,7 @@ def main(): # the main data crunching program
     # I'm going to do all the gps qc up front mostly because I need to smooth the heading before we split individual days  
     print('\n---------------------------------------------------------------------------------------------\n')            
     def process_gps(curr_station, sd):
-        
+  
         # Get the current station's initialzation dataframe. ...eval...sorry, it had to be
         init_data[curr_station] = init_data[curr_station].reindex(method='pad',index=sd.index)
         print('Processing GPS: qc, calculations, and band-pass median filter applied to heading for '+curr_station) 
@@ -864,7 +880,7 @@ def main(): # the main data crunching program
             # snow depth in cm, corrected for temperature
             sdt['sr50_dist']  = sdt['sr50_dist']*sqrt((sdt['temp']+K_offset)/K_offset)
             sdt['snow_depth'] = idt['init_dist'] + (idt['init_depth']-sdt['sr50_dist']*100)
-            
+
             # net radiation
             sdt['radiation_LWnet'] = sdt['down_long_hemisp']-sdt['up_long_hemisp']
             sdt['radiation_SWnet'] = sdt['down_short_hemisp']-sdt['up_short_hemisp']
@@ -1062,8 +1078,8 @@ def main(): # the main data crunching program
                                                 fdt_10hz['metek_y'], fdt_10hz['metek_x'], fdt_10hz['metek_z'])
 
             # reassign corrected vals in meteorological convention
-            fdt_10hz['metek_x'] = ct_u 
-            fdt_10hz['metek_y'] = ct_v*-1
+            fdt_10hz['metek_x'] = ct_v 
+            fdt_10hz['metek_y'] = ct_u
             fdt_10hz['metek_z'] = ct_w   
 
             # start referring to xyz as uvw now

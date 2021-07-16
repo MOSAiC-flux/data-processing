@@ -18,7 +18,7 @@ import pandas as pd
 
 from datetime  import datetime as date
 
-from debug_functions import drop_me as dm
+#from debug_functions import drop_me as dm
 
 pd.options.mode.use_inf_as_na = True # no inf values anywhere 
 def metcity_metadata():

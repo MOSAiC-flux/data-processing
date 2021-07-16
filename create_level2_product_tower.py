@@ -70,11 +70,11 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
-# nthreads = 1
+from multiprocessing.dummy import Process as P
+from multiprocessing.dummy import Queue   as Q
+nthreads = 1
  
-from debug_functions import drop_me as dm
+#from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd
@@ -154,8 +154,8 @@ def main(): # the main data crunching program
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'              # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product/test/'        # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product/test/'        # where does level2 data go
+    level2_dir = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
     leica_dir = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
     arm_dir = '/Projects/MOSAiC_internal/partner_data/'
 
@@ -211,8 +211,50 @@ def main(): # the main data crunching program
     # ##########################
     # initial distance measurement for sr50 to snow (187.9cm) corrected
     # by 2-m Tvais (-25.7 C) at 0430 UTC Oct 27, 2019
-    sr50_init_dist  = sqrt((-25.7+K_offset)/K_offset)*187.9
-    sr50_init_depth = 2.3 #snow depth (cm) measured under SR50 at 0430 UTC Oct 27, 2019
+    #sr50_init_dist  = sqrt((-25.7+K_offset)/K_offset)*187.9
+    #sr50_init_depth = 2.3 #snow depth (cm) measured under SR50 at 0430 UTC Oct 27, 2019
+    
+    init_twr = pd.DataFrame()
+    
+    init_twr['init_date']  = [
+                                datetime(2019,10,24,5,30),             # Tower initial raise, Leg 1
+                                datetime(2020,6,27,9,30),              # Tower initial raise, Leg 4
+                                datetime(2020,7,2,13,50),              # Tower insutments on boom moved our away from ablation shield, reset
+                                datetime(2020,7,29,8,41),              # back on board
+                                datetime(2020,8,27,11,4),              # Tower initial raise, Leg 5. Date estiamte from level 1 as notes say tower begins 8/25 before sr50 comes online
+                                datetime(2020,9,18,5,45)               # end
+                             ]
+        
+    init_twr['init_dist']  = [
+                                sqrt((-25.7+K_offset)/K_offset)*187.9, # by 2-m Tvais (-25.7 C) at 0430 UTC Oct 27, 2019
+                                sqrt((0.3+K_offset)/K_offset)*206.5,   # from level 1 data
+                                sqrt((-1.6+K_offset)/K_offset)*228.9,  # from level 2 data
+                                nan,                                   # back on board
+                                sqrt((0.5+K_offset)/K_offset)*221.5,   # Leg 5
+                                nan                                    # end
+                             ]
+        
+    init_twr['init_depth'] = [
+                                2.3,                                   # snow depth (cm) measured under SR50 at 0430 UTC Oct 27, 2019
+                                7.9,                                   # "New install at L2. Current snow depth is hard to determine because of ambiguity between snow and the surface scattering layer. Interface between solid ice and non-solid ice was 7-9cm down." 
+                                7.9,                                   # adjustment to boom   
+                                nan,                                   # back on board
+                                0,                                     # no snow according to Ola's notes
+                                nan                                    # end
+                             ]    
+        
+    init_twr['init_loc']   = [
+                                'CO1',                                 # Original CO
+                                'CO2',                                 # Leg 4 CO
+                                'CO2',                                 # Leg 4 CO adjustment
+                                'PS',                                  # back on board
+                                'CO3',                                 # Leg 5 CO
+                                'PS'                                   # back on board
+                             ] 
+
+    # Set the index
+    init_twr.set_index(init_twr['init_date'],inplace=True)    
+
 
     # the following is currently N/A, we don't have the ARM data yet to read in
     #sr30      = (-4,1000) # SWD & SWU [Wm^2]
@@ -459,6 +501,10 @@ def main(): # the main data crunching program
         slow_data = slow_data_today
         today_str = today.strftime('%Y-%m-%d') # used for prints
         # where are we in our indices for tracking data?
+        
+        # SR50 initialization info
+        idt = init_twr.reindex(method='pad',index=slow_data.index)
+        idt = idt[today:tomorrow]
 
         if slow_data.empty:
             verboseprint(f"!!! No data available today at all... {today_str}!!! ")
@@ -715,7 +761,7 @@ def main(): # the main data crunching program
         # replace spikes outside 2 cm over 5 min sec with 5 min median
         sd['sr50_dist']  = fl.despike(sd['sr50_dist'],0.05,300,"yes") 
         sd['sr50_dist']  = sd['sr50_dist']*sqrt((sd['vaisala_T_2m']+K_offset)/K_offset)
-        sd['snow_depth'] = sr50_init_depth + (sr50_init_dist-sd['sr50_dist']*100)
+        sd['snow_depth'] = idt['init_dist'] + (idt['init_depth']-sd['sr50_dist']*100)
 
         # Flux Plate QC
         sd['fp_A_Wm2'].mask( (sd['fp_A_Wm2']<flxp[1]) & (abs(sd['fp_A_Wm2'])>flxp[1]) , inplace=True) # ppl
@@ -1169,8 +1215,8 @@ def main(): # the main data crunching program
                                                         fast_data_10hz[inst][inst+'_z'])
 
                 # reassign corrected vals in meteorological convention
-                fast_data_10hz[inst][inst+'_y'] = ct_v*-1      # met v = postivie northward
-                fast_data_10hz[inst][inst+'_x'] = ct_u  # met u = positive eastward
+                fast_data_10hz[inst][inst+'_x'] = ct_v  # met v = postivie northward
+                fast_data_10hz[inst][inst+'_y'] = ct_u  # met u = positive eastward
                 fast_data_10hz[inst][inst+'_z'] = ct_w
 
                 # start referring to xyz as uvw now

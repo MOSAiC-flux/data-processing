@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['1.9999', '6/1/2021', 'mgallagher']
+    cv = ['2.0', '7/15/2021', 'ccox']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -31,7 +31,7 @@ def define_global_atts(file_type):
         'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
         'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
         'project'          :'Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
-        'Funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program; Department of Energy Office of Science Atmospheric Radiation Measurement Program;',
+        'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program; Department of Energy Office of Science Atmospheric Radiation Measurement Program;',
         'source'           :'Observations made during the Multidisciplinary drifting Observatory for the Study of Arctic Climate (MOSAiC 2019-2020) expedition PS-122',
         'system'           :'Met City',
         'references'       :'', 
@@ -1774,7 +1774,7 @@ def define_level2_variables():
 
     lev2_atts['skin_temp_surface']       .update({    'long_name'                              :'surface radiometric skin temperature assummed emissivity, corrected for IR reflection',
                                                       'cf_name'                                :'',
-                                                      'instrument'                             :'Apogee SI-4H1-SS IRT, PIR LWu, LWd',
+                                                      'instrument'                             :'PIR LWu, LWd',
                                                       'methods'                                :'Eq.(2.2) Persson et al. (2002) https://www.doi.org/10.1029/2000JC000705; emis = 0.985',
                                                       'height'                                 :'surface',
                                                       'platform'                               : radiation_platform,
