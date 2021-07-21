@@ -70,9 +70,9 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-from multiprocessing.dummy import Process as P
-from multiprocessing.dummy import Queue   as Q
-nthreads = 1
+#from multiprocessing.dummy import Process as P
+#from multiprocessing.dummy import Queue   as Q
+#nthreads = 1
  
 #from debug_functions import drop_me as dm
  
@@ -190,7 +190,7 @@ def main(): # the main data crunching program
     # thresholds! limits that can warn you about bad data!
     # these aren't used yet but should be used to warn about spurious data
     irt_targ          = (-80  ,5)    # IRT surface brightness temperature limits [Celsius]
-    sr50d             = (1    ,2.5)  # distance limits from SR50 to surface [m]; install height -1 m or +0.5
+    sr50d             = (1    ,3)    # distance limits from SR50 to surface [m]; install height -1 m or +0.5
     flxp              = (-120 ,120)  # minimum and maximum conductive heat flux (W/m2)
     T_thresh          = (-70  ,20)   # minimum & maximum air temperatures (C)
     rh_thresh         = (40   ,130)  # relative humidity (#)
@@ -220,8 +220,14 @@ def main(): # the main data crunching program
                                 datetime(2019,10,24,5,30),             # Tower initial raise, Leg 1
                                 datetime(2020,6,27,9,30),              # Tower initial raise, Leg 4
                                 datetime(2020,7,2,13,50),              # Tower insutments on boom moved our away from ablation shield, reset
+                                datetime(2020,7,5,13,37),              # Tower settles: reset
+                                datetime(2020,7,8,11,46),              # Tower settles: reset
+                                datetime(2020,7,11,11,26),             # Tower settles: reset
+                                datetime(2020,7,24,8,24),              # Tower settles: reset
                                 datetime(2020,7,29,8,41),              # back on board
                                 datetime(2020,8,27,11,4),              # Tower initial raise, Leg 5. Date estiamte from level 1 as notes say tower begins 8/25 before sr50 comes online
+                                datetime(2020,8,31,11,31,35),          # Tower settles by ~1deg. Need reset of sr50 range
+                                datetime(2020,9,8,15,52),              # Tower settles: reset
                                 datetime(2020,9,18,5,45)               # end
                              ]
         
@@ -229,17 +235,29 @@ def main(): # the main data crunching program
                                 sqrt((-25.7+K_offset)/K_offset)*187.9, # by 2-m Tvais (-25.7 C) at 0430 UTC Oct 27, 2019
                                 sqrt((0.3+K_offset)/K_offset)*206.5,   # from level 1 data
                                 sqrt((-1.6+K_offset)/K_offset)*228.9,  # from level 2 data
+                                sqrt((-0.4+K_offset)/K_offset)*232,    # Tower settles: reset
+                                sqrt((0.1+K_offset)/K_offset)*236.6,   # Tower settles: reset
+                                sqrt((1+K_offset)/K_offset)*237.7,     # Tower settles: reset
+                                sqrt((0.2+K_offset)/K_offset)*256.4,   # Tower settles: reset
                                 nan,                                   # back on board
                                 sqrt((0.5+K_offset)/K_offset)*221.5,   # Leg 5
+                                sqrt((-0.5+K_offset)/K_offset)*226.7,  # Tower settles by ~1deg. Need reset of sr50 range                               
+                                sqrt((-4.3+K_offset)/K_offset)*226.8,  # Tower settles: reset
                                 nan                                    # end
                              ]
         
     init_twr['init_depth'] = [
                                 2.3,                                   # snow depth (cm) measured under SR50 at 0430 UTC Oct 27, 2019
                                 7.9,                                   # "New install at L2. Current snow depth is hard to determine because of ambiguity between snow and the surface scattering layer. Interface between solid ice and non-solid ice was 7-9cm down." 
-                                7.9,                                   # adjustment to boom   
+                                7.9,                                   # adjustment to boom 
+                                1.63,                                  # Tower settles: reset
+                                -4.4,                                  # Tower settles: reset
+                                -9.1,                                  # Tower settles: reset
+                                -29.2,                                 # Tower settles: reset
                                 nan,                                   # back on board
                                 0,                                     # no snow according to Ola's notes
+                                -2.195,                                # Tower settles by ~1deg. Need reset of sr50 range. This is last measurement before shift. 
+                                -0.33,                                 # Tower settles: reset
                                 nan                                    # end
                              ]    
         
@@ -247,8 +265,14 @@ def main(): # the main data crunching program
                                 'CO1',                                 # Original CO
                                 'CO2',                                 # Leg 4 CO
                                 'CO2',                                 # Leg 4 CO adjustment
+                                'CO2',                                 # Tower settles: reset
+                                'CO2',                                 # Tower settles: reset
+                                'CO2',                                 # Tower settles: reset
+                                'CO2',                                 # Tower settles: reset
                                 'PS',                                  # back on board
                                 'CO3',                                 # Leg 5 CO
+                                'CO3',                                 # Tower settles by ~1deg. Need reset of sr50 range
+                                'CO3',                                 # Tower settles: reset
                                 'PS'                                   # back on board
                              ] 
 
@@ -761,6 +785,14 @@ def main(): # the main data crunching program
         # replace spikes outside 2 cm over 5 min sec with 5 min median
         sd['sr50_dist']  = fl.despike(sd['sr50_dist'],0.05,300,"yes") 
         sd['sr50_dist']  = sd['sr50_dist']*sqrt((sd['vaisala_T_2m']+K_offset)/K_offset)
+        # make adjustment to the alternating detections of multi-surfaces at the beginning of Leg 4
+        sd['sr50_dist'].loc[datetime(2020,6,27,9,15,0):datetime(2020,7,2,8,8,0)].mask( ((sd['sr50_dist']>2.15) | (sd['sr50_dist']<1.9)), inplace=True) 
+        sd['sr50_dist'].loc[(sd.index > datetime(2020,6,27,9,15,0)) & (sd.index < datetime(2020,7,2,8,8,0)) &  (sd['sr50_dist']<2.04)] += 0.1 
+        sd['sr50_dist'].loc[datetime(2020,2,19,9,21,0):datetime(2020,2,20,14,52,0)].mask( ((sd['sr50_dist']>2) | (sd['sr50_dist']<1)), inplace=True) 
+        sd['sr50_dist'].loc[(sd.index > datetime(2020,2,19,9,21,0)) & (sd.index < datetime(2020,2,20,14,52,0)) &  (sd['sr50_dist']>1.45)] += -0.16
+        sd['sr50_dist'].loc[datetime(2020,2,20,14,52,0):datetime(2020,2,21,23,31,0)].mask( ((sd['sr50_dist']>2) | (sd['sr50_dist']<1)), inplace=True) 
+        sd['sr50_dist'].loc[(sd.index > datetime(2020,2,20,14,52,0)) & (sd.index < datetime(2020,2,21,23,31,0)) &  (sd['sr50_dist']>1.45)] += -0.13
+        # now calculate snow depth
         sd['snow_depth'] = idt['init_dist'] + (idt['init_depth']-sd['sr50_dist']*100)
 
         # Flux Plate QC

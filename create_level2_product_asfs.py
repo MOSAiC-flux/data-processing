@@ -89,9 +89,9 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-nthreads = 1
-from multiprocessing.dummy import Process as P
-from multiprocessing.dummy import Queue   as Q
+#nthreads = 1
+#from multiprocessing.dummy import Process as P
+#from multiprocessing.dummy import Queue   as Q
      
 #from debug_functions import drop_me as dm
 
