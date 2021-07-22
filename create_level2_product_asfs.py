@@ -173,7 +173,7 @@ def main(): # the main data crunching program
     arm_dir   = '/Projects/MOSAiC_internal/partner_data/'
     
     if args.station: flux_stations = args.station.split(',')
-    else: flux_stations = ['asfs50'] #['asfs50', 'asfs40', 'asfs30']
+    else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
@@ -219,8 +219,8 @@ def main(): # the main data crunching program
     ws_thresh         = (0    ,40)       # wind speed from sonics (m/s)
     lic_co2sig_thresh = (94   ,105)      # rough estimate of minimum CO2 signal value corresponding to
                                          # optically-clean window. < 90 = needs cleaned (e.g., salt residue); < ~80?? = ice!
-    lic_h2o           = (1e-3 ,50)       # Licor h2o [mg/m3]
-    lic_co2           = (600  ,5000)     # Licor co2 [g/m3]
+    lic_h2o           = (1e-3 ,10)       # Licor h2o [mg/m3]
+    lic_co2           = (600  ,1000)     # Licor co2 [g/m3]
     max_bad_paths     = (0.01 ,1)        # METEK: maximum [fraction] of bad paths allowed. (0.01 = 1%), but is
                                          # actually in 1/9 increments. This just says we require all paths to be usable.
     incl_range        = (-90  ,90)       # The inclinometer on the metek

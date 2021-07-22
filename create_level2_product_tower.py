@@ -233,7 +233,7 @@ def main(): # the main data crunching program
         
     init_twr['init_dist']  = [
                                 sqrt((-25.7+K_offset)/K_offset)*187.9, # by 2-m Tvais (-25.7 C) at 0430 UTC Oct 27, 2019
-                                sqrt((0.3+K_offset)/K_offset)*206.5,   # from level 1 data
+                                sqrt((0.3+K_offset)/K_offset)*207.5,   # from level 1 data
                                 sqrt((-1.6+K_offset)/K_offset)*228.9,  # from level 2 data
                                 sqrt((-0.4+K_offset)/K_offset)*232,    # Tower settles: reset
                                 sqrt((0.1+K_offset)/K_offset)*236.6,   # Tower settles: reset
@@ -248,8 +248,8 @@ def main(): # the main data crunching program
         
     init_twr['init_depth'] = [
                                 2.3,                                   # snow depth (cm) measured under SR50 at 0430 UTC Oct 27, 2019
-                                7.9,                                   # "New install at L2. Current snow depth is hard to determine because of ambiguity between snow and the surface scattering layer. Interface between solid ice and non-solid ice was 7-9cm down." 
-                                7.9,                                   # adjustment to boom 
+                                7,                                     # Tower initial raise, Leg 4 Current snow depth is hard to determine because of ambiguity between snow and the surface scattering layer. Interface between solid ice and non-solid ice was 7-9cm down." 
+                                7,                                     # adjustment to boom 
                                 1.63,                                  # Tower settles: reset
                                 -4.4,                                  # Tower settles: reset
                                 -9.1,                                  # Tower settles: reset
@@ -781,10 +781,6 @@ def main(): # the main data crunching program
         # sr50 dist QC then in m & snow depth in cm, both corrected for
         # temperature, snwdpth_meas is height in cm on oct 27 2019
         sd['sr50_dist'].mask( (sd['sr50_dist']<sr50d[0])  | (sd['sr50_dist']>sr50d[1]) , inplace=True) # ppl
-
-        # replace spikes outside 2 cm over 5 min sec with 5 min median
-        sd['sr50_dist']  = fl.despike(sd['sr50_dist'],0.05,300,"yes") 
-        sd['sr50_dist']  = sd['sr50_dist']*sqrt((sd['vaisala_T_2m']+K_offset)/K_offset)
         # make adjustment to the alternating detections of multi-surfaces at the beginning of Leg 4
         sd['sr50_dist'].loc[datetime(2020,6,27,9,15,0):datetime(2020,7,2,8,8,0)].mask( ((sd['sr50_dist']>2.15) | (sd['sr50_dist']<1.9)), inplace=True) 
         sd['sr50_dist'].loc[(sd.index > datetime(2020,6,27,9,15,0)) & (sd.index < datetime(2020,7,2,8,8,0)) &  (sd['sr50_dist']<2.04)] += 0.1 
@@ -792,6 +788,9 @@ def main(): # the main data crunching program
         sd['sr50_dist'].loc[(sd.index > datetime(2020,2,19,9,21,0)) & (sd.index < datetime(2020,2,20,14,52,0)) &  (sd['sr50_dist']>1.45)] += -0.16
         sd['sr50_dist'].loc[datetime(2020,2,20,14,52,0):datetime(2020,2,21,23,31,0)].mask( ((sd['sr50_dist']>2) | (sd['sr50_dist']<1)), inplace=True) 
         sd['sr50_dist'].loc[(sd.index > datetime(2020,2,20,14,52,0)) & (sd.index < datetime(2020,2,21,23,31,0)) &  (sd['sr50_dist']>1.45)] += -0.13
+        # replace spikes outside 2 cm over 5 min sec with 5 min median
+        sd['sr50_dist']  = fl.despike(sd['sr50_dist'],0.05,300,"yes") 
+        sd['sr50_dist']  = sd['sr50_dist']*sqrt((sd['vaisala_T_2m']+K_offset)/K_offset)
         # now calculate snow depth
         sd['snow_depth'] = idt['init_dist'] + (idt['init_depth']-sd['sr50_dist']*100)
 
@@ -1203,7 +1202,7 @@ def main(): # the main data crunching program
                 elif 'mast' in inst:
 
                     # This is Leg 1 and 2.  We use information available and interpolate between.
-                    if today < datetime(2020,4,14,0,0):   
+                    if today < datetime(2020,3,12,0,0):   
                         # interpolate the mast alignment metadata for today
                         most_recent_gps = mast_hdg_df['gps_hdg'].reindex(index=fast_data_10hz[inst].index,method='pad')
                         most_recent_mast = mast_hdg_df['mast_hdg'].reindex(index=fast_data_10hz[inst].index,method='pad')
@@ -1233,7 +1232,7 @@ def main(): # the main data crunching program
                         # also, set the heading for the file
                         logger_today['heading_mast'] = np.mod(logger_today['heading_mast']-mast_align,360)
 
-                    # leg 4 and 5 the mast stays packed away safely in cold storage
+                    # part of leg 3, leg 4 and 5 the mast stays packed away safely in cold storage
                     else:
                          mast_hdg_series = fast_data_10hz[inst]['metek_mast_T']*nan
 

@@ -36,14 +36,14 @@ def define_global_atts(station_name, file_type):
         'institution'      :'CIRES, University of Colorado and NOAA Physical Sciences Laboratory',
         'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
         'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
-        'project'          :'MOSAiC, PS-122: Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
+        'project'          :'Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
         'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
         'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
         'system'           :'{}'.format(station_name),
         'references'       :'', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
-        'history'          :'based on level 1 ingest files',
+        'history'          :'based on raw instrument data files',
         'version'          : cv[0]+', '+cv[1], 
     }
 
@@ -419,13 +419,13 @@ def define_level1_slow():
     lev1_slow_atts['apogee_targ_T_Avg']            .update({'long_name'     : 'average of the sensor target 8-14 micron brightness temperature during the 1 min averaging interval',
                                                             'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                             'methods'       : 'thermopile infrared thermometer; SDI-12 protocol',
-                                                            'height'        : '2 m',
+                                                            'height'        : 'surface',
                                                             'location'      : inst_boom_location_string,})
 
     lev1_slow_atts['apogee_targ_T_Std']            .update({'long_name'     : 'standard deviation of the the sensor target 8-14 micron brightness temperature during the 1 min averaging interval',
                                                             'instrument'    : 'Apogee SI-4H1-SS IRT',
                                                             'methods'       : 'thermopile infrared thermometer; SDI-12 protocol',
-                                                            'height'        : '2 m',
+                                                            'height'        : 'surface',
                                                             'location'      : inst_boom_location_string,})
 
     lev1_slow_atts['sr50_dist_Avg']                .update({'long_name'     : 'average of the uncorrected distance between the sensor and the surface during the 1 min averaging interval',
@@ -713,25 +713,25 @@ def define_level1_slow():
     lev1_slow_atts['sr30_swu_fantach_Avg']         .update({'long_name'     : 'average fan speed of the downward-facing (SWU) pyranometer during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer case fan; RS-485',
-                                                            'height'        : '3.8 m',
+                                                            'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
     lev1_slow_atts['sr30_swu_heatA_Avg']           .update({'long_name'     : 'average case heating current of the downward-facing sensor during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer case heater; RS-485 protocol',
-                                                            'height'        : '3.8 m',
+                                                            'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
     lev1_slow_atts['sr30_swd_fantach_Avg']         .update({'long_name'     : 'average fan speed of the upward-facing sensor during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer case fan; RS-485 protocol',
-                                                            'height'        : '3.8 m',
+                                                            'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
     lev1_slow_atts['sr30_swd_heatA_Avg']           .update({'long_name'     : 'average case heating current of the upward-facing sensor during 1 min averaging period',
                                                             'instrument'    : 'Hukseflux SR30',
                                                             'methods'       : 'thermopile pyranometer case heater; RS-485 protocol',
-                                                            'height'        : '3.8 m',
+                                                            'height'        : '2 m',
                                                             'location'      : inst_boom_location_string,})
 
     lev1_slow_atts['ir20_lwu_fan_Avg']             .update({'long_name'     : 'average fan voltage status signal of the downward-facing ventilator during the 1 min averaging period',

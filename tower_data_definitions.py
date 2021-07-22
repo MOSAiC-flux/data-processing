@@ -25,7 +25,7 @@ def define_global_atts(file_type):
     cv = code_version()
     global_atts = {                # attributes to be written into the netcdf output file
         'date_created'     :'{}'.format(time.ctime(time.time())),
-        'title'            :'MOSAiC flux group data product: ', # blank variables are specific to site characterization 
+        'title'            :'MOSAiC flux group data product', # blank variables are specific to site characterization 
         'contact'          :'Matthew Shupe, University of Colorado, matthew.shupe@colorado.edu',
         'institution'      :'CIRES, University of Colorado and NOAA Physical Sciences Laboratory',
         'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
@@ -33,11 +33,11 @@ def define_global_atts(file_type):
         'project'          :'Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
         'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program; Department of Energy Office of Science Atmospheric Radiation Measurement Program;',
         'source'           :'Observations made during the Multidisciplinary drifting Observatory for the Study of Arctic Climate (MOSAiC 2019-2020) expedition PS-122',
-        'system'           :'Met City',
+        'system'           :'10m Tower',
         'references'       :'', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
-        'history'          :'based on level 1 ingest files',
+        'history'          :'based on raw instrument data files',
         'version'          : cv[0]+', '+cv[1], 
     }
     # Some specifics for the tubulence file
@@ -45,7 +45,7 @@ def define_global_atts(file_type):
         global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
     elif file_type == "fast":
-        global_atts['quality_control']  = 'This "Level 1" product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
+        global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
     elif file_type == "level2":
         global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use this data for any analyses.',
@@ -254,37 +254,37 @@ def define_level1_slow():
     lev1_slow_atts['vaisala_RH_6m']      .update({'long_name'  : 'relative humidity wrt water',   
                                                   'instrument' : 'Vaisala HMT330',		       
                                                   'methods'    : 'meteorology sensor, heated capacitive thin-film polymer; RS-485 protocol',
-                                                  'height'     : '6m',			       
+                                                  'height'     : '6 m',			       
                                                   'location'   : middle_location_string,})         
 
     lev1_slow_atts['vaisala_T_6m']       .update({'long_name'  : 'temperature',				
                                                   'instrument' : 'Vaisala HMT330',				
                                                   'methods'    : 'meteorology sensor, PT100 RTD; RS-485 protocol',		
-                                                  'height'     : '',					
+                                                  'height'     : '6 m',					
                                                   'location'   : middle_location_string,})                  
 
     lev1_slow_atts['vaisala_Td_6m']      .update({'long_name'  : 'dewpoint temperature',				
                                                   'instrument' : 'Vaisala HMT330',				
                                                   'methods'    : 'calculated by sensor electonics; RS-485 protocol',		
-                                                  'height'     : '6m',					
+                                                  'height'     : '6 m',					
                                                   'location'   : middle_location_string,})                  
 
     lev1_slow_atts['vaisala_RH_10m']     .update({'long_name'  : 'relative humidity wrt water',	     
                                                   'instrument' : 'Vaisala HMT330',			     
                                                   'methods'    : 'meteorology sensor, heated capacitive thin-film polymer; RS-485 protocol',	     
-                                                  'height'     : '10m',				     
+                                                  'height'     : '10 m',				     
                                                   'location'   : top_location_string,})                  
 
     lev1_slow_atts['vaisala_T_10m']      .update({'long_name'  : 'temperature',			     
                                                   'instrument' : 'Vaisala HMT330',			     
                                                   'methods'    : 'meteorology sensor, PT100 RTD; RS-485 protocol',	     
-                                                  'height'     : '10m',				     
+                                                  'height'     : '10 m',				     
                                                   'location'   : top_location_string,})                  
 
     lev1_slow_atts['vaisala_Td_10m']     .update({'long_name'  : 'dewpoint temperature',			     
                                                   'instrument' : 'Vaisala HMT330',			     
                                                   'methods'    : 'calculated by sensor electonics; RS-485 protocol',	     
-                                                  'height'     : '10m',				     
+                                                  'height'     : '10 m',				     
                                                   'location'   : top_location_string,})                  
 
     lev1_slow_atts['fp_A_mV']            .update({'long_name'  : 'voltage from Hukseflux plate A',	

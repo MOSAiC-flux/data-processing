@@ -201,7 +201,7 @@ def get_arm_radiation_data(start_day, end_day, data_dir='/Projects/MOSAiC/',
 
     """
 
-    subdir = 'ARM/mosiceradriihimakiS3.b2/'
+    subdir = 'ARM/mosiceradriihimakiS3.b1/'
 
     pickled_filename = f'ARM_df_{start_day}_{end_day}' 
     df = pd.DataFrame() # dataframe and version we return from this function
@@ -237,7 +237,7 @@ def get_arm_radiation_data(start_day, end_day, data_dir='/Projects/MOSAiC/',
 
             date_str = today.strftime('%Y%m%d.%H%M%S')
 
-            file_str = f'/mosiceradriihimakiS3.b2.{date_str}.nc'
+            file_str = f'/mosiceradriihimakiS3.b1.{date_str}.nc'
             files_dir = data_dir+subdir
             curr_file = files_dir+file_str
 
