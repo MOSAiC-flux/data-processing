@@ -735,8 +735,7 @@ def main(): # the main data crunching program
         sd['mast_T']             .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
             sd['mast_T']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] +0.3380
 
-        # now re-calculate RH with the corrected temperatures and the not-corrected q, a-la Ola this feels convoluted
-        # but it seems required to use the offsets Ola has provided as this is how he calculated them
+        # now re-calculate RH with the corrected temperatures and the not-corrected q, as requested by Ola 
 
         # coefficients from calc_humidity_ptu300 to re-derive RH after correcting temp
         c0 = 0.4931358; c1 = -0.46094296*1e-2; c2 = 0.13746454*1e-4; c3 = -0.12743214*1e-7

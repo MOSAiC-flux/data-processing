@@ -276,7 +276,8 @@ def main(): # the main data crunching program
                                 datetime(2020,4,15,12),                # Balloon Town
                                 datetime(2020,5,5,0),                  # BGC1LOG
                                 datetime(2020,5,7,11,37),              # BGC1
-                                datetime(2020,6,30,0,0),               # L2
+                                datetime(2020,6,30,15,49),             # L2
+                                datetime(2020,7,14,13,10),             # settling, reset
                                 datetime(2020,8,2,14,20),              # Back on board
                                 datetime(2020,8,21,16,30),             # Met City
                                 datetime(2020,9,4,10,18),              # Hinterland Pond
@@ -294,7 +295,8 @@ def main(): # the main data crunching program
                                 sqrt((-17.9+K_offset)/K_offset)*206.9, # Ballooon Town
                                 nan,                                   # BGC1LOG
                                 sqrt((-9.7+K_offset)/K_offset)*192.7,  # BGC1
-                                sqrt((-2.0+K_offset)/K_offset)*208.8,  # L2
+                                sqrt((-0.2+K_offset)/K_offset)*208.8,  # L2
+                                sqrt((-1.2+K_offset)/K_offset)*228.4,  # settling, reset
                                 nan,                                   # Back on board
                                 sqrt((-0.3+K_offset)/K_offset)*203.2,  # Met City
                                 sqrt((-0.9+K_offset)/K_offset)*205.4,  # Hinterland Pond
@@ -313,6 +315,7 @@ def main(): # the main data crunching program
                                 nan,            # BGC1LOG
                                 36.1,           # BGC1. last snow depth from asfs50 sr50 in this spot on 5/7...for continuity
                                 0,              # L2. Depth reported as difficult to quantify in melting state
+                                -13.14,         # settling, reset
                                 nan,            # Back on board
                                 0,              # Met City
                                 0,              # Hinterland Pond
@@ -331,6 +334,7 @@ def main(): # the main data crunching program
                                 'BGC1LOG',      # BGC1LOG
                                 'BGC1',         # BGC1
                                 'L2',           # L2
+                                'L2',           # settling, reset
                                 'PS',           # Back on board
                                 'MC',           # Met City
                                 'HP',           # Hinterland Pond
@@ -345,20 +349,20 @@ def main(): # the main data crunching program
 
                                                                       # ASFS 40 ---------------------------
     init_asfs40['init_date']  = [
-                                station_initial_start_time['asfs40'],  # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                station_initial_start_time['asfs40'],  # L1 921 UTC Oct 5, 2019
                                 datetime(2019,12,22,8,43),             # Discontinuity in SR50 during site visit ...resetting
                                 datetime(2020,3,1,0,0)                 # end 
                                 ]
         
     init_asfs40['init_dist']  = [
-                                sqrt((-7.75+K_offset)/K_offset)*201.8, # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
+                                sqrt((-6.8+K_offset)/K_offset)*212,   # L1 distance (212 cm) and 2-m Tvais (-6.8 C) at 921 UTC Oct 5, 2019
                                 sqrt((-28.4+K_offset)/K_offset)*219.7, # Discontinuity in SR50 during site visit ...resetting
                                 nan                                    # end
                                 ]
         
     init_asfs40['init_depth'] = [
                                 8.3,                                   # L1 distance (214.9 cm) and 2-m Tvais (-13.9 C) at 921 UTC Oct 5, 2019
-                                16.1,                                  # Discontinuity in SR50 during site visit ...resetting
+                                10.4,                                  # Discontinuity in SR50 during site visit ...resetting
                                 nan                                    # end
                                 ]    
         
@@ -824,6 +828,8 @@ def main(): # the main data crunching program
             # SR50
             sdt['sr50_dist'].mask( (sdt['sr50_qc_Avg']<sr50_qc[0]) | (sdt['sr50_qc_Avg']>sr50_qc[1]) , inplace=True) # ppl
             sdt['sr50_dist'].mask( (sdt['sr50_dist']<sr50d[0])     | (sdt['sr50_dist']>sr50d[1]) ,     inplace=True) # ppl
+            
+            if curr_station == 'asfs30': sdt['sr50_dist'].loc[datetime(2020,8,2,18,56,0):].mask(sdt['sr50_dist']<1.97, inplace=True) 
 
             sdt['sr50_dist']  = fl.despike(sdt['sr50_dist'],0.01,5,"no") # screen but do not replace
 
@@ -998,7 +1004,7 @@ def main(): # the main data crunching program
             fdt['licor_co2'].mask( (fdt['licor_co2_str']<lic_co2sig_thresh[0]), inplace=True) # ppl
 
             # The diagnostic is coded                                       
-            print("... decoding Licor diagnostics. It's fast like the Dranitsyn, even vectorized. Gimme a minute...")
+            print("... decoding Licor diagnostics.")
 
             pll, detector_temp, chopper_temp = fl.decode_licor_diag(fdt['licor_diag'])
             # Phase Lock Loop. Optical filter wheel rotating normally if 1, else "abnormal"
@@ -1071,13 +1077,22 @@ def main(): # the main data crunching program
             #             metek x -> earth v, +West
             #             Have a look also at pg 21-23 of NEW_MANUAL_20190624_uSonic-3_Cage_MP_Manual for metek conventions.
             #             Pg 21 seems to have errors in the diagram?
+            
+            hdg = sdt['heading'].reindex(fdt_10hz.index).interpolate() # nominally, metek N is in line with the boom
+            # but at the beginning of Leg 5 it wasn't and was adjusted after the first week
+            if curr_station == 'asfs30':
+                hdg.loc[(hdg.index >= datetime(2020,8,21,11,37,0)) & (hdg.index <= datetime(2020,8,31,5,17,0))] += 13 # Ola's notes report 15 deg, but 13 to match post rotation winds
+                
+            if curr_station == 'asfs50':
+                hdg.loc[(hdg.index >= datetime(2020,8,24,4,57,0)) & (hdg.index <= datetime(2020,8,31,6,0,0))] += 50 # Ola's notes report 90 deg, but 50 to match post rotation winds                
+                
 
             ct_u, ct_v, ct_w = fl.tilt_rotation(sdt['metek_InclY_Avg'].reindex(fdt_10hz.index).interpolate(),\
                                                 sdt['metek_InclX_Avg'].reindex(fdt_10hz.index).interpolate(),\
-                                                sdt['heading'].reindex(fdt_10hz.index).interpolate(),\
+                                                hdg,\
                                                 fdt_10hz['metek_y'], fdt_10hz['metek_x'], fdt_10hz['metek_z'])
 
-            # reassign corrected vals in meteorological convention
+            # reassign corrected vals in meteorological convention, which involves swapping u and v and occurs in the following two blocks of 3 lines
             fdt_10hz['metek_x'] = ct_v 
             fdt_10hz['metek_y'] = ct_u
             fdt_10hz['metek_z'] = ct_w   
@@ -1109,11 +1124,11 @@ def main(): # the main data crunching program
                                                     sdt['heading'],\
                                                     sdt['metek_y_Avg'], sdt['metek_x_Avg'], sdt['metek_z_Avg'])
 
-                u_min_slow = ct_u   
-                v_min_slow = ct_v*-1
+                u_min_slow = ct_v # swapping u and v convention to met  
+                v_min_slow = ct_u # swapping u and v convention to met
                 w_min_slow = ct_w   
                 ws_slow    = np.sqrt(u_min_slow**2+v_min_slow**2)
-                wd_slow    = np.mod((np .arctan2(-u_min_slow,-v_min_slow)*180/np.pi),360)
+                wd_slow    = np.mod((np.arctan2(-u_min_slow,-v_min_slow)*180/np.pi),360)
 
                 ws[np.isnan(ws)]       = ws_slow[np.isnan(ws)]
                 wd[np.isnan(wd)]       = wd_slow[np.isnan(wd)]
