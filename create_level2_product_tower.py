@@ -1616,7 +1616,7 @@ def main(): # the main data crunching program
         except UnboundLocalError: l2_data = logger_1min # there was no fast data, rare
 
         # write out all the hard work that we've done
-        write_level2_10hz(fast_data_10hz.copy(), licor_10hz, today)
+        write_level2_10hz(fast_data_10hz.copy(), licor_10hz.copy(), today)
         write_level2_netcdf(l2_data.copy(), today, "1min")
         for win_len in range(0,len(integ_time_step)):
             write_level2_netcdf(l2_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data_dict[win_len].copy())
@@ -2225,7 +2225,7 @@ def write_level2_10hz(sonic_data, licor_data, date):
     inst_dict['metek_6m']   = ('6m'    , sonic_data['metek_6m'][date:tomorrow]  )
     inst_dict['metek_10m']  = ('10m'   , sonic_data['metek_10m'][date:tomorrow] )
     inst_dict['metek_mast'] = ('mast'  , sonic_data['metek_mast'][date:tomorrow])
-    inst_dict['licor']      = ('licor' , licor_data)
+    inst_dict['licor']      = ('licor' , licor_data[date:tomorrow])
 
     fast_atts, fast_vars = define_10hz_variables()
 
@@ -2255,7 +2255,7 @@ def write_level2_10hz(sonic_data, licor_data, date):
     # create standardized time dimension for file
     netcdf_lev1_fast.createDimension(f'time', None)
 
-    fms = sonic_data['metek_2m'].index[0]
+    fms = sonic_data['metek_2m'][date:tomorrow].index[0]
     beginning_of_time = fms 
 
     # base_time, ARM spec, the difference between the time of the first data point and the BOT
@@ -2286,8 +2286,8 @@ def write_level2_10hz(sonic_data, licor_data, date):
                       'long_name' : 'Time offset from base_time',
                       'calendar'  : 'standard',}
 
-    bt_fast_dti = pd.DatetimeIndex(sonic_data['metek_2m'].index.values)   
-    fast_dti    = pd.DatetimeIndex(sonic_data['metek_2m'].index.values)
+    bt_fast_dti = pd.DatetimeIndex(sonic_data['metek_2m'][date:tomorrow].index.values)   
+    fast_dti    = pd.DatetimeIndex(sonic_data['metek_2m'][date:tomorrow].index.values)
 
     # set the time dimension and variable attributes to what's defined above
     t_fast      = netcdf_lev1_fast.createVariable(f'time', 'd',f'time') 
