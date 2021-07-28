@@ -146,8 +146,9 @@ def main(): # the main data crunching program
     emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Warren and so on
 
     global version  # names directory where data will be written
+    global lvlname # will appear in filename
     version = 'test'
-    
+    lvlname = 'level2v2' 
 
     # there are two command line options that effect processing, the start and end date...
     # ... if not specified it runs over all the data. format: '20191001' AKA '%Y%m%d'
@@ -1512,7 +1513,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
     short_name = "met"
     if timestep != "1min":
         short_name = 'seb'
-    file_str = 'mos{}{}.level2.{}.{}.nc'.format(curr_station,short_name,timestep,date.strftime('%Y%m%d.%H%M%S'))
+    file_str = 'mos{}.{}.{}.{}.{}.nc'.format(short_name,curr_station,lvlname,timestep,date.strftime('%Y%m%d.%H%M%S'))
     
     lev2_name  = '{}/{}'.format(out_dir, file_str)
 
@@ -1750,7 +1751,7 @@ def write_level2_10hz(curr_station, sonic_data, licor_data, date, out_dir):
         print("!!! no data on day {}, returning from fast write without writing".format(date))
         return False
 
-    file_str_fast = 'moswind10hz.{}.level2v2.{}.nc'.format(curr_station, date.strftime('%Y%m%d.%H%M%S'))
+    file_str_fast = 'moswind10hz.{}.{}.{}.nc'.format(curr_station,lvlname,date.strftime('%Y%m%d.%H%M%S'))
     
     lev2_10hz_name  = '{}/{}'.format(out_dir, file_str_fast)
 
