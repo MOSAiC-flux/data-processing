@@ -8,6 +8,9 @@ import pandas as pd
 pd.options.mode.use_inf_as_na = True # no inf values anywhere 
 
 from datetime  import datetime as date
+from tower_data_definitions import define_level2_variables, define_turb_variables
+
+from debug_functions import drop_me as dm
 
 global nan,Rd,K_offset,h2o_mass,co2_mass,sb,emis
 nan      = np.NaN
@@ -18,14 +21,64 @@ co2_mass = 44      # ... ever obvious?
 sb       = 5.67e-8 # stefan-boltzmann
 emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Warren and so on
 
+def qc_flagging(tower_data):
+
+    tower_flags = tower_data 
+
+    var_atts, var_names = define_level2_variables()
+    flag_df   = get_qc_table("./manual_qc_table.csv")
+
+    zero_array = np.array([0]*len(tower_data))
+    qc_var_list = []
+    for iv, v in enumerate(var_names):
+        if v.rsplit("_")[-1] == 'qc':
+            tower_data[v] =  0
+            qc_var_list.append(v)
+
+    for irow, row in flag_df.iterrows():
+        var_to_qc = row['var_name']+'_qc'
+        try: 
+            tower_data[var_to_qc].loc[row['start_date']:row['end_date']] = row['qc_val']
+        except KeyError as ke: 
+            print(f"!!! problem with entry in manual QC table for var {var_to_qc}!!!")
+
+    return tower_data 
+        
+
+def get_qc_table(table_file="./manual_qc_table.csv"):
+    
+    mos_begin = '20191015 000000'
+    mos_end = '20200919 000000'
+
+    def custom_date_parser(d):
+
+        if d == 'beg': d = mos_begin
+        elif d=='end': d =mos_end
+            
+        hour = (str_two := d.split(' ')[1])[0:2]
+        mins = str_two[2:4]
+        secs = str_two[4:6]
+        date_str = f"{d.split(' ')[0]} {hour}:{mins}:{secs}"
+
+        return date.strptime(date_str, "%Y%m%d %H:%M:%S")
+
+    cols = ['var_name', 'start_date', 'end_date', 'qc_val', 'explanation', 'author']
+    mqc = pd.read_csv("./manual_qc_table.csv", skiprows=range(0,6), names=cols)     
+
+    mqc['start_date'] = mqc['start_date'].apply(custom_date_parser)
+    mqc['end_date'] = mqc['end_date'].apply(custom_date_parser)
+
+    return mqc
+
 def qc_tower(tower_data):
 
-    td = tower_data 
-    
     date_twr_raised = date(2019, 10, 24, 5, 30)
 
+    td = tower_data # pointer, c-style.. shorthand
+
     # #####################################################################################
-    # manual flagging -> nans for specific periods
+    # manual flagging done by Chris and Michael prior to document creation
+    # -> nans for specific periods
 
     # Fix the flux plates that were insalled upside down
     td['fp_A_Wm2'] = td['fp_A_Wm2'] * -1

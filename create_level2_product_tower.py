@@ -40,7 +40,7 @@ code_version = code_version()
 # import our code modules
 from tower_data_definitions import define_global_atts, define_level2_variables, define_turb_variables
 from tower_data_definitions import define_10hz_variables, define_level1_slow, define_level1_fast
-from qc_level2_tower        import qc_tower
+from qc_level2_tower        import qc_tower, qc_flagging
 from get_data_functions     import get_flux_data, get_arm_radiation_data
 from site_metadata          import metcity_metadata
 
@@ -153,11 +153,14 @@ def main(): # the main data crunching program
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
-    level1_dir = data_dir+'/tower/1_level_ingest/'              # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product/testc/'        # where does level2 data go
-    leica_dir = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
-    arm_dir = '/Projects/MOSAiC_internal/partner_data/'
+    level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
+    level2_dir = data_dir+'/tower/2_level_product/test_gallagh/'                    # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/test_gallagh/'                    # where does level2 data go
+    leica_dir  = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
+    arm_dir    = '/Projects/MOSAiC_internal/partner_data/'
+ 
+    # leica_dir = data_dir+'/partner_data/AWI/polarstern/WXstation/'
+    # arm_dir = data_dir
 
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
@@ -517,6 +520,9 @@ def main(): # the main data crunching program
         slow_data['mast_ice_alt'] = tmpa
 
 
+    verboseprint("... creating qc flags... takes a minute and some RAM")
+    slow_data = qc_flagging(slow_data)
+
     print('... done with the slow stuff, moving into parallelized daily processing') 
     verboseprint("\n We've retreived and QCed all slow data, now processing each day...\n")
 
@@ -589,9 +595,7 @@ def main(): # the main data crunching program
                     ind = ind+1
 
 
-        # #################################################################
         # begin slow_data QC, including automated boundary and hand groomed 
-
         verboseprint("... manual data QC")
         slow_data = qc_tower(slow_data)
 
@@ -682,7 +686,8 @@ def main(): # the main data crunching program
         # atm pressure adjusted assuming 1 hPa per 10 m (1[hPA]*ht[m]/10[m]), except for mast, which has a direct meas.
         p6    = slow_data['vaisala_P_2m']-1*6/10
         p10   = slow_data['vaisala_P_2m']-1*10/10    
-            # we are missing a lot of the mast pressures so I will fill in with an approximation    
+
+        # we are missing a lot of the mast pressures so I will fill in with an approximation    
         pmast = slow_data['mast_P'] 
         pmast.fillna(slow_data['vaisala_P_2m']-1*mast_params['mast_sonic_heights'][mast_index]/10)
 
@@ -721,22 +726,21 @@ def main(): # the main data crunching program
         # #####################################################################################
         # air temperature offsets from Ola Persson's "Met_Tower_Intercomparison_Results.docx"
         sd['vaisala_T_2m']       .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-            sd['vaisala_T_2m']   .loc[datetime(2019,10,19) : datetime(2020,9,21)] + 0.00   
+            sd['vaisala_T_2m']   .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.00   
 
         sd['vaisala_T_6m']       .loc[datetime(2019,10,19) : datetime(2019,12,4)] = \
-            sd['vaisala_T_6m']   .loc[datetime(2019,10,19) : datetime(2019,12,4)] + 0.0972
+            sd['vaisala_T_6m']   .loc[datetime(2019,10,19) : datetime(2019,12,4)] - 0.0972
 
         sd['vaisala_T_6m']       .loc[datetime(2019,12,4) : datetime(2020,9,21)] = \
-            sd['vaisala_T_6m']   .loc[datetime(2019,12,4) : datetime(2020,9,21)] -0.0854
+            sd['vaisala_T_6m']   .loc[datetime(2019,12,4) : datetime(2020,9,21)] + 0.0854
 
         sd['vaisala_T_10m']      .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-             sd['vaisala_T_10m'] .loc[datetime(2019,10,19) : datetime(2020,9,21)] -0.0146
+             sd['vaisala_T_10m'] .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.0146
 
         sd['mast_T']             .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-            sd['mast_T']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] +0.3380
+            sd['mast_T']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.3380
 
         # now re-calculate RH with the corrected temperatures and the not-corrected q, as requested by Ola 
-
         # coefficients from calc_humidity_ptu300 to re-derive RH after correcting temp
         c0 = 0.4931358; c1 = -0.46094296*1e-2; c2 = 0.13746454*1e-4; c3 = -0.12743214*1e-7
         bm1 = -0.58002206*1e4; b0 = 0.13914993*1e1; b1 = -0.48640239*1e-1; b2 = 0.41764768*1e-4;     
@@ -763,19 +767,19 @@ def main(): # the main data crunching program
 
         # now actually apply the offsets
         sd['vaisala_RH_2m']       .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-            sd['vaisala_RH_2m']   .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 1.04   
+            sd['vaisala_RH_2m']   .loc[datetime(2019,10,19) : datetime(2020,9,21)] + 1.04   
 
         sd['vaisala_RH_6m']       .loc[datetime(2019,10,19) : datetime(2019,12,4)] = \
-            sd['vaisala_RH_6m']   .loc[datetime(2019,10,19) : datetime(2019,12,4)] - 0.05
+            sd['vaisala_RH_6m']   .loc[datetime(2019,10,19) : datetime(2019,12,4)] + 0.05
 
         sd['vaisala_RH_6m']       .loc[datetime(2019,12,4) : datetime(2020,9,21)] = \
-            sd['vaisala_RH_6m']   .loc[datetime(2019,12,4) : datetime(2020,9,21)] + 0.11
+            sd['vaisala_RH_6m']   .loc[datetime(2019,12,4) : datetime(2020,9,21)] - 0.11
 
         sd['vaisala_RH_10m']      .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-             sd['vaisala_RH_10m'] .loc[datetime(2019,10,19) : datetime(2020,9,21)] -0.06
+             sd['vaisala_RH_10m'] .loc[datetime(2019,10,19) : datetime(2020,9,21)] +0.06
 
         sd['mast_RH']             .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-            sd['mast_RH']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.86
+            sd['mast_RH']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] + 0.86
 
         # sr50 dist QC then in m & snow depth in cm, both corrected for
         # temperature, snwdpth_meas is height in cm on oct 27 2019
@@ -1963,7 +1967,7 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
 
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
-        netcdf_lev2[var_name].setncattr('missing_value', fill_val)
+        netcdf_lev2[var_name].setncattr('missing_value', float(fill_val))
 
         max_val = np.nanmax(vtmp.values) # masked array max/min/etc
         min_val = np.nanmin(vtmp.values)
