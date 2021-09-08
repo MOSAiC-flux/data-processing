@@ -55,7 +55,9 @@ def get_qc_table(table_file="./manual_qc_table.csv"):
         if d == 'beg': d = mos_begin
         elif d=='end': d =mos_end
             
-        hour = (str_two := d.split(' ')[1])[0:2]
+        #hour = (str_two := d.split(' ')[1])[0:2] # no walrus in the trio python
+        str_two = d.split(' ')[1]
+        hour = str_two[0:2]
         mins = str_two[2:4]
         secs = str_two[4:6]
         date_str = f"{d.split(' ')[0]} {hour}:{mins}:{secs}"
