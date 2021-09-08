@@ -154,8 +154,8 @@ def main(): # the main data crunching program
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product/test_gallagh/'                    # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product/test_gallagh/'                    # where does level2 data go
+    level2_dir = data_dir+'/tower/2_level_product/test/'                    # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/test/'                    # where does level2 data go
     leica_dir  = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
     arm_dir    = '/Projects/MOSAiC_internal/partner_data/'
  
@@ -653,9 +653,9 @@ def main(): # the main data crunching program
                                     | (sd['mast_RH']        >rh_thresh[1]) , \
                                     inplace=True) # ppl
 
-        sd['vaisala_RH_2m']  = fl.despike(sd['vaisala_RH_2m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
-        sd['vaisala_RH_6m']  = fl.despike(sd['vaisala_RH_6m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
-        sd['vaisala_RH_10m'] = fl.despike(sd['vaisala_RH_10m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
+    #    sd['vaisala_RH_2m']  = fl.despike(sd['vaisala_RH_2m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
+    #    sd['vaisala_RH_6m']  = fl.despike(sd['vaisala_RH_6m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
+    #    sd['vaisala_RH_10m'] = fl.despike(sd['vaisala_RH_10m'],0.4,30,'yes') # replace spikes outside 0.4% over 30s median
 
         verboseprint("... met corrections and calculations...")
         # Vaisala relative corrections
@@ -792,7 +792,7 @@ def main(): # the main data crunching program
         sd['sr50_dist'].loc[datetime(2020,2,20,14,52,0):datetime(2020,2,21,23,31,0)].mask( ((sd['sr50_dist']>2) | (sd['sr50_dist']<1)), inplace=True) 
         sd['sr50_dist'].loc[(sd.index > datetime(2020,2,20,14,52,0)) & (sd.index < datetime(2020,2,21,23,31,0)) &  (sd['sr50_dist']>1.45)] += -0.13
         # replace spikes outside 2 cm over 5 min sec with 5 min median
-        sd['sr50_dist']  = fl.despike(sd['sr50_dist'],0.05,300,"yes") 
+  #      sd['sr50_dist']  = fl.despike(sd['sr50_dist'],0.05,300,"yes") 
         sd['sr50_dist']  = sd['sr50_dist']*sqrt((sd['vaisala_T_2m']+K_offset)/K_offset)
         # now calculate snow depth
         sd['snow_depth'] = idt['init_dist'] + (idt['init_depth']-sd['sr50_dist']*100)
@@ -821,8 +821,8 @@ def main(): # the main data crunching program
                                   inplace=True) # reports spurious 0s sometimes
 
         # replace spikes outside 2C over 60 sec with 60 s median
-        sd['apogee_body_T']  = fl.despike(sd['apogee_body_T'],2,60,'yes') 
-        sd['apogee_targ_T']  = fl.despike(sd['apogee_targ_T'],2,60,'yes') 
+    #    sd['apogee_body_T']  = fl.despike(sd['apogee_body_T'],2,60,'yes') 
+    #    sd['apogee_targ_T']  = fl.despike(sd['apogee_targ_T'],2,60,'yes') 
 
         # GPS QC etc.
         sd['lat_tower']     = sd['gps_lat_deg']+sd['gps_lat_min']/60.0 # add decimal values
@@ -908,9 +908,9 @@ def main(): # the main data crunching program
 
         # in matlab, there were rare instabilities in the Reda and Andreas algorithm that resulted in spikes
         # (a few per year). no idea if this is a problem in the python version, but lets make sure
-        slow_data['zenith_true']     = fl.despike(slow_data['zenith_true'],2,5,'no')
-        slow_data['zenith_apparent'] = fl.despike(slow_data['zenith_apparent'],2,5,'no')
-        slow_data['azimuth']         = fl.despike(slow_data['azimuth'],2,5,'no')
+    #    slow_data['zenith_true']     = fl.despike(slow_data['zenith_true'],2,5,'no')
+    #    slow_data['zenith_apparent'] = fl.despike(slow_data['zenith_apparent'],2,5,'no')
+    #    slow_data['azimuth']         = fl.despike(slow_data['azimuth'],2,5,'no')
 
         # Laura's product currently has NaNs in shortwave for winter, we want zeros until we get the "real" measurements
         slow_data['up_short_hemisp'] .where( sd['zenith_true']<95, 0, inplace=True)
@@ -1115,7 +1115,7 @@ def main(): # the main data crunching program
             licor_data['licor_h2o'][bad_ct]  = nan
             licor_data['licor_co2'][bad_ct]  = nan
 
-            # Despike: meant to replace despik.m by Fairall. Works a little different tho
+            # Despike: looking for big spikes right now for the slow data but will use Fairall et al. despik.m on 10 min intervals in turbulence code
             #   Here screens +/-5 m/s outliers relative to a running 1 min median
             #   args go like return = despike(input,oulier_threshold_in_m/s,window_length_in_n_samples)
             #   !!!! Replaces failures with the median of the window !!!!
@@ -1474,31 +1474,38 @@ def main(): # the main data crunching program
 
                     # (2) if missing times were found, fill with nans of the freq length you discovered. this
                     # happens on days when the instruents are turned on and also perhaps runs when missing
-                    # data meant the flux_capacitor returned for lack of inputs
-                    if f_dim_len > 1 and missing_f_dim_ind: 
+                    # data meant the flux_capacitor returned for lack of inputs 
+                    if f_dim_len > 0 and any(missing_f_dim_ind):
+                        
+                        # case we have no data we need to remake a nominal fs as a filler
+                        if 'fs' not in locals(): 
+                            fs = pd.DataFrame(np.zeros((60,1)),columns=['fs'])
+                            fs = fs['fs']*nan
+                        
+                        
                         for ii in range(0,len(missing_f_dim_ind)):
                             # these are the array with multiple dims...  im filling the ones that are missing
                             # with nan (of fs in the case of fs...) such that they can form a proper and
                             # square array for the netcdf
                             turb_data['fs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]   = fs
-                            turb_data['sus'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
-                            turb_data['svs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
-                            turb_data['sws'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
+                            turb_data['sUs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
+                            turb_data['sVs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
+                            turb_data['sWs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
                             turb_data['sTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
                             turb_data['sqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
                             turb_data['scs'+suffix_list[i_inst]][missing_f_dim_ind[ii]]  = fs*nan
-                            turb_data['cwus'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cwvs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cwTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cuTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cvTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cwqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cuqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cvqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cwcs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cucs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cvcs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
-                            turb_data['cuvs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cWUs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cWVs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cWTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cUTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cVTs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cWqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cUqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cVqs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cWcs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cUcs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cVcs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
+                            turb_data['cUVs'+suffix_list[i_inst]][missing_f_dim_ind[ii]] = fs*nan
 
                 # now reassign the naming convention for the licor stuff
                 turb_data['Hl']            = turb_data['Hl'            +use_this_licor]
@@ -1507,34 +1514,22 @@ def main(): # the main data crunching program
                 turb_data['CO2_flux_Webb'] = turb_data['CO2_flux_Webb' +use_this_licor]
                 turb_data['nSq']           = turb_data['nSq'           +use_this_licor]
                 turb_data['nSc']           = turb_data['nSc'           +use_this_licor]
-                turb_data['wq_csp']        = turb_data['wq_csp'        +use_this_licor]
-                turb_data['uq_csp']        = turb_data['uq_csp'        +use_this_licor]
-                turb_data['vq_csp']        = turb_data['vq_csp'        +use_this_licor]
-                turb_data['wc_csp']        = turb_data['wc_csp'        +use_this_licor]
-                turb_data['uc_csp']        = turb_data['uc_csp'        +use_this_licor]
-                turb_data['vc_csp']        = turb_data['vc_csp'        +use_this_licor]
+                turb_data['Wq_csp']        = turb_data['Wq_csp'        +use_this_licor]
+                turb_data['Uq_csp']        = turb_data['Uq_csp'        +use_this_licor]
+                turb_data['Vq_csp']        = turb_data['Vq_csp'        +use_this_licor]
+                turb_data['Wc_csp']        = turb_data['Wc_csp'        +use_this_licor]
+                turb_data['Uc_csp']        = turb_data['Uc_csp'        +use_this_licor]
+                turb_data['Vc_csp']        = turb_data['Vc_csp'        +use_this_licor]
                 turb_data['sqs']           = turb_data['sqs'           +use_this_licor]
                 turb_data['scs']           = turb_data['scs'           +use_this_licor]
-                turb_data['cwqs']          = turb_data['cwqs'          +use_this_licor]
-                turb_data['cuqs']          = turb_data['cuqs'          +use_this_licor]
-                turb_data['cvqs']          = turb_data['cvqs'          +use_this_licor]
-                turb_data['cwcs']          = turb_data['cwcs'          +use_this_licor]
-                turb_data['cucs']          = turb_data['cucs'          +use_this_licor]
-                turb_data['cvcs']          = turb_data['cvcs'          +use_this_licor]
-                turb_data['Deltaq']        = turb_data['Deltaq'        +use_this_licor]
-                turb_data['Kurt_q']        = turb_data['Kurt_q'        +use_this_licor]
-                turb_data['Kurt_wq']       = turb_data['Kurt_wq'       +use_this_licor]
-                turb_data['Kurt_uq']       = turb_data['Kurt_uq'       +use_this_licor]
-                turb_data['Skew_q']        = turb_data['Skew_q'        +use_this_licor]
-                turb_data['Skew_wq']       = turb_data['Skew_wq'       +use_this_licor]
-                turb_data['Skew_uq']       = turb_data['Skew_uq'       +use_this_licor]
+                turb_data['cWqs']          = turb_data['cWqs'          +use_this_licor]
+                turb_data['cUqs']          = turb_data['cUqs'          +use_this_licor]
+                turb_data['cVqs']          = turb_data['cVqs'          +use_this_licor]
+                turb_data['cWcs']          = turb_data['cWcs'          +use_this_licor]
+                turb_data['cUcs']          = turb_data['cUcs'          +use_this_licor]
+                turb_data['cVcs']          = turb_data['cVcs'          +use_this_licor]
+                turb_data['Deltaq']        = turb_data['Deltaq'        +use_this_licor]           
                 turb_data['Deltac']        = turb_data['Deltac'        +use_this_licor]
-                turb_data['Kurt_c']        = turb_data['Kurt_c'        +use_this_licor]
-                turb_data['Kurt_wc']       = turb_data['Kurt_wc'       +use_this_licor]
-                turb_data['Kurt_uc']       = turb_data['Kurt_uc'       +use_this_licor]
-                turb_data['Skew_c']        = turb_data['Skew_c'        +use_this_licor]
-                turb_data['Skew_wc']       = turb_data['Skew_wc'       +use_this_licor]
-                turb_data['Skew_uc']       = turb_data['Skew_uc'       +use_this_licor] 
 
                 # select a freq vector 
                 if not turb_data['fs_2m'].isnull().all():
@@ -1548,6 +1543,7 @@ def main(): # the main data crunching program
 
                 # calculate the bulk every 30 min
                 print('... calculating bulk fluxes for day: {}'.format(today))
+ 
                 # Input dataframe
                     # first get 1 s wind speed. i dont care about direction. 
                 ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v']**2)**0.5
@@ -1805,7 +1801,7 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
 
         # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
         for var_name, var_atts in turb_atts.items(): 
-            # seriously python, seriously????
+
             if turb_vars[var_name].isnull().all():
                 if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
                     turb_vars[var_name] = np.float64(turb_vars[var_name])     

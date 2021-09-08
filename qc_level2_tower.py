@@ -10,7 +10,7 @@ pd.options.mode.use_inf_as_na = True # no inf values anywhere
 from datetime  import datetime as date
 from tower_data_definitions import define_level2_variables, define_turb_variables
 
-from debug_functions import drop_me as dm
+#from debug_functions import drop_me as dm
 
 global nan,Rd,K_offset,h2o_mass,co2_mass,sb,emis
 nan      = np.NaN

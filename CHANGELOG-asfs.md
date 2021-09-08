@@ -116,6 +116,12 @@ Turbulence
 - Re-checked and updated attribute corrections from Matt “level2 version2 — updated summary and information” email
 - Made version 1.9999 to 2.0
 
-
-
+## Revision 2.1 9/8/21
+- Remove Kurt_* and Skew_* from turbulent vars
+- Include sigmas for rotated versions of u/v/w
+- Renamed cross-stream and streamwise u/v/w to U/V/W to distinguish from earth u/v/w and expanded attribute long-names to spell it out 
+- Add a more strict second level of despiking (Fairall despik.m) to the 10 min turbulent flux periods
+- Add missing SWD > 50 qualifier for the Rayleigh limit test from ASFS QCRAD.
+- len(fdt.inx) > 1 to len(fdt.index > 0 in ASFS top of turbulence: fixes NaN issue showing up in turbulent netcdf instead of -9999 (reported by Amy)
+- Fix missing multidimensionality in 10 min file spectral vars when no turbulence at all for the day (reported by Amy)
 

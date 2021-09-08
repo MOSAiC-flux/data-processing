@@ -712,13 +712,19 @@ def main(): # the main data crunching program
     for curr_station in flux_stations:
         slow_data[curr_station], return_status = process_gps (curr_station, slow_data[curr_station])
         station_data = slow_data[curr_station]
-
-        c_Sd =coef_S_down[curr_station]; c_ad =coef_a_down[curr_station]; c_bd =coef_b_down[curr_station]; c_cd =coef_c_down[curr_station];                    c_Su =coef_S_up[curr_station]; c_au =coef_a_up[curr_station]; c_bu =coef_b_up[curr_station]; c_cu =coef_c_up[curr_station]; 
+   
+        c_Sd =coef_S_down[curr_station]
+        c_ad =coef_a_down[curr_station] 
+        c_bd =coef_b_down[curr_station] 
+        c_cd =coef_c_down[curr_station]                    
+        c_Su =coef_S_up[curr_station] 
+        c_au =coef_a_up[curr_station] 
+        c_bu =coef_b_up[curr_station] 
+        c_cu =coef_c_up[curr_station] 
 
         # Recalibrate IR20s. The logger code saved the raw and offered a preliminary cal that ignored the minor terms. We can do better.
         term = (c_ad*station_data['ir20_lwd_DegC_Avg']**2 + c_bd*station_data['ir20_lwd_DegC_Avg'] + c_cd)
         station_data['down_long_hemisp'] = station_data['ir20_lwd_mV_Avg'] / (c_Sd * term) + sb * (station_data['ir20_lwd_DegC_Avg']+273.15)**4
-
         term = (c_au*station_data['ir20_lwu_DegC_Avg']**2 + c_bu*station_data['ir20_lwu_DegC_Avg'] + c_cu)
         station_data['up_long_hemisp'] = station_data['ir20_lwu_mV_Avg'] / (c_Su * term) + sb * (station_data['ir20_lwu_DegC_Avg']+273.15)**4
 
@@ -1157,7 +1163,8 @@ def main(): # the main data crunching program
             sdt['pr_licor']             = fdt_10hz['licor_pr'].resample('1T',label='left').mean()*10 # [to hPa]
 
             # ~~~~~~~~~~~~~~~~~~~~ (6) Flux Capacitor  ~~~~~~~~~~~~~~~~~~~~~~~~~
-            if calc_fluxes == True and len(fdt.index) > 1:
+    
+            if calc_fluxes == True and len(fdt.index) > 0:
                 verboseprint('\nCalculating turbulent fluxes and associated MO parameters.')
 
                 # Rotation to the streamline, FFT window segmentation, detrending,
@@ -1258,35 +1265,40 @@ def main(): # the main data crunching program
                     # (2) if missing times were found, fill with nans of the freq length you discovered. this happens on days
                     # when the instruents are turned on and also perhaps runs when missing data meant the flux_capacitor
                     # returned for lack of inputs
-                    if f_dim_len > 1 and missing_f_dim_ind:         # omg, double negatives...python is so absurd. it didn't
-                                                                    # understand "is" so missing_f_dim_ind is not not a thing will have to do
-                                                                    # ... I deleted the not not Chris. not not is the same as if True:
+                    if f_dim_len > 0 and missing_f_dim_ind:        
+                                                                    
+                        # case we have no data we need to remake a nominal fs as a filler
+                        if 'fs' not in locals(): 
+                            fs = pd.DataFrame(np.zeros((60,1)),columns=['fs'])
+                            fs = fs['fs']*nan
+                        
 
                         for ii in range(0,len(missing_f_dim_ind)):
                             # these are the array with multiple dims...  im filling the ones that are missing with nan (of fs in
                             # the case of fs...) such that they can form a proper and square array for the netcdf
                             turbulencetom['fs'][missing_f_dim_ind[ii]] = fs
-                            turbulencetom['sus'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['svs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['sws'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['sUs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['sVs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['sWs'][missing_f_dim_ind[ii]] = fs*nan
                             turbulencetom['sTs'][missing_f_dim_ind[ii]] = fs*nan
                             turbulencetom['sqs'][missing_f_dim_ind[ii]] = fs*nan
                             turbulencetom['scs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cwus'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cwvs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cwTs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cuTs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cvTs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cwqs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cuqs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cvqs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cwcs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cucs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cvcs'][missing_f_dim_ind[ii]] = fs*nan
-                            turbulencetom['cuvs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cWUs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cWVs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cWTs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cUTs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cVTs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cWqs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cUqs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cVqs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cWcs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cUcs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cVcs'][missing_f_dim_ind[ii]] = fs*nan
+                            turbulencetom['cUVs'][missing_f_dim_ind[ii]] = fs*nan
 
                     # calculate the bulk 
                     print('... calculating bulk fluxes for day: {}'.format(today))
+                 
                     # Input dataframe
                     empty_data = np.zeros(np.size(sdt['mixing_ratio'][minutes_today]))
                     bulk_input = pd.DataFrame()
@@ -1347,6 +1359,7 @@ def main(): # the main data crunching program
                     if win_len < len(integ_time_turb_flux)-1: print('\n')
 
             out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/'+version+'/' # where will level 2 data written?
+    
             try: 
                 trash_var = write_level2_10hz(curr_station, metek_10hz[today:tomorrow], licor_10hz[today:tomorrow], today, out_dir)
             except UnboundLocalError as ule:

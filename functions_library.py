@@ -362,6 +362,7 @@ def column_is_ints(ser):
 
 # despik.m
 def despik(uraw):
+
     uz = np.array(uraw)
     on=np.array(range(0, len(uz)))
     uz=np.column_stack([on,uz])
@@ -449,6 +450,14 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     Q = Q / (Q + rho) # to specfic humidity
     npt = len(U)
     
+    # despike following Fairall et al.
+    U[:] = despik(U)
+    V[:] = despik(V)
+    W[:] = despik(W)
+    T[:] = despik(T)
+    Q[:] = despik(Q)
+    T[:] = despik(T)
+    
     # Goodness, there are going to be a lot of things to save. Lets package it up.
     turbulence_data = pd.DataFrame(columns=[\
     'Hs', # sensible heat flux (W/m2) - Based on the sonic temperature!!!
@@ -460,88 +469,63 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     'ustar',  # the friction velocity based only on the downstream, uw,  stress components (m/s)
     'Tstar', # the temperature scale
     'zeta_level_n', # Monin-Obukhov stability parameter, z/L
-    'wu_csp', # wu-covariance based on the wu-cospectra integration
-    'wv_csp', # wv-covariance based on the wv-cospectra integration
-    'uv_csp', # uv-covariance based on the uv-cospectra integration
-    'wT_csp', # wt-covariance, vertical flux of the sonic temperature  [deg m/s]
-    'uT_csp', # ut-covariance, horizontal flux of the sonic temperature (along-wind component) [deg m/s]
-    'vT_csp', # vt-covariance, horizontal flux of the sonic temperature (cross-wind component) [deg m/s]
-    'wq_csp', # wt-covariance, vertical flux of vapor  [kg/m3 m/s]
-    'uq_csp', # ut-covariance, horizontal flux of vapor (along-wind component) [kg/m3 m/s]
-    'vq_csp', # vt-covariance, horizontal flux of co2 (cross-wind component) [kg/m3 m/s]
-    'wc_csp', # wt-covariance, vertical flux of co2  [mg m-2 s-1 m/s]
-    'uc_csp', # ut-covariance, horizontal flux of co2 (along-wind component) [mg m-2 s-1 deg m/s]
-    'vc_csp', # vt-covariance, horizontal flux of vapor (cross-wind component) [mg m-2 s-1 m/s]
-    'phi_u',  # MO universal functions for the standard deviations
-    'phi_v',  # MO universal functions for the standard deviations
-    'phi_w',  # MO universal functions for the standard deviations
+    'WU_csp', # wu-covariance based on the wu-cospectra integration
+    'WV_csp', # wv-covariance based on the wv-cospectra integration
+    'UV_csp', # uv-covariance based on the uv-cospectra integration
+    'WT_csp', # wt-covariance, vertical flux of the sonic temperature  [deg m/s]
+    'UT_csp', # ut-covariance, horizontal flux of the sonic temperature (along-wind component) [deg m/s]
+    'VT_csp', # vt-covariance, horizontal flux of the sonic temperature (cross-wind component) [deg m/s]
+    'Wq_csp', # wt-covariance, vertical flux of vapor  [kg/m3 m/s]
+    'Uq_csp', # ut-covariance, horizontal flux of vapor (along-wind component) [kg/m3 m/s]
+    'Vq_csp', # vt-covariance, horizontal flux of co2 (cross-wind component) [kg/m3 m/s]
+    'Wc_csp', # wt-covariance, vertical flux of co2  [mg m-2 s-1 m/s]
+    'Uc_csp', # ut-covariance, horizontal flux of co2 (along-wind component) [mg m-2 s-1 deg m/s]
+    'Vc_csp', # vt-covariance, horizontal flux of vapor (cross-wind component) [mg m-2 s-1 m/s]
+    'phi_U',  # MO universal functions for the standard deviations
+    'phi_V',  # MO universal functions for the standard deviations
+    'phi_W',  # MO universal functions for the standard deviations
     'phi_T',  # MO universal functions for the standard deviations
-    'phi_uT', # MO universal function for the horizontal heat flux
-    'epsilon_u',  # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the longitudinal velocity component in the inertial subrange [m^2/s^3]:
-    'epsilon_v', # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the lateral velocity component in the inertial subrange [m^2/s^3]:
-    'epsilon_w', # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the vertical velocity component in the inertial subrange [m^2/s^3]:
+    'phi_UT', # MO universal function for the horizontal heat flux
+    'epsilon_U',  # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the longitudinal velocity component in the inertial subrange [m^2/s^3]:
+    'epsilon_V', # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the lateral velocity component in the inertial subrange [m^2/s^3]:
+    'epsilon_W', # Dissipation rate of the turbulent kinetic energy based on the energy spectra of the vertical velocity component in the inertial subrange [m^2/s^3]:
     'epsilon',  # Dissipation rate of the turbulent kinetic energy = median of the values derived from Su, Sv, & Sw [m^2/s^3]:
     'Phi_epsilon',  # Monin-Obukhov universal function Phi_epsilon based on the median epsilon:
-    'nSu', # inertial subrange slope
-    'nSv', # inertial subrange slope
-    'nSw', # inertial subrange slope
-    'nSt', # inertial subrange slope
+    'nSU', # inertial subrange slope
+    'nSV', # inertial subrange slope
+    'nSW', # inertial subrange slope
+    'nST', # inertial subrange slope
     'nSq', # inertial subrange slope
     'nSc', # inertial subrange slope
-    'Nt', # The dissipation (destruction) rate for half the temperature variance [deg^2/s]
-    'Phi_Nt', # Monin-Obukhov universal function Phi_Nt
+    'NT', # The dissipation (destruction) rate for half the temperature variance [deg^2/s]
+    'Phi_NT', # Monin-Obukhov universal function Phi_Nt
+    'sigU', # QC: standard deviation of the rotated u (streamwise)
+    'sigV', # QC: standard deviation of the rotated v (cross stream)
+    'sigW', # QC: standard deviation of the rotated w (perpendciular to stream)
     'Phix',     # QC: Angle of attack
     'DeltaU',   # QC: Non-Stationarity
     'DeltaV',   # QC: Non-Stationarity
     'DeltaT',   # QC: Non-Stationarity  
     'Deltaq',   # QC: Non-Stationarity 
     'Deltac',   # QC: Non-Stationarity 
-    'Kurt_u',   # QC: Kurtosis
-    'Kurt_v',   # QC: Kurtosis
-    'Kurt_w',   # QC: Kurtosis
-    'Kurt_T',   # QC: Kurtosis
-    'Kurt_q',   # QC: Kurtosis
-    'Kurt_c',   # QC: Kurtosis
-    'Kurt_uw',  # QC: Kurtosis
-    'Kurt_vw',  # QC: Kurtosis
-    'Kurt_wT',  # QC: Kurtosis
-    'Kurt_uT',  # QC: Kurtosis
-    'Kurt_wq',  # QC: Kurtosis
-    'Kurt_uq',  # QC: Kurtosis
-    'Kurt_wc',  # QC: Kurtosis
-    'Kurt_uc',  # QC: Kurtosis
-    'Skew_u',   # QC: Skewness
-    'Skew_v',   # QC: Skewness
-    'Skew_w',   # QC: Skewness
-    'Skew_T',   # QC: Skewness
-    'Skew_q',   # QC: Skewness
-    'Skew_c',   # QC: Skewness
-    'Skew_uw',  # QC: Skewness
-    'Skew_vw',  # QC: Skewness
-    'Skew_wT',  # QC: Skewness
-    'Skew_uT',  # QC: Skewness 
-    'Skew_wq',  # QC: Skewness
-    'Skew_uq',  # QC: Skewness 
-    'Skew_wc',  # QC: Skewness
-    'Skew_uc',  # QC: Skewness 
-    'sus',      # Variance spectrum
-    'svs',      # Variacne spectrum
-    'sws',      # Variance spectrum
+    'sUs',      # Variance spectrum
+    'sVs',      # Variacne spectrum
+    'sWs',      # Variance spectrum
     'sTs',      # Variance spectrum
     'sqs',      # Variance spectrum
     'scs',      # Variance spectrum
-    'cwus',     # Cospectrum
-    'cwvs',     # Cospectrum
-    'cwTs',     # Cospectrum
-    'cuTs',     # Cospectrum
-    'cvTs',     # Cospectrum
-    'cwqs',     # Cospectrum
-    'cuqs',     # Cospectrum
-    'cvqs',     # Cospectrum
-    'cwcs',     # Cospectrum
-    'cucs',     # Cospectrum
-    'cvcs',     # Cospectrum
-    'cuvs',     # Cospectrum
+    'cWUs',     # Cospectrum
+    'cWVs',     # Cospectrum
+    'cWTs',     # Cospectrum
+    'cUTs',     # Cospectrum
+    'cVTs',     # Cospectrum
+    'cWqs',     # Cospectrum
+    'cUqs',     # Cospectrum
+    'cVqs',     # Cospectrum
+    'cWcs',     # Cospectrum
+    'cUcs',     # Cospectrum
+    'cVcs',     # Cospectrum
+    'cUVs',     # Cospectrum
     'fs'])      # Frequency vector
     
     # Sanity check: Reject series if it is too short, less than 2^13 = 8192 points = 13.6 min @ 10 Hz
@@ -638,6 +622,10 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     urm = U.mean()
     vrm = V.mean()
     wrm = W.mean()
+    # The standard deviations of the rotated components are needed by Ola's QC routines based on SHEBA
+    urs = U.std()
+    vrs = V.std()
+    wrs = W.std()
     
     #
     # Compute the spectra and cospectra
@@ -1428,6 +1416,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     TTTT_dtr = (np.sum(Ts_dtr*Ts_dtr*Ts_dtr*Ts_dtr))/nf
     qqqq_dtr = (np.sum(qs_dtr*qs_dtr*qs_dtr*qs_dtr))/nf
     cccc_dtr = (np.sum(cs_dtr*cs_dtr*cs_dtr*cs_dtr))/nf
+    
     # Direct definition of kurtosis (note that this is the same as 'kurtosis' MatLab command above):
     Kurt_u0 = uuuu_dtr/sigu_dtr**4
     Kurt_v0 = vvvv_dtr/sigv_dtr**4
@@ -1459,8 +1448,8 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     # be considered as "bad" data (non-stationary). However this QC is not applicable for free convection
     # limit (light winds). Another QC parameters: Steadiness of horizontal wind and sonic temperature
     # (non-stationary data)
-    DeltaU = us_trend[nf-1] - us_trend[0]
-    DeltaV = vs_trend[nf-1] - vs_trend[0]
+    Deltau = us_trend[nf-1] - us_trend[0]
+    Deltav = vs_trend[nf-1] - vs_trend[0]
     DeltaT = Ts_trend[nf-1] - Ts_trend[0]
     Deltaq = qs_trend[nf-1] - qs_trend[0]
     Deltac = cs_trend[nf-1] - cs_trend[0]
@@ -1522,17 +1511,16 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     # End of calculations. Now output something
     #
     turbulence_data = turbulence_data.append([{ \
-        'wu_csp': wu_csp,'wv_csp': wv_csp,'uv_csp': uv_csp,'ustar': ustar,'wT_csp': wT_csp,'uT_csp': uT_csp,'vT_csp': vT_csp,'wq_csp': wq_csp,'uq_csp': uq_csp,'vq_csp': vq_csp,'wc_csp': wc_csp,'uc_csp': uc_csp,'vc_csp': vc_csp, \
+        'WU_csp': wu_csp,'WV_csp': wv_csp,'UV_csp': uv_csp,'ustar': ustar,'WT_csp': wT_csp,'UT_csp': uT_csp,'VT_csp': vT_csp,'Wq_csp': wq_csp,'Uq_csp': uq_csp,'Vq_csp': vq_csp,'Wc_csp': wc_csp,'Uc_csp': uc_csp,'Vc_csp': vc_csp, \
         'Hs': Hs,'Hl':Hl,'Hl_Webb':Hl_Webb,'CO2_flux':CO2_flux,'CO2_flux_Webb':CO2_flux_Webb,'Tstar': Tstar,'zeta_level_n': zeta_level_n,'Cd': Cd, \
-        'phi_u': phi_u,'phi_v': phi_v,'phi_w': phi_w,'phi_T': phi_T,'phi_uT': phi_uT, \
-        'nSu':nSu, 'nSv':nSv, 'nSw':nSw, 'nSt':nSt, 'nSq':nSq, 'nSc': nSc, \
-        'epsilon_u': epsilon_u,'epsilon_v': epsilon_v,'epsilon_w': epsilon_w,'epsilon': epsilon,'Phi_epsilon': Phi_epsilon, \
-        'Nt': Nt, \
-        'Phi_Nt': Phi_Nt,'Phix': Phix, \
-        'DeltaU': DeltaU,'DeltaV': DeltaV,'DeltaT': DeltaT,'Deltaq': Deltaq,'Deltac': Deltac, \
-        'Kurt_u': Kurt_u,'Kurt_v': Kurt_v,'Kurt_w': Kurt_w,'Kurt_T': Kurt_T,'Kurt_q': Kurt_q,'Kurt_c': Kurt_c, 'Kurt_uw': Kurt_uw,'Kurt_vw': Kurt_vw,'Kurt_wT': Kurt_wT,'Kurt_uT': Kurt_uT,'Kurt_wq': Kurt_wq,'Kurt_uq': Kurt_uq, 'Kurt_wc': Kurt_wc,'Kurt_uc': Kurt_uc, \
-        'Skew_u': Skew_u,'Skew_v': Skew_v,'Skew_w': Skew_w,'Skew_T': Skew_T,'Skew_q': Skew_q,'Skew_c': Skew_c,'Skew_uw': Skew_uw,'Skew_vw': Skew_vw,'Skew_wT': Skew_wT,'Skew_uT': Skew_uT,'Skew_wq': Skew_wq,'Skew_uq': Skew_uq, 'Skew_wc': Skew_wc,'Skew_uc': Skew_uc, \
-        'sus': pd.Series(sus),'svs':pd.Series(svs),'sws':pd.Series(sws),'sTs':pd.Series(sTs),'sqs':pd.Series(sqs),'scs':pd.Series(scs),'cwus':pd.Series(cwus),'cwvs':pd.Series(cwvs),'cwTs':pd.Series(cwTs),'cuTs':pd.Series(cuTs),'cvTs':pd.Series(cvTs),'cwqs':pd.Series(cwqs),'cuqs':pd.Series(cuqs),'cvqs':pd.Series(cvqs),'cwcs':pd.Series(cwcs),'cucs':pd.Series(cucs),'cvcs':pd.Series(cvcs),'cuvs':pd.Series(cuvs),'fs':pd.Series(fs)}]) # sometimes ypthon can infer, other times no so much. if we dont declare Series here we become trapped in the Python/Pandas purgatory of "objects" which leads too certain death      
+        'phi_U': phi_u,'phi_V': phi_v,'phi_W': phi_w,'phi_T': phi_T,'phi_UT': phi_uT, \
+        'nSU':nSu, 'nSV':nSv, 'nSW':nSw, 'nST':nSt, 'nSq':nSq, 'nSc': nSc, \
+        'epsilon_U': epsilon_u,'epsilon_V': epsilon_v,'epsilon_W': epsilon_w,'epsilon': epsilon,'Phi_epsilon': Phi_epsilon, \
+        'NT': Nt, \
+        'Phi_NT': Phi_Nt,'Phix': Phix, \
+        'sigU': urs, 'sigV': vrs, 'sigW': wrs, \
+        'DeltaU': Deltau,'DeltaV': Deltav,'DeltaT': DeltaT,'Deltaq': Deltaq,'Deltac': Deltac, \
+        'sUs': pd.Series(sus),'sVs':pd.Series(svs),'sWs':pd.Series(sws),'sTs':pd.Series(sTs),'sqs':pd.Series(sqs),'scs':pd.Series(scs),'cWUs':pd.Series(cwus),'cWVs':pd.Series(cwvs),'cWTs':pd.Series(cwTs),'cUTs':pd.Series(cuTs),'cVTs':pd.Series(cvTs),'cWqs':pd.Series(cwqs),'cUqs':pd.Series(cuqs),'cVqs':pd.Series(cvqs),'cWcs':pd.Series(cwcs),'cUcs':pd.Series(cucs),'cVcs':pd.Series(cvcs),'cUVs':pd.Series(cuvs),'fs':pd.Series(fs)}])      
 
     # # we need to give the columns unique names for the netcdf build later...
     # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
@@ -1875,8 +1863,10 @@ def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
     df['up_short_hemisp'].mask( (df['up_short_hemisp']<sw_range[0]) | (df['up_short_hemisp']>sw_range[1]) , inplace=True)
 
     # (2) Rayleigh Limit
-    RL = 209.3*mu0 - 708.3*mu0**2 + 1128.7*mu0**3 - 911.2*mu0**4 + 287.85*mu0**5 + 0.046725*mu0*df['atmos_pressure'].mean()
-    df['down_short_hemisp'].mask( df['down_short_hemisp'] < RL, inplace=True)
+    # Technically it also needs a diffuse qualifier, but we don't have that available.
+    # Howevr, this limit is unlikely to be met at the SZA range for MOSAiC because of the 50 Wm2 qualifier anyhow so this is largely a formality. 
+    RL = 209.3*mu0 - 708.3*mu0**2 + 1128.7*mu0**3 - 911.2*mu0**4 + 287.85*mu0**5 + 0.046725*mu0*df['atmos_pressure'].mean()   
+    df['down_short_hemisp'].mask( (df['down_short_hemisp'] < RL-1.0) & (df['down_short_hemisp'] > 50), inplace=True)
     
     # (3) CCL
     ccswdH2 = Sa*D1*mu0**1.2 + 55

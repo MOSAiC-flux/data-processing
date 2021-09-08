@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['2.0', '7/15/2021', 'ccox']
+    cv = ['2.1', '9/8/2021', 'ccox']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -1985,68 +1985,68 @@ def define_turb_variables():
     turb_atts['zeta_level_n_6m']           = {'units' :'dimensionless'}
     turb_atts['zeta_level_n_10m']          = {'units' :'dimensionless'}
     turb_atts['zeta_level_n_mast']         = {'units' :'dimensionless'}
-    turb_atts['wu_csp_2m']                 = {'units' :'m^2/s^2'}
-    turb_atts['wu_csp_6m']                 = {'units' :'m^2/s^2'}
-    turb_atts['wu_csp_10m']                = {'units' :'m^2/s^2'}
-    turb_atts['wu_csp_mast']               = {'units' :'m^2/s^2'}
-    turb_atts['wv_csp_2m']                 = {'units' :'m^2/s^2'}
-    turb_atts['wv_csp_6m']                 = {'units' :'m^2/s^2'}
-    turb_atts['wv_csp_10m']                = {'units' :'m^2/s^2'}
-    turb_atts['wv_csp_mast']               = {'units' :'m^2/s^2'}
-    turb_atts['uv_csp_2m']                 = {'units' :'m^2/s^2'}
-    turb_atts['uv_csp_6m']                 = {'units' :'m^2/s^2'}
-    turb_atts['uv_csp_10m']                = {'units' :'m^2/s^2'}
-    turb_atts['uv_csp_mast']               = {'units' :'m^2/s^2'}
-    turb_atts['wT_csp_2m']                 = {'units' :'degC*m/s'}
-    turb_atts['wT_csp_6m']                 = {'units' :'degC*m/s'}
-    turb_atts['wT_csp_10m']                = {'units' :'degC*m/s'}
-    turb_atts['wT_csp_mast']               = {'units' :'degC*m/s'}
-    turb_atts['uT_csp_2m']                 = {'units' :'degC*m/s'}
-    turb_atts['uT_csp_6m']                 = {'units' :'degC*m/s'}
-    turb_atts['uT_csp_10m']                = {'units' :'degC*m/s'}
-    turb_atts['uT_csp_mast']               = {'units' :'degC*m/s'}
-    turb_atts['vT_csp_2m']                 = {'units' :'degC*m/s'}
-    turb_atts['vT_csp_6m']                 = {'units' :'degC*m/s'}
-    turb_atts['vT_csp_10m']                = {'units' :'degC*m/s'}
-    turb_atts['vT_csp_mast']               = {'units' :'degC*m/s'}  
-    turb_atts['wq_csp']                    = {'units' :'m/s*kg/m3'}
-    turb_atts['uq_csp']                    = {'units' :'m/s*kg/m3'}
-    turb_atts['vq_csp']                    = {'units' :'m/s*kg/m3'}
-    turb_atts['wc_csp']                    = {'units' :'m*s^-1*mg*m^-2*s^-1'}
-    turb_atts['uc_csp']                    = {'units' :'m*s^-1*mg*m^-2*s^-1'}
-    turb_atts['vc_csp']                    = {'units' :'m*s^-1*mg*m^-2*s^-1'}
-    turb_atts['phi_u_2m']                 = {'units'  :'dimensionless'}
-    turb_atts['phi_u_6m']                 = {'units'  :'dimensionless'}
-    turb_atts['phi_u_10m']                = {'units'  :'dimensionless'}
-    turb_atts['phi_u_mast']               = {'units'  :'dimensionless'}
-    turb_atts['phi_v_2m']                 = {'units'  :'dimensionless'}
-    turb_atts['phi_v_6m']                 = {'units'  :'dimensionless'}
-    turb_atts['phi_v_10m']                = {'units'  :'dimensionless'}
-    turb_atts['phi_v_mast']               = {'units'  :'dimensionless'}
-    turb_atts['phi_w_2m']                 = {'units'  :'dimensionless'}
-    turb_atts['phi_w_6m']                 = {'units'  :'dimensionless'}
-    turb_atts['phi_w_10m']                = {'units'  :'dimensionless'}
-    turb_atts['phi_w_mast']               = {'units'  :'dimensionless'}
+    turb_atts['WU_csp_2m']                 = {'units' :'m^2/s^2'}
+    turb_atts['WU_csp_6m']                 = {'units' :'m^2/s^2'}
+    turb_atts['WU_csp_10m']                = {'units' :'m^2/s^2'}
+    turb_atts['WU_csp_mast']               = {'units' :'m^2/s^2'}
+    turb_atts['WV_csp_2m']                 = {'units' :'m^2/s^2'}
+    turb_atts['WV_csp_6m']                 = {'units' :'m^2/s^2'}
+    turb_atts['WV_csp_10m']                = {'units' :'m^2/s^2'}
+    turb_atts['WV_csp_mast']               = {'units' :'m^2/s^2'}
+    turb_atts['UV_csp_2m']                 = {'units' :'m^2/s^2'}
+    turb_atts['UV_csp_6m']                 = {'units' :'m^2/s^2'}
+    turb_atts['UV_csp_10m']                = {'units' :'m^2/s^2'}
+    turb_atts['UV_csp_mast']               = {'units' :'m^2/s^2'}
+    turb_atts['WT_csp_2m']                 = {'units' :'degC*m/s'}
+    turb_atts['WT_csp_6m']                 = {'units' :'degC*m/s'}
+    turb_atts['WT_csp_10m']                = {'units' :'degC*m/s'}
+    turb_atts['WT_csp_mast']               = {'units' :'degC*m/s'}
+    turb_atts['UT_csp_2m']                 = {'units' :'degC*m/s'}
+    turb_atts['UT_csp_6m']                 = {'units' :'degC*m/s'}
+    turb_atts['UT_csp_10m']                = {'units' :'degC*m/s'}
+    turb_atts['UT_csp_mast']               = {'units' :'degC*m/s'}
+    turb_atts['VT_csp_2m']                 = {'units' :'degC*m/s'}
+    turb_atts['VT_csp_6m']                 = {'units' :'degC*m/s'}
+    turb_atts['VT_csp_10m']                = {'units' :'degC*m/s'}
+    turb_atts['VT_csp_mast']               = {'units' :'degC*m/s'}  
+    turb_atts['Wq_csp']                    = {'units' :'m/s*kg/m3'}
+    turb_atts['Uq_csp']                    = {'units' :'m/s*kg/m3'}
+    turb_atts['Vq_csp']                    = {'units' :'m/s*kg/m3'}
+    turb_atts['Wc_csp']                    = {'units' :'m*s^-1*mg*m^-2*s^-1'}
+    turb_atts['Uc_csp']                    = {'units' :'m*s^-1*mg*m^-2*s^-1'}
+    turb_atts['Vc_csp']                    = {'units' :'m*s^-1*mg*m^-2*s^-1'}
+    turb_atts['phi_U_2m']                 = {'units'  :'dimensionless'}
+    turb_atts['phi_U_6m']                 = {'units'  :'dimensionless'}
+    turb_atts['phi_U_10m']                = {'units'  :'dimensionless'}
+    turb_atts['phi_U_mast']               = {'units'  :'dimensionless'}
+    turb_atts['phi_V_2m']                 = {'units'  :'dimensionless'}
+    turb_atts['phi_V_6m']                 = {'units'  :'dimensionless'}
+    turb_atts['phi_V_10m']                = {'units'  :'dimensionless'}
+    turb_atts['phi_V_mast']               = {'units'  :'dimensionless'}
+    turb_atts['phi_W_2m']                 = {'units'  :'dimensionless'}
+    turb_atts['phi_W_6m']                 = {'units'  :'dimensionless'}
+    turb_atts['phi_W_10m']                = {'units'  :'dimensionless'}
+    turb_atts['phi_W_mast']               = {'units'  :'dimensionless'}
     turb_atts['phi_T_2m']                 = {'units'  :'dimensionless'}
     turb_atts['phi_T_6m']                 = {'units'  :'dimensionless'}
     turb_atts['phi_T_10m']                = {'units'  :'dimensionless'}
     turb_atts['phi_T_mast']               = {'units'  :'dimensionless'}
-    turb_atts['phi_uT_2m']                = {'units'  :'dimensionless'}
-    turb_atts['phi_uT_6m']                = {'units'  :'dimensionless'}
-    turb_atts['phi_uT_10m']               = {'units'  :'dimensionless'}
-    turb_atts['phi_uT_mast']              = {'units'  :'dimensionless'}
-    turb_atts['epsilon_u_2m']             = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_u_6m']             = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_u_10m']            = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_u_mast']           = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_v_2m']             = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_v_6m']             = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_v_10m']            = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_v_mast']           = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_w_2m']             = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_w_6m']             = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_w_10m']            = {'units'  :'m^2/s^3'}
-    turb_atts['epsilon_w_mast']           = {'units'  :'m^2/s^3'}
+    turb_atts['phi_UT_2m']                = {'units'  :'dimensionless'}
+    turb_atts['phi_UT_6m']                = {'units'  :'dimensionless'}
+    turb_atts['phi_UT_10m']               = {'units'  :'dimensionless'}
+    turb_atts['phi_UT_mast']              = {'units'  :'dimensionless'}
+    turb_atts['epsilon_U_2m']             = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_U_6m']             = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_U_10m']            = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_U_mast']           = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_V_2m']             = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_V_6m']             = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_V_10m']            = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_V_mast']           = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_W_2m']             = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_W_6m']             = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_W_10m']            = {'units'  :'m^2/s^3'}
+    turb_atts['epsilon_W_mast']           = {'units'  :'m^2/s^3'}
     turb_atts['epsilon_2m']               = {'units'  :'m^2/s^3'}
     turb_atts['epsilon_6m']               = {'units'  :'m^2/s^3'}
     turb_atts['epsilon_10m']              = {'units'  :'m^2/s^3'}
@@ -2055,32 +2055,32 @@ def define_turb_variables():
     turb_atts['Phi_epsilon_6m']           = {'units'  :'dimensionless'}
     turb_atts['Phi_epsilon_10m']          = {'units'  :'dimensionless'}
     turb_atts['Phi_epsilon_mast']         = {'units'  :'dimensionless'}  
-    turb_atts['nSu_2m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSu_6m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSu_10m']                  = {'units'  :'Power/Hz'}
-    turb_atts['nSu_mast']                 = {'units'  :'Power/Hz'}
-    turb_atts['nSv_2m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSv_6m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSv_10m']                  = {'units'  :'Power/Hz'}
-    turb_atts['nSv_mast']                 = {'units'  :'Power/Hz'}
-    turb_atts['nSw_2m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSw_6m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSw_10m']                  = {'units'  :'Power/Hz'}
-    turb_atts['nSw_mast']                 = {'units'  :'Power/Hz'}
-    turb_atts['nSt_2m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSt_6m']                   = {'units'  :'Power/Hz'}
-    turb_atts['nSt_10m']                  = {'units'  :'Power/Hz'}
-    turb_atts['nSt_mast']                 = {'units'  :'Power/Hz'}
+    turb_atts['nSU_2m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nSU_6m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nSU_10m']                  = {'units'  :'Power/Hz'}
+    turb_atts['nSU_mast']                 = {'units'  :'Power/Hz'}
+    turb_atts['nSV_2m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nSV_6m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nSV_10m']                  = {'units'  :'Power/Hz'}
+    turb_atts['nSV_mast']                 = {'units'  :'Power/Hz'}
+    turb_atts['nSW_2m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nSW_6m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nSW_10m']                  = {'units'  :'Power/Hz'}
+    turb_atts['nSW_mast']                 = {'units'  :'Power/Hz'}
+    turb_atts['nST_2m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nST_6m']                   = {'units'  :'Power/Hz'}
+    turb_atts['nST_10m']                  = {'units'  :'Power/Hz'}
+    turb_atts['nST_mast']                 = {'units'  :'Power/Hz'}
     turb_atts['nSq']                      = {'units'  :'Power/Hz'}
     turb_atts['nSc']                      = {'units'  :'Power/Hz'}    
-    turb_atts['Nt_2m']                    = {'units'  :'degC^2/s'}
-    turb_atts['Nt_6m']                    = {'units'  :'degC^2/s'}
-    turb_atts['Nt_10m']                   = {'units'  :'degC^2/s'}
-    turb_atts['Nt_mast']                  = {'units'  :'degC^2/s'}
-    turb_atts['Phi_Nt_2m']                = {'units'  :'dimensionless'}
-    turb_atts['Phi_Nt_6m']                = {'units'  :'dimensionless'}
-    turb_atts['Phi_Nt_10m']               = {'units'  :'dimensionless'}
-    turb_atts['Phi_Nt_mast']              = {'units'  :'dimensionless'}
+    turb_atts['NT_2m']                    = {'units'  :'degC^2/s'}
+    turb_atts['NT_6m']                    = {'units'  :'degC^2/s'}
+    turb_atts['NT_10m']                   = {'units'  :'degC^2/s'}
+    turb_atts['NT_mast']                  = {'units'  :'degC^2/s'}
+    turb_atts['Phi_NT_2m']                = {'units'  :'dimensionless'}
+    turb_atts['Phi_NT_6m']                = {'units'  :'dimensionless'}
+    turb_atts['Phi_NT_10m']               = {'units'  :'dimensionless'}
+    turb_atts['Phi_NT_mast']              = {'units'  :'dimensionless'}
     turb_atts['Phix_2m']                  = {'units'  :'deg'}
     turb_atts['Phix_6m']                  = {'units'  :'deg'}
     turb_atts['Phix_10m']                 = {'units'  :'deg'}
@@ -2099,131 +2099,67 @@ def define_turb_variables():
     turb_atts['DeltaT_mast']              = {'units'  :'degC'}
     turb_atts['Deltaq']                   = {'units'  :'mg/m3'}
     turb_atts['Deltac']                   = {'units'  :'unitless'}
-    turb_atts['Kurt_u_2m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_u_6m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_u_10m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_u_mast']              = {'units'  :'unitless'}
-    turb_atts['Kurt_v_2m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_v_6m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_v_10m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_v_mast']              = {'units'  :'unitless'}
-    turb_atts['Kurt_w_2m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_w_6m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_w_10m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_w_mast']              = {'units'  :'unitless'}
-    turb_atts['Kurt_T_2m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_T_6m']                = {'units'  :'unitless'}
-    turb_atts['Kurt_T_10m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_T_mast']              = {'units'  :'unitless'}
-    turb_atts['Kurt_q']                   = {'units'  :'unitless'}
-    turb_atts['Kurt_c']                   = {'units'  :'unitless'}
-    turb_atts['Kurt_uw_2m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_uw_6m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_uw_10m']              = {'units'  :'unitless'}
-    turb_atts['Kurt_uw_mast']             = {'units'  :'unitless'}
-    turb_atts['Kurt_vw_2m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_vw_6m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_vw_10m']              = {'units'  :'unitless'}
-    turb_atts['Kurt_vw_mast']             = {'units'  :'unitless'}
-    turb_atts['Kurt_wT_2m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_wT_6m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_wT_10m']              = {'units'  :'unitless'}
-    turb_atts['Kurt_wT_mast']             = {'units'  :'unitless'}
-    turb_atts['Kurt_wq']                  = {'units'  :'unitless'}
-    turb_atts['Kurt_wc']                  = {'units'  :'unitless'}
-    turb_atts['Kurt_uT_2m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_uT_6m']               = {'units'  :'unitless'}
-    turb_atts['Kurt_uT_10m']              = {'units'  :'unitless'}
-    turb_atts['Kurt_uT_mast']             = {'units'  :'unitless'}
-    turb_atts['Kurt_uq']                  = {'units'  :'unitless'}
-    turb_atts['Kurt_uc']                  = {'units'  :'unitless'}
-    turb_atts['Skew_u_2m']                = {'units'  :'unitless'}
-    turb_atts['Skew_u_6m']                = {'units'  :'unitless'}
-    turb_atts['Skew_u_10m']               = {'units'  :'unitless'}
-    turb_atts['Skew_u_mast']              = {'units'  :'unitless'}
-    turb_atts['Skew_v_2m']                = {'units'  :'unitless'}
-    turb_atts['Skew_v_6m']                = {'units'  :'unitless'}
-    turb_atts['Skew_v_10m']               = {'units'  :'unitless'}
-    turb_atts['Skew_v_mast']              = {'units'  :'unitless'}
-    turb_atts['Skew_w_2m']                = {'units'  :'unitless'}
-    turb_atts['Skew_w_6m']                = {'units'  :'unitless'}
-    turb_atts['Skew_w_10m']               = {'units'  :'unitless'}
-    turb_atts['Skew_w_mast']              = {'units'  :'unitless'}
-    turb_atts['Skew_T_2m']                = {'units'  :'unitless'}
-    turb_atts['Skew_T_6m']                = {'units'  :'unitless'}
-    turb_atts['Skew_T_10m']               = {'units'  :'unitless'}
-    turb_atts['Skew_T_mast']              = {'units'  :'unitless'}
-    turb_atts['Skew_q']                   = {'units'  :'unitless'}
-    turb_atts['Skew_c']                   = {'units'  :'unitless'}
-    turb_atts['Skew_uw_2m']               = {'units'  :'unitless'}
-    turb_atts['Skew_uw_6m']               = {'units'  :'unitless'}
-    turb_atts['Skew_uw_10m']              = {'units'  :'unitless'}
-    turb_atts['Skew_uw_mast']             = {'units'  :'unitless'}
-    turb_atts['Skew_vw_2m']               = {'units'  :'unitless'}
-    turb_atts['Skew_vw_6m']               = {'units'  :'unitless'}
-    turb_atts['Skew_vw_10m']              = {'units'  :'unitless'}
-    turb_atts['Skew_vw_mast']             = {'units'  :'unitless'}
-    turb_atts['Skew_wT_2m']               = {'units'  :'unitless'}
-    turb_atts['Skew_wT_6m']               = {'units'  :'unitless'}
-    turb_atts['Skew_wT_10m']              = {'units'  :'unitless'}
-    turb_atts['Skew_wT_mast']             = {'units'  :'unitless'}
-    turb_atts['Skew_wq']                  = {'units'  :'unitless'}
-    turb_atts['Skew_wc']                  = {'units'  :'unitless'}
-    turb_atts['Skew_uT_2m']               = {'units'  :'unitless'}
-    turb_atts['Skew_uT_6m']               = {'units'  :'unitless'}
-    turb_atts['Skew_uT_10m']              = {'units'  :'unitless'}
-    turb_atts['Skew_uT_mast']             = {'units'  :'unitless'}  
-    turb_atts['Skew_uq']                  = {'units'  :'unitless'}
-    turb_atts['Skew_uc']                  = {'units'  :'unitless'}
+    turb_atts['sigU_2m']                  = {'units' : 'm/s'}
+    turb_atts['sigU_6m']                  = {'units' : 'm/s'}
+    turb_atts['sigU_10m']                 = {'units' : 'm/s'}
+    turb_atts['sigU_mast']                = {'units' : 'm/s'}
+    turb_atts['sigV_2m']                  = {'units' : 'm/s'}
+    turb_atts['sigV_6m']                  = {'units' : 'm/s'}
+    turb_atts['sigV_10m']                 = {'units' : 'm/s'}
+    turb_atts['sigV_mast']                = {'units' : 'm/s'}
+    turb_atts['sigW_2m']                  = {'units' : 'm/s'}
+    turb_atts['sigW_6m']                  = {'units' : 'm/s'}
+    turb_atts['sigW_10m']                 = {'units' : 'm/s'}
+    turb_atts['sigW_mast']                = {'units' : 'm/s'}
     turb_atts['fs']                       = {'units'  :'Hz'}
-    turb_atts['sus_2m']                   = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['sus_6m']                   = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['sus_10m']                  = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['sus_mast']                 = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['svs_2m']                   = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['svs_6m']                   = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['svs_10m']                  = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['svs_mast']                 = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['sws_2m']                   = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['sws_6m']                   = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['sws_10m']                  = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['sws_mast']                 = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sUs_2m']                   = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sUs_6m']                   = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sUs_10m']                  = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sUs_mast']                 = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sVs_2m']                   = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sVs_6m']                   = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sVs_10m']                  = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sVs_mast']                 = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sWs_2m']                   = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sWs_6m']                   = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sWs_10m']                  = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['sWs_mast']                 = {'units'  :'(m/s)^2/Hz'}
     turb_atts['sTs_2m']                   = {'units'  :'degC^2/Hz'}
     turb_atts['sTs_6m']                   = {'units'  :'degC^2/Hz'}
     turb_atts['sTs_10m']                  = {'units'  :'degC^2/Hz'}
     turb_atts['sTs_mast']                 = {'units'  :'degC^2/Hz'}
     turb_atts['sqs']                      = {'units'  :'(kg/m3)/hz'}
     turb_atts['scs']                      = {'units'  :'(mg m^-2 s^-1)^2/Hz'}
-    turb_atts['cwus_2m']                  = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cwus_6m']                  = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cwus_10m']                 = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cwus_mast']                = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cwvs_2m']                  = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cwvs_6m']                  = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cwvs_10m']                 = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cwvs_mast']                = {'units'  :'(m/s)^2/Hz'}
-    turb_atts['cuvs_2m']                  = {'units'  :'(m/s)^2/Hz'}  
-    turb_atts['cuvs_6m']                  = {'units'  :'(m/s)^2/Hz'} 
-    turb_atts['cuvs_10m']                 = {'units'  :'(m/s)^2/Hz'} 
-    turb_atts['cuvs_mast']                = {'units'  :'(m/s)^2/Hz'} 
-    turb_atts['cwTs_2m']                  = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cwTs_6m']                  = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cwTs_10m']                 = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cwTs_mast']                = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cuTs_2m']                  = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cuTs_6m']                  = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cuTs_10m']                 = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cuTs_mast']                = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cvTs_2m']                  = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cvTs_6m']                  = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cvTs_10m']                 = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cvTs_mast']                = {'units'  :'(m/s*degC)/Hz'}
-    turb_atts['cwqs']                     = {'units'  :'(m/s*kg/m3)/Hz'}
-    turb_atts['cuqs']                     = {'units'  :'(m/s*kg/m3)/Hz'}
-    turb_atts['cvqs']                     = {'units'  :'(m/s*kg/m3)/Hz'}  
-    turb_atts['cwcs']                     = {'units'  :'(m/s*mg*m^-2*s^-1)/Hz'}
-    turb_atts['cucs']                     = {'units'  :'(m/s*mg*m^-2*s^-1)/Hz'}
-    turb_atts['cvcs']                     = {'units'  :'(m/s*mg*m^-2*s^-1)/Hz'}  
+    turb_atts['cWUs_2m']                  = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cWUs_6m']                  = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cWUs_10m']                 = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cWUs_mast']                = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cWVs_2m']                  = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cWVs_6m']                  = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cWVs_10m']                 = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cWVs_mast']                = {'units'  :'(m/s)^2/Hz'}
+    turb_atts['cUVs_2m']                  = {'units'  :'(m/s)^2/Hz'}  
+    turb_atts['cUVs_6m']                  = {'units'  :'(m/s)^2/Hz'} 
+    turb_atts['cUVs_10m']                 = {'units'  :'(m/s)^2/Hz'} 
+    turb_atts['cUVs_mast']                = {'units'  :'(m/s)^2/Hz'} 
+    turb_atts['cWTs_2m']                  = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cWTs_6m']                  = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cWTs_10m']                 = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cWTs_mast']                = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cUTs_2m']                  = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cUTs_6m']                  = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cUTs_10m']                 = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cUTs_mast']                = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cVTs_2m']                  = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cVTs_6m']                  = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cVTs_10m']                 = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cVTs_mast']                = {'units'  :'(m/s*degC)/Hz'}
+    turb_atts['cWqs']                     = {'units'  :'(m/s*kg/m3)/Hz'}
+    turb_atts['cUqs']                     = {'units'  :'(m/s*kg/m3)/Hz'}
+    turb_atts['cVqs']                     = {'units'  :'(m/s*kg/m3)/Hz'}  
+    turb_atts['cWcs']                     = {'units'  :'(m/s*mg*m^-2*s^-1)/Hz'}
+    turb_atts['cUcs']                     = {'units'  :'(m/s*mg*m^-2*s^-1)/Hz'}
+    turb_atts['cVcs']                     = {'units'  :'(m/s*mg*m^-2*s^-1)/Hz'}  
     turb_atts['bulk_Hs_10m']              = {'units'  :'W/m2'}
     turb_atts['bulk_Hl_10m']              = {'units'  :'W/m2'}
     turb_atts['bulk_Hl_Webb_10m']         = {'units'  :'W/m2'}  
@@ -2460,7 +2396,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['wu_csp_2m']         .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
+    turb_atts['WU_csp_2m']         .update({ 'long_name'          :'WU-covariance based on the WU-cospectra integration; W and U are the vertical-orthogonal (to stream) and streamwise wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2468,7 +2404,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['wu_csp_6m']         .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
+    turb_atts['WU_csp_6m']         .update({ 'long_name'          :'WU-covariance based on the WU-cospectra integration; W and U are the vertical-orthogonal (to stream) and streamwise wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2476,7 +2412,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['wu_csp_10m']        .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
+    turb_atts['WU_csp_10m']        .update({ 'long_name'          :'WU-covariance based on the WU-cospectra integration; W and U are the vertical-orthogonal (to stream) and streamwise wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2484,7 +2420,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['wu_csp_mast']       .update({ 'long_name'          :'wu-covariance based on the wu-cospectra integration',
+    turb_atts['WU_csp_mast']       .update({ 'long_name'          :'WU-covariance based on the WU-cospectra integration; W and U are the vertical-orthogonal (to stream) and streamwise wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2492,7 +2428,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['wv_csp_2m']         .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
+    turb_atts['WV_csp_2m']         .update({ 'long_name'          :'WV-covariance based on the WV-cospectra integration; W and V are the vertical-orthogonal (to stream) and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2500,7 +2436,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['wv_csp_6m']         .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
+    turb_atts['WV_csp_6m']         .update({ 'long_name'          :'WV-covariance based on the WV-cospectra integration; W and V are the vertical-orthogonal (to stream) and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2508,7 +2444,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['wv_csp_10m']        .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
+    turb_atts['WV_csp_10m']        .update({ 'long_name'          :'WV-covariance based on the WV-cospectra integration; W and V are the vertical-orthogonal (to stream) and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2516,7 +2452,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['wv_csp_mast']       .update({ 'long_name'          :'wv-covariance based on the wv-cospectra integration',
+    turb_atts['WV_csp_mast']       .update({ 'long_name'          :'WV-covariance based on the WV-cospectra integration; W and V are the vertical-orthogonal (to stream) and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2524,7 +2460,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['uv_csp_2m']         .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
+    turb_atts['UV_csp_2m']         .update({ 'long_name'          :'UV-covariance based on the UV-cospectra integration; U and V are the streamwise and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2532,7 +2468,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['uv_csp_6m']         .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
+    turb_atts['UV_csp_6m']         .update({ 'long_name'          :'UV-covariance based on the UV-cospectra integration; U and V are the streamwise and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2540,7 +2476,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['uv_csp_10m']        .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
+    turb_atts['UV_csp_10m']        .update({ 'long_name'          :'UV-covariance based on the UV-cospectra integration; U and V are the streamwise and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2548,7 +2484,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['uv_csp_mast']       .update({ 'long_name'          :'uv-covariance based on the uv-cospectra integration',
+    turb_atts['UV_csp_mast']       .update({ 'long_name'          :'UV-covariance based on the UV-cospectra integration; U and V are the streamwise and cross-stream wind vectors',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2556,7 +2492,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['wT_csp_2m']         .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
+    turb_atts['WT_csp_2m']         .update({ 'long_name'          :'WT-covariance, vertical flux of the sonic temperature; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2564,7 +2500,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['wT_csp_6m']         .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
+    turb_atts['WT_csp_6m']         .update({ 'long_name'          :'WT-covariance, vertical flux of the sonic temperature; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2572,7 +2508,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['wT_csp_10m']        .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
+    turb_atts['WT_csp_10m']        .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2580,7 +2516,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['wT_csp_mast']       .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature',
+    turb_atts['WT_csp_mast']       .update({ 'long_name'          :'wT-covariance, vertical flux of the sonic temperature; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2588,7 +2524,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['wq_csp']            .update({ 'long_name'          :'wq-covariance, vertical flux of q',
+    turb_atts['Wq_csp']            .update({ 'long_name'          :'Wq-covariance, vertical flux of q; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2596,7 +2532,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
     
-    turb_atts['wc_csp']            .update({ 'long_name'          :'wc-covariance, vertical flux of co2',
+    turb_atts['Wc_csp']            .update({ 'long_name'          :'Wc-covariance, vertical flux of co2; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2604,7 +2540,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['uT_csp_2m']         .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
+    turb_atts['UT_csp_2m']         .update({ 'long_name'          :'UT-covariance, vertical flux of the sonic temperature; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2612,7 +2548,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['uT_csp_6m']         .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
+    turb_atts['UT_csp_6m']         .update({ 'long_name'          :'UT-covariance, vertical flux of the sonic temperature; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2620,7 +2556,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['uT_csp_10m']        .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
+    turb_atts['UT_csp_10m']        .update({ 'long_name'          :'UT-covariance, vertical flux of the sonic temperature; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2628,7 +2564,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['uT_csp_mast']       .update({ 'long_name'          :'uT-covariance, vertical flux of the sonic temperature',
+    turb_atts['UT_csp_mast']       .update({ 'long_name'          :'UT-covariance, vertical flux of the sonic temperature; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2636,7 +2572,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
     
-    turb_atts['uq_csp']            .update({ 'long_name'          :'uq-covariance, vertical flux of q',
+    turb_atts['Uq_csp']            .update({ 'long_name'          :'uq-covariance, vertical flux of q; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2644,7 +2580,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
     
-    turb_atts['uc_csp']            .update({ 'long_name'          :'uc-covariance, vertical flux of co2',
+    turb_atts['Uc_csp']            .update({ 'long_name'          :'uc-covariance, vertical flux of co2; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2652,7 +2588,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['vT_csp_2m']         .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
+    turb_atts['VT_csp_2m']         .update({ 'long_name'          :'VT-covariance, vertical flux of the sonic temperature; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2660,7 +2596,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['vT_csp_6m']         .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
+    turb_atts['VT_csp_6m']         .update({ 'long_name'          :'VT-covariance, vertical flux of the sonic temperature; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2668,7 +2604,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['vT_csp_10m']        .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
+    turb_atts['VT_csp_10m']        .update({ 'long_name'          :'VT-covariance, vertical flux of the sonic temperature; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2676,7 +2612,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['vT_csp_mast']       .update({ 'long_name'          :'vT-covariance, vertical flux of the sonic temperature',
+    turb_atts['VT_csp_mast']       .update({ 'long_name'          :'VT-covariance, vertical flux of the sonic temperature; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2684,7 +2620,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
     
-    turb_atts['vq_csp']            .update({ 'long_name'          :'vq-covariance, vertical flux q',
+    turb_atts['Vq_csp']            .update({ 'long_name'          :'Vq-covariance, vertical flux q; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2692,7 +2628,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
     
-    turb_atts['vc_csp']            .update({ 'long_name'          :'vc-covariance, vertical flux c',
+    turb_atts['Vc_csp']            .update({ 'long_name'          :'Vc-covariance, vertical flux co2; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2700,7 +2636,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['phi_u_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m',
+    turb_atts['phi_U_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2708,7 +2644,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['phi_u_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m',
+    turb_atts['phi_U_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2716,7 +2652,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['phi_u_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m',
+    turb_atts['phi_U_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2724,7 +2660,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['phi_u_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast',
+    turb_atts['phi_U_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2732,7 +2668,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['phi_v_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m',
+    turb_atts['phi_V_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2740,7 +2676,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['phi_v_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m',
+    turb_atts['phi_V_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2748,7 +2684,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['phi_v_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m',
+    turb_atts['phi_V_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2756,7 +2692,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['phi_v_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast',
+    turb_atts['phi_V_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2764,7 +2700,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['phi_w_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m',
+    turb_atts['phi_W_2m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 2 m; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2772,7 +2708,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['phi_w_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m',
+    turb_atts['phi_W_6m']          .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 6 m; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2780,7 +2716,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['phi_w_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m',
+    turb_atts['phi_W_10m']         .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from 10 m; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2788,7 +2724,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['phi_w_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast',
+    turb_atts['phi_W_mast']        .update({ 'long_name'          :'MO universal function for the standard deviations, calculated from the mast; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2828,7 +2764,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['phi_uT_2m']         .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 2 m',
+    turb_atts['phi_UT_2m']         .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 2 m; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2836,7 +2772,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['phi_uT_6m']         .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 6 m',
+    turb_atts['phi_UT_6m']         .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 6 m; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2844,7 +2780,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['phi_uT_10m']        .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 10 m',
+    turb_atts['phi_UT_10m']        .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from 10 m; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2852,7 +2788,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['phi_uT_mast']       .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from the mast',
+    turb_atts['phi_UT_mast']       .update({ 'long_name'          :'MO universal function for the horizontal heat flux, calculated from the mast; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2860,7 +2796,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['epsilon_u_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_U_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in U based on the energy spectra of the longitudinal velocity component in the inertial subrange; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2868,7 +2804,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['epsilon_u_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_U_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in U based on the energy spectra of the longitudinal velocity component in the inertial subrange; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2876,7 +2812,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['epsilon_u_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_U_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in U based on the energy spectra of the longitudinal velocity component in the inertial subrange; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2884,7 +2820,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['epsilon_u_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_U_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in U based on the energy spectra of the longitudinal velocity component in the inertial subrange; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2892,7 +2828,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['epsilon_v_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_V_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in V based on the energy spectra of the longitudinal velocity component in the inertial subrange; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2900,7 +2836,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['epsilon_v_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_V_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in V based on the energy spectra of the longitudinal velocity component in the inertial subrange; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2908,7 +2844,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['epsilon_v_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_V_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in V based on the energy spectra of the longitudinal velocity component in the inertial subrange; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2916,7 +2852,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['epsilon_v_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_V_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in V based on the energy spectra of the longitudinal velocity component in the inertial subrange; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2924,7 +2860,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['epsilon_w_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_W_2m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in W based on the energy spectra of the longitudinal velocity component in the inertial subrange; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2932,7 +2868,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['epsilon_w_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_W_6m']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in W based on the energy spectra of the longitudinal velocity component in the inertial subrange; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2940,7 +2876,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['epsilon_w_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_W_10m']     .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in W based on the energy spectra of the longitudinal velocity component in the inertial subrange; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2948,7 +2884,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['epsilon_w_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_W_mast']    .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy in W based on the energy spectra of the longitudinal velocity component in the inertial subrange; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2956,7 +2892,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['epsilon_2m']        .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
+    turb_atts['epsilon_2m']        .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from U, V, & W',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2964,7 +2900,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['epsilon_6m']        .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
+    turb_atts['epsilon_6m']        .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from U, V, & W',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2972,7 +2908,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['epsilon_10m']       .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
+    turb_atts['epsilon_10m']       .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from U, V, & W',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -2980,7 +2916,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['epsilon_mast']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
+    turb_atts['epsilon_mast']      .update({ 'long_name'          :'Dissipation rate of the turbulent kinetic energy = median of the values derived from U, V, & W',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3020,7 +2956,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
    
-    turb_atts['nSu_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
+    turb_atts['nSU_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of U; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3028,7 +2964,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
     
-    turb_atts['nSu_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
+    turb_atts['nSU_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of U; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3036,7 +2972,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
     
-    turb_atts['nSu_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
+    turb_atts['nSU_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of U; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3044,7 +2980,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
     
-    turb_atts['nSu_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of u',
+    turb_atts['nSU_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of U; U is the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3052,7 +2988,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['nSv_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
+    turb_atts['nSV_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of V; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3060,7 +2996,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
     
-    turb_atts['nSv_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
+    turb_atts['nSV_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of V; V is the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3068,7 +3004,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
     
-    turb_atts['nSv_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
+    turb_atts['nSV_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of V; V is the cross stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3076,7 +3012,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
     
-    turb_atts['nSv_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of v',
+    turb_atts['nSV_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of V; V is the cross stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3084,7 +3020,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['nSw_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
+    turb_atts['nSW_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of W; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3092,7 +3028,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
     
-    turb_atts['nSw_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
+    turb_atts['nSW_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of W; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3100,7 +3036,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
     
-    turb_atts['nSw_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
+    turb_atts['nSW_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of W; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3108,7 +3044,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
     
-    turb_atts['nSw_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of w',
+    turb_atts['nSW_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of W; W is the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3116,7 +3052,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
     
-    turb_atts['nSt_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
+    turb_atts['nST_2m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3124,7 +3060,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
     
-    turb_atts['nSt_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
+    turb_atts['nST_6m']            .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3132,7 +3068,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
     
-    turb_atts['nSt_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
+    turb_atts['nST_10m']           .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3140,7 +3076,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
     
-    turb_atts['nSt_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
+    turb_atts['nST_mast']          .update({ 'long_name'          :'Median spectral slope in the inertial subrange of sonic temperature',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3164,7 +3100,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : licor_location,})
     
-    turb_atts['Nt_2m']             .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
+    turb_atts['NT_2m']             .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3172,7 +3108,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['Nt_6m']             .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
+    turb_atts['NT_6m']             .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3180,7 +3116,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['Nt_10m']            .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
+    turb_atts['NT_10m']            .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3188,7 +3124,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['Nt_mast']           .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
+    turb_atts['NT_mast']           .update({ 'long_name'          :'The dissipation (destruction) rate for half the temperature variance',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3196,7 +3132,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['Phi_Nt_2m']         .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from 2 m',
+    turb_atts['Phi_NT_2m']         .update({ 'long_name'          :'Monin-Obukhov universal function Phi_NT, calculated from 2 m',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3204,7 +3140,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['Phi_Nt_6m']         .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from 6 m',
+    turb_atts['Phi_NT_6m']         .update({ 'long_name'          :'Monin-Obukhov universal function Phi_NT, calculated from 6 m',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3212,7 +3148,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['Phi_Nt_10m']        .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from 10 m',
+    turb_atts['Phi_NT_10m']        .update({ 'long_name'          :'Monin-Obukhov universal function Phi_NT, calculated from 10 m',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3220,7 +3156,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['Phi_Nt_mast']       .update({ 'long_name'          :'Monin-Obukhov universal function Phi_Nt, calculated from the mast',
+    turb_atts['Phi_NT_mast']       .update({ 'long_name'          :'Monin-Obukhov universal function Phi_NT, calculated from the mast',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3228,7 +3164,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['Phix_2m']           .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
+    turb_atts['Phix_2m']           .update({ 'long_name'          :'Angle of attack',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3236,7 +3172,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['Phix_6m']           .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
+    turb_atts['Phix_6m']           .update({ 'long_name'          :'Angle of attack',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3244,7 +3180,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['Phix_10m']          .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
+    turb_atts['Phix_10m']          .update({ 'long_name'          :'Angle of attack',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3252,7 +3188,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['Phix_mast']         .update({ 'long_name'          :'Angle of attack. Should be < 15 deg; else a correction should be applied',
+    turb_atts['Phix_mast']         .update({ 'long_name'          :'Angle of attack',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3260,7 +3196,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['DeltaU_2m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
+    turb_atts['DeltaU_2m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the streamwise  wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3268,7 +3204,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['DeltaU_6m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
+    turb_atts['DeltaU_6m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the streamwise  wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3276,7 +3212,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['DeltaU_10m']        .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
+    turb_atts['DeltaU_10m']        .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the streamwise  wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3284,7 +3220,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['DeltaU_mast']       .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
+    turb_atts['DeltaU_mast']       .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the streamwise  wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3292,7 +3228,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})
 
-    turb_atts['DeltaV_2m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
+    turb_atts['DeltaV_2m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-stream  wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3300,7 +3236,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['DeltaV_6m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
+    turb_atts['DeltaV_6m']         .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-stream  wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3308,7 +3244,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})
 
-    turb_atts['DeltaV_10m']        .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
+    turb_atts['DeltaV_10m']        .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-stream  wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3316,7 +3252,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})
 
-    turb_atts['DeltaV_mast']       .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
+    turb_atts['DeltaV_mast']       .update({ 'long_name'          :'Stationarity diagnostic: Steadiness of the cross-stream wind vector (trend)',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3372,597 +3308,101 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['Kurt_u_2m']         .update({ 'long_name'          :'Kurtosis',
+    turb_atts['sigU_2m']           .update({ 'long_name'          :'Standard deviation of the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
+                                             'location'           : bottom_location_string,})        
 
-    turb_atts['Kurt_u_6m']         .update({ 'long_name'          :'Kurtosis',
+    turb_atts['sigU_6m']           .update({ 'long_name'          :'Standard deviation of the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Kurt_u_10m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_u_mast']       .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Kurt_v_2m']         .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_v_6m']         .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Kurt_v_10m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_v_mast']       .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Kurt_w_2m']         .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_w_6m']         .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Kurt_w_10m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_w_mast']       .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Kurt_T_2m']         .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_T_6m']         .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Kurt_T_10m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_T_mast']       .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-    
-    turb_atts['Kurt_q']            .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-    
-    turb_atts['Kurt_c']            .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_uw_2m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_uw_6m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Kurt_uw_10m']       .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_uw_mast']      .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Kurt_vw_2m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_vw_6m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Kurt_vw_10m']       .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_vw_mast']      .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Kurt_wT_2m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_wT_6m']        .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Kurt_wT_10m']       .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_wT_mast']      .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-    
-    turb_atts['Kurt_wq']           .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
+                                             'location'           : middle_location_string,}) 
         
-    turb_atts['Kurt_wc']           .update({ 'long_name'          :'Kurtosis',
+    turb_atts['sigU_10m']          .update({ 'long_name'          :'Standard deviation of the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_uT_2m']        .update({ 'long_name'          :'Kurtosis',
+                                             'location'           : top_location_string,})  
+        
+    turb_atts['sigU_mast']         .update({ 'long_name'          :'Standard deviation of the streamwise wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Kurt_uT_6m']        .update({ 'long_name'          :'Kurtosis',
+                                             'location'           : mast_location_string,})  
+        
+    turb_atts['sigV_2m']           .update({ 'long_name'          :'Standard deviation of the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
+                                             'location'           : bottom_location_string,})        
 
-    turb_atts['Kurt_uT_10m']       .update({ 'long_name'          :'Kurtosis',
+    turb_atts['sigV_6m']           .update({ 'long_name'          :'Standard deviation of the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Kurt_uT_mast']      .update({ 'long_name'          :'Kurtosis',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-    
-    turb_atts['Kurt_uq']           .update({ 'long_name'          :'Kurtosis',
+                                             'location'           : middle_location_string,}) 
+        
+    turb_atts['sigV_10m']          .update({ 'long_name'          :'Standard deviation of the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-    
-    turb_atts['Kurt_uc']           .update({ 'long_name'          :'Kurtosis',
+                                             'location'           : top_location_string,})  
+        
+    turb_atts['sigV_mast']         .update({ 'long_name'          :'Standard deviation of the cross-stream wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_u_2m']         .update({ 'long_name'          :'Skewness',
+                                             'location'           : mast_location_string,})  
+        
+    turb_atts['sigW_2m']           .update({ 'long_name'          :'Standard deviation of the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
+                                             'location'           : bottom_location_string,})        
 
-    turb_atts['Skew_u_6m']         .update({ 'long_name'          :'Skewness',
+    turb_atts['sigW_6m']           .update({ 'long_name'          :'Standard deviation of the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_u_10m']        .update({ 'long_name'          :'Skewness',
+                                             'location'           : middle_location_string,}) 
+        
+    turb_atts['sigW_10m']          .update({ 'long_name'          :'Standard deviation of the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_u_mast']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Skew_v_2m']         .update({ 'long_name'          :'Skewness',
+                                             'location'           : top_location_string,})  
+        
+    turb_atts['sigW_mast']         .update({ 'long_name'          :'Standard deviation of the vertical-orthogonal (to stream) wind vector',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
                                              'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_v_6m']         .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_v_10m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_v_mast']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Skew_w_2m']         .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_w_6m']         .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_w_10m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_w_mast']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Skew_T_2m']         .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_T_6m']         .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_T_10m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_T_mast']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Skew_q']            .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-    
-    turb_atts['Skew_c']            .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-    
-    turb_atts['Skew_uw_2m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_uw_6m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_uw_10m']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_uw_mast']      .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Skew_vw_2m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_vw_6m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_vw_10m']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_vw_mast']      .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-
-    turb_atts['Skew_wT_2m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_wT_6m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_wT_10m']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_wT_mast']      .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
-    
-    turb_atts['Skew_wq']           .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-    
-    turb_atts['Skew_wc']           .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_uT_2m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,})
-
-    turb_atts['Skew_uT_6m']        .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,})
-
-    turb_atts['Skew_uT_10m']       .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,})
-
-    turb_atts['Skew_uT_mast']      .update({ 'long_name'          :'Skewness',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,})
+                                             'location'           : mast_location_string,})  
     
     turb_atts['fs']                .update({ 'long_name'          :'frequency',
                                              'cf_name'            :'',
@@ -3973,7 +3413,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
  
-    turb_atts['sus_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+    turb_atts['sUs_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of the streamwise wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3981,7 +3421,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['sus_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+    turb_atts['sUs_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of the the streamwise wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3989,7 +3429,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})    
     
-    turb_atts['sus_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+    turb_atts['sUs_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of the streamwise wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -3997,7 +3437,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
 
-    turb_atts['sus_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+    turb_atts['sUs_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of the streamwise wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4005,7 +3445,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})         
  
-    turb_atts['svs_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+    turb_atts['sVs_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of the cross-stream wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4013,7 +3453,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['svs_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+    turb_atts['sVs_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of the cross-stream wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4021,7 +3461,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})    
     
-    turb_atts['svs_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+    turb_atts['sVs_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of the cross-stream wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4029,7 +3469,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
 
-    turb_atts['svs_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+    turb_atts['sVs_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of the cross-stream wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4037,7 +3477,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,})  
     
-    turb_atts['sws_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+    turb_atts['sWs_2m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of the vertical-orthogonal (to stream) wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4045,7 +3485,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,})
 
-    turb_atts['sws_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+    turb_atts['sWs_6m']            .update({ 'long_name'          :'smoothed power spectral density (Welch) of the vertical-orthogonal (to stream) wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4053,7 +3493,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,})    
     
-    turb_atts['sws_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+    turb_atts['sWs_10m']           .update({ 'long_name'          :'smoothed power spectral density (Welch) of the vertical-orthogonal (to stream) wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4061,7 +3501,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
 
-    turb_atts['sws_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+    turb_atts['sWs_mast']          .update({ 'long_name'          :'smoothed power spectral density (Welch) of the vertical-orthogonal (to stream) wind vector on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4117,7 +3557,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : licor_location,})
     
-    turb_atts['cwus_2m']           .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+    turb_atts['cWUs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and streamwise wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4125,7 +3565,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,}) 
     
-    turb_atts['cwus_6m']           .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+    turb_atts['cWUs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and streamwise wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4133,7 +3573,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,}) 
     
-    turb_atts['cwus_10m']          .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+    turb_atts['cWUs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and streamwise wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4141,7 +3581,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
     
-    turb_atts['cwus_mast']         .update({ 'long_name'          :'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+    turb_atts['cWUs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and streamwise wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4149,7 +3589,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,}) 
 
-    turb_atts['cwvs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+    turb_atts['cWVs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4157,7 +3597,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,}) 
     
-    turb_atts['cwvs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+    turb_atts['cWVs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4165,7 +3605,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,}) 
     
-    turb_atts['cwvs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+    turb_atts['cWVs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4173,7 +3613,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
     
-    turb_atts['cwvs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+    turb_atts['cWVs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4181,7 +3621,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,}) 
     
-    turb_atts['cuvs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+    turb_atts['cUVs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between the streamwise and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4189,7 +3629,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,}) 
     
-    turb_atts['cuvs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+    turb_atts['cUVs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between the streamwise and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4197,7 +3637,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,}) 
     
-    turb_atts['cuvs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+    turb_atts['cUVs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between the streamwise and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4205,39 +3645,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
     
-    turb_atts['cuvs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between u and v wind vectors on frequency, fs',
-                                             'cf_name'            :'',
-                                             'platform'           : mast_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : mast_source,
-                                             'funding_sources'    : mast_funding,
-                                             'location'           : mast_location_string,}) 
-
-    turb_atts['cwTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : bottom_location_string,}) 
-    
-    turb_atts['cwTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : middle_location_string,}) 
-    
-    turb_atts['cwTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
-                                             'cf_name'            :'',
-                                             'platform'           : tower_platform,
-                                             'data_provenance'    : flux_fast_provenance,
-                                             'measurement_source' : flux_source,
-                                             'funding_sources'    : flux_funding,
-                                             'location'           : top_location_string,}) 
-    
-    turb_atts['cwTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
+    turb_atts['cUVs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between the streamwise and cross-stream wind vectors on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4245,7 +3653,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,}) 
 
-    turb_atts['cuTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+    turb_atts['cWTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4253,7 +3661,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,}) 
     
-    turb_atts['cuTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+    turb_atts['cWTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4261,7 +3669,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,}) 
     
-    turb_atts['cuTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+    turb_atts['cWTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4269,7 +3677,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
     
-    turb_atts['cuTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+    turb_atts['cWTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4277,7 +3685,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,}) 
 
-    turb_atts['cvTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+    turb_atts['cUTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between the streamwise wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4285,7 +3693,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : bottom_location_string,}) 
     
-    turb_atts['cvTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+    turb_atts['cUTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between the streamwise wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4293,7 +3701,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : middle_location_string,}) 
     
-    turb_atts['cvTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+    turb_atts['cUTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between the streamwise wind vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4301,7 +3709,39 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,}) 
     
-    turb_atts['cvTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+    turb_atts['cUTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between the streamwise wind vector and sonic temperature on frequency, fs',
+                                             'cf_name'            :'',
+                                             'platform'           : mast_platform,
+                                             'data_provenance'    : flux_fast_provenance,
+                                             'measurement_source' : mast_source,
+                                             'funding_sources'    : mast_funding,
+                                             'location'           : mast_location_string,}) 
+
+    turb_atts['cVTs_2m']           .update({ 'long_name'          :'smoothed co-spectral density between the cross-stream wind vector and sonic temperature on frequency, fs',
+                                             'cf_name'            :'',
+                                             'platform'           : tower_platform,
+                                             'data_provenance'    : flux_fast_provenance,
+                                             'measurement_source' : flux_source,
+                                             'funding_sources'    : flux_funding,
+                                             'location'           : bottom_location_string,}) 
+    
+    turb_atts['cVTs_6m']           .update({ 'long_name'          :'smoothed co-spectral density between the cross-stream wind vector and sonic temperature on frequency, fs',
+                                             'cf_name'            :'',
+                                             'platform'           : tower_platform,
+                                             'data_provenance'    : flux_fast_provenance,
+                                             'measurement_source' : flux_source,
+                                             'funding_sources'    : flux_funding,
+                                             'location'           : middle_location_string,}) 
+    
+    turb_atts['cVTs_10m']          .update({ 'long_name'          :'smoothed co-spectral density between the cross-stream wind vector and sonic temperature on frequency, fs',
+                                             'cf_name'            :'',
+                                             'platform'           : tower_platform,
+                                             'data_provenance'    : flux_fast_provenance,
+                                             'measurement_source' : flux_source,
+                                             'funding_sources'    : flux_funding,
+                                             'location'           : top_location_string,}) 
+    
+    turb_atts['cVTs_mast']         .update({ 'long_name'          :'smoothed co-spectral density between the cross-stream wind vector vector and sonic temperature on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4309,7 +3749,7 @@ def define_turb_variables():
                                              'funding_sources'    : mast_funding,
                                              'location'           : mast_location_string,}) 
     
-    turb_atts['cwqs']              .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and q on frequency, fs',
+    turb_atts['cWqs']              .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector vector and q on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4317,7 +3757,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : licor_location,}) 
     
-    turb_atts['cuqs']              .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and q on frequency, fs',
+    turb_atts['cUqs']              .update({ 'long_name'          :'smoothed co-spectral density between the cross-stream wind vector and q on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4325,7 +3765,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : licor_location,}) 
     
-    turb_atts['cvqs']              .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and q on frequency, fs',
+    turb_atts['cVqs']              .update({ 'long_name'          :'smoothed co-spectral density between the cross-stream wind vector and q on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4333,7 +3773,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : licor_location,})     
     
-    turb_atts['cwcs']              .update({ 'long_name'          :'smoothed co-spectral density between w wind vector and co2 on frequency, fs',
+    turb_atts['cWcs']              .update({ 'long_name'          :'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and co2 on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4341,7 +3781,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : licor_location,}) 
     
-    turb_atts['cucs']              .update({ 'long_name'          :'smoothed co-spectral density between u wind vector and co2 on frequency, fs',
+    turb_atts['cUcs']              .update({ 'long_name'          :'smoothed co-spectral density between streamwise wind vector and co2 on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
@@ -4349,7 +3789,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : licor_location,}) 
     
-    turb_atts['cvcs']              .update({ 'long_name'          :'smoothed co-spectral density between v wind vector and co2 on frequency, fs',
+    turb_atts['cVcs']              .update({ 'long_name'          :'smoothed co-spectral density between cross-stream wind vector and co2 on frequency, fs',
                                              'cf_name'            :'',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,

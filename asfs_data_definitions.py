@@ -22,7 +22,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('2.0', '7/15/2021', 'ccox')
+    cv = ('2.1', '9/8/2021', 'ccox')
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -1211,89 +1211,64 @@ def define_turb_variables():
     turb_atts['ustar']           = {'units' : 'm/s'}
     turb_atts['Tstar']           = {'units' : 'degC'}
     turb_atts['zeta_level_n']    = {'units' : 'dimensionless'}
-    turb_atts['wu_csp']          = {'units' : 'm^2/s^2'}
-    turb_atts['wv_csp']          = {'units' : 'm^2/s^2'}
-    turb_atts['uv_csp']          = {'units' : 'm^2/s^2'}
-    turb_atts['wT_csp']          = {'units' : 'degC*m/s'}
-    turb_atts['uT_csp']          = {'units' : 'degC*m/s'}
-    turb_atts['vT_csp']          = {'units' : 'degC*m/s'}
-    turb_atts['wq_csp']          = {'units' : 'm/s*kg/m3'}
-    turb_atts['uq_csp']          = {'units' : 'm/s*kg/m3'}
-    turb_atts['vq_csp']          = {'units' : 'm/s*kg/m3'}
-    turb_atts['wc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
-    turb_atts['uc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
-    turb_atts['vc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
-    turb_atts['phi_u']           = {'units' : 'dimensionless'}
-    turb_atts['phi_v']           = {'units' : 'dimensionless'}
-    turb_atts['phi_w']           = {'units' : 'dimensionless'}
+    turb_atts['WU_csp']          = {'units' : 'm^2/s^2'}
+    turb_atts['WV_csp']          = {'units' : 'm^2/s^2'}
+    turb_atts['UV_csp']          = {'units' : 'm^2/s^2'}
+    turb_atts['WT_csp']          = {'units' : 'degC*m/s'}
+    turb_atts['UT_csp']          = {'units' : 'degC*m/s'}
+    turb_atts['VT_csp']          = {'units' : 'degC*m/s'}
+    turb_atts['Wq_csp']          = {'units' : 'm/s*kg/m3'}
+    turb_atts['Uq_csp']          = {'units' : 'm/s*kg/m3'}
+    turb_atts['Vq_csp']          = {'units' : 'm/s*kg/m3'}
+    turb_atts['Wc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
+    turb_atts['Uc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
+    turb_atts['Vc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
+    turb_atts['phi_U']           = {'units' : 'dimensionless'}
+    turb_atts['phi_V']           = {'units' : 'dimensionless'}
+    turb_atts['phi_W']           = {'units' : 'dimensionless'}
     turb_atts['phi_T']           = {'units' : 'dimensionless'}
-    turb_atts['phi_uT']          = {'units' : 'dimensionless'}
-    turb_atts['nSu']             = {'units' : 'Power/Hz'}
-    turb_atts['nSv']             = {'units' : 'Power/Hz'}
-    turb_atts['nSw']             = {'units' : 'Power/Hz'}
-    turb_atts['nSt']             = {'units' : 'Power/Hz'}
+    turb_atts['phi_UT']          = {'units' : 'dimensionless'}
+    turb_atts['nSU']             = {'units' : 'Power/Hz'}
+    turb_atts['nSV']             = {'units' : 'Power/Hz'}
+    turb_atts['nSW']             = {'units' : 'Power/Hz'}
+    turb_atts['nST']             = {'units' : 'Power/Hz'}
     turb_atts['nSq']             = {'units' : 'Power/Hz'}
     turb_atts['nSc']             = {'units' : 'Power/Hz'}
-    turb_atts['epsilon_u']       = {'units' : 'm^2/s^3'}
-    turb_atts['epsilon_v']       = {'units' : 'm^2/s^3'}
-    turb_atts['epsilon_w']       = {'units' : 'm^2/s^3'}
+    turb_atts['epsilon_U']       = {'units' : 'm^2/s^3'}
+    turb_atts['epsilon_V']       = {'units' : 'm^2/s^3'}
+    turb_atts['epsilon_W']       = {'units' : 'm^2/s^3'}
     turb_atts['epsilon']         = {'units' : 'm^2/s^3'}
     turb_atts['Phi_epsilon']     = {'units' : 'dimensionless'}
-    turb_atts['Nt']              = {'units' : 'degC^2/s'}
-    turb_atts['Phi_Nt']          = {'units' : 'dimensionless'}
+    turb_atts['NT']              = {'units' : 'degC^2/s'}
+    turb_atts['Phi_NT']          = {'units' : 'dimensionless'}
     turb_atts['Phix']            = {'units' : 'deg'}
     turb_atts['DeltaU']          = {'units' : 'm/s'}
     turb_atts['DeltaV']          = {'units' : 'm/s'}
     turb_atts['DeltaT']          = {'units' : 'degC'}
     turb_atts['Deltaq']          = {'units' : 'kg/kg'}
     turb_atts['Deltac']          = {'units' : 'mg/m3'}
-    turb_atts['Kurt_u']          = {'units' : 'unitless'}
-    turb_atts['Kurt_v']          = {'units' : 'unitless'}
-    turb_atts['Kurt_w']          = {'units' : 'unitless'}
-    turb_atts['Kurt_T']          = {'units' : 'unitless'}
-    turb_atts['Kurt_q']          = {'units' : 'unitless'}
-    turb_atts['Kurt_c']          = {'units' : 'unitless'}
-    turb_atts['Kurt_uw']         = {'units' : 'unitless'}
-    turb_atts['Kurt_vw']         = {'units' : 'unitless'}
-    turb_atts['Kurt_wT']         = {'units' : 'unitless'}
-    turb_atts['Kurt_uT']         = {'units' : 'unitless'}
-    turb_atts['Kurt_wq']         = {'units' : 'unitless'}
-    turb_atts['Kurt_uq']         = {'units' : 'unitless'}
-    turb_atts['Kurt_wc']         = {'units' : 'unitless'}
-    turb_atts['Kurt_uc']         = {'units' : 'unitless'}
-    turb_atts['Skew_u']          = {'units' : 'unitless'}
-    turb_atts['Skew_v']          = {'units' : 'unitless'}
-    turb_atts['Skew_w']          = {'units' : 'unitless'}
-    turb_atts['Skew_T']          = {'units' : 'unitless'}
-    turb_atts['Skew_q']          = {'units' : 'unitless'}
-    turb_atts['Skew_c']          = {'units' : 'unitless'}
-    turb_atts['Skew_uw']         = {'units' : 'unitless'}
-    turb_atts['Skew_vw']         = {'units' : 'unitless'}
-    turb_atts['Skew_wT']         = {'units' : 'unitless'}
-    turb_atts['Skew_uT']         = {'units' : 'unitless'}
-    turb_atts['Skew_wq']         = {'units' : 'unitless'}
-    turb_atts['Skew_uq']         = {'units' : 'unitless'}
-    turb_atts['Skew_wc']         = {'units' : 'unitless'}
-    turb_atts['Skew_uc']         = {'units' : 'unitless'}
+    turb_atts['sigU']            = {'units' : 'm/s'}
+    turb_atts['sigV']            = {'units' : 'm/s'}
+    turb_atts['sigW']            = {'units' : 'm/s'}
     turb_atts['fs']              = {'units' : 'Hz'}
-    turb_atts['sus']             = {'units' : '(m/s)^2/Hz'}
-    turb_atts['svs']             = {'units' : '(m/s)^2/Hz'}
-    turb_atts['sws']             = {'units' : '(m/s)^2/Hz'}
+    turb_atts['sUs']             = {'units' : '(m/s)^2/Hz'}
+    turb_atts['sVs']             = {'units' : '(m/s)^2/Hz'}
+    turb_atts['sWs']             = {'units' : '(m/s)^2/Hz'}
     turb_atts['sTs']             = {'units' : 'degC^2/Hz'}
     turb_atts['sqs']             = {'units' : '(kg/m3)/Hz'}
     turb_atts['scs']             = {'units' : '(mg m^-2 s^-1)^2/Hz'}
-    turb_atts['cwus']            = {'units' : '(m/s)^2/Hz'}
-    turb_atts['cwvs']            = {'units' : '(m/s)^2/Hz'}
-    turb_atts['cuvs']            = {'units' : '(m/s)^2/Hz'}
-    turb_atts['cwTs']            = {'units' : '(m/s*degC)/Hz'}
-    turb_atts['cuTs']            = {'units' : '(m/s*degC)/Hz'}
-    turb_atts['cvTs']            = {'units' : '(m/s*degC)/Hz'}
-    turb_atts['cwqs']            = {'units' : '(m/s*kg/m3)/Hz'}
-    turb_atts['cuqs']            = {'units' : '(m/s*kg/m3)/Hz'}
-    turb_atts['cvqs']            = {'units' : '(m/s*kg/m3)/Hz'}
-    turb_atts['cwcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
-    turb_atts['cucs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
-    turb_atts['cvcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
+    turb_atts['cWUs']            = {'units' : '(m/s)^2/Hz'}
+    turb_atts['cWVs']            = {'units' : '(m/s)^2/Hz'}
+    turb_atts['cUVs']            = {'units' : '(m/s)^2/Hz'}
+    turb_atts['cWTs']            = {'units' : '(m/s*degC)/Hz'}
+    turb_atts['cUTs']            = {'units' : '(m/s*degC)/Hz'}
+    turb_atts['cVTs']            = {'units' : '(m/s*degC)/Hz'}
+    turb_atts['cWqs']            = {'units' : '(m/s*kg/m3)/Hz'}
+    turb_atts['cUqs']            = {'units' : '(m/s*kg/m3)/Hz'}
+    turb_atts['cVqs']            = {'units' : '(m/s*kg/m3)/Hz'}
+    turb_atts['cWcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
+    turb_atts['cUcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
+    turb_atts['cVcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
     turb_atts['bulk_Hs']         = {'units' : 'W/m2'}
     turb_atts['bulk_Hl']         = {'units' : 'W/m2'}
     turb_atts['bulk_Hl_Webb']    = {'units' : 'W/m2'}
@@ -1380,77 +1355,77 @@ def define_turb_variables():
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['wu_csp']          .update({'long_name'  : 'wu-covariance based on the wu-cospectra integration',
+    turb_atts['WU_csp']          .update({'long_name'  : 'WU-covariance based on the WU-cospectra integration; W and U are the vertical-orthogonal (to stream) and streamwise wind vectors',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['wv_csp']          .update({'long_name'  : 'wv-covariance based on the wv-cospectra integration',
+    turb_atts['WV_csp']          .update({'long_name'  : 'WV-covariance based on the wv-cospectra integration; W and V are the vertical-orthogonal (to stream) and cross-stream wind vectors',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['uv_csp']          .update({'long_name'  : 'uv-covariance based on the uv-cospectra integration',
+    turb_atts['UV_csp']          .update({'long_name'  : 'UV-covariance based on the uv-cospectra integration; U and V are the streamwise and cross-stream wind vectors',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['wT_csp']          .update({'long_name'  : 'wT-covariance, vertical flux of the sonic temperature',
+    turb_atts['WT_csp']          .update({'long_name'  : 'WT-covariance, vertical flux of the sonic temperature; W is the vertical-orthogonal (to stream) wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['uT_csp']          .update({'long_name'  : 'uT-covariance, vertical flux of the sonic temperature',
+    turb_atts['UT_csp']          .update({'long_name'  : 'UT-covariance, vertical flux of the sonic temperature; U is the streamwise wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['vT_csp']          .update({'long_name'  : 'vT-covariance, vertical flux of the sonic temperature',
+    turb_atts['VT_csp']          .update({'long_name'  : 'VT-covariance, vertical flux of the sonic temperature; V is the cross-stream wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['wq_csp']          .update({'long_name'  : 'wq-covariance, vertical flux of h2o',
+    turb_atts['Wq_csp']          .update({'long_name'  : 'Wq-covariance, vertical flux of h2o; W is the vertical-orthogonal (to stream) wind vector',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['uq_csp']          .update({'long_name'  : 'uq-covariance, vertical flux of h2o',
+    turb_atts['Uq_csp']          .update({'long_name'  : 'Uq-covariance, vertical flux of h2o; U is the streamwise wind vector',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['vq_csp']          .update({'long_name'  : 'vq-covariance, vertical flux of h2o',
+    turb_atts['Vq_csp']          .update({'long_name'  : 'Vq-covariance, vertical flux of h2o; V is the cross-stream wind vector',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['wc_csp']          .update({'long_name'  : 'wc-covariance, vertical flux of co2',
+    turb_atts['Wc_csp']          .update({'long_name'  : 'wc-covariance, vertical flux of co2; W is the vertical-orthogonal (to stream) wind vector',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['uc_csp']          .update({'long_name'  : 'uc-covariance, vertical flux of co2',
+    turb_atts['Uc_csp']          .update({'long_name'  : 'uc-covariance, vertical flux of co2; U is the streamwise wind vector',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['vc_csp']          .update({'long_name'  : 'vc-covariance, vertical flux of co2',
+    turb_atts['Vc_csp']          .update({'long_name'  : 'vc-covariance, vertical flux of co2; V is the cross-stream wind vector',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['phi_u']           .update({'long_name'  : 'MO universal function for the standard deviations, calculated from 2 m',
+    turb_atts['phi_U']           .update({'long_name'  : 'MO universal function for the standard deviations, calculated from 2 m; U is the streamwise wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['phi_v']           .update({'long_name'  : 'MO universal function for the standard deviations, calculated from 2 m',
+    turb_atts['phi_V']           .update({'long_name'  : 'MO universal function for the standard deviations, calculated from 2 m; V is the cross-stream wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['phi_w']           .update({'long_name'  : 'MO universal function for the standard deviations, calculated from 2 m',
+    turb_atts['phi_W']           .update({'long_name'  : 'MO universal function for the standard deviations, calculated from 2 m; W is the vertical-orthogonal (to stream) wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
@@ -1460,27 +1435,27 @@ def define_turb_variables():
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['phi_uT']          .update({'long_name'  : 'MO universal function for the horizontal heat flux, calculated from 2 m',
+    turb_atts['phi_UT']          .update({'long_name'  : 'MO universal function for the horizontal heat flux, calculated from 2 m; U is the streamwise wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['epsilon_u']       .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_U']       .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy in u based on the energy spectra of the longitudinal velocity component in the inertial subrange; U is the streamwise wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['epsilon_v']       .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_V']       .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy in v based on the energy spectra of the longitudinal velocity component in the inertial subrange; V is the cross-stream wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['epsilon_w']       .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange',
+    turb_atts['epsilon_W']       .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy in w based on the energy spectra of the longitudinal velocity component in the inertial subrange; W is the vertical-orthogonal (to stream) wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['epsilon']         .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy = median of the values derived from u, v, & w',
+    turb_atts['epsilon']         .update({'long_name'  : 'Dissipation rate of the turbulent kinetic energy = median of the values derived from U, V, & W',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
@@ -1490,22 +1465,22 @@ def define_turb_variables():
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['nSu']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of u',
+    turb_atts['nSU']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of U; U is the streamwise wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['nSv']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of v',
+    turb_atts['nSV']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of V; V is the cross-stream wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['nSw']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of w',
+    turb_atts['nSW']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of W; W is the vertical-orthogonal (to stream) wind vector',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['nSt']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of sonic temperature',
+    turb_atts['nST']             .update({'long_name'  : 'Median spectral slope in the inertial subrange of sonic temperature',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
@@ -1520,27 +1495,27 @@ def define_turb_variables():
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['Nt']              .update({'long_name'  : 'The dissipation (destruction) rate for half the temperature variance',
+    turb_atts['NT']              .update({'long_name'  : 'The dissipation (destruction) rate for half the temperature variance',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['Phi_Nt']          .update({'long_name'  : 'Monin-Obukhov universal function Phi_Nt, calculated from 2 m',
+    turb_atts['Phi_NT']          .update({'long_name'  : 'Monin-Obukhov universal function Phi_Nt, calculated from 2 m',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['Phix']            .update({'long_name'  : 'Angle of attack. Should be < 15 deg; else a correction should be applied',
+    turb_atts['Phix']            .update({'long_name'  : 'Angle of attack',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['DeltaU']          .update({'long_name'  : 'Stationarity diagnostic: Steadiness of the along-wind component (trend)',
+    turb_atts['DeltaU']          .update({'long_name'  : 'Stationarity diagnostic: Steadiness of the streamwise wind vector (trend)',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['DeltaV']          .update({'long_name'  : 'Stationarity diagnostic: Steadiness of the cross-wind component (trend)',
+    turb_atts['DeltaV']          .update({'long_name'  : 'Stationarity diagnostic: Steadiness of the cross-stream wind vector (trend)',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
@@ -1559,163 +1534,38 @@ def define_turb_variables():
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_u']          .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
+        
+    turb_atts['sigU' ]           .update({'long_name'  :'Standard deviation of streamwise wind vector',
+                                          'cf_name'    :'',
+                                          'height'     : sonic_height,
+                                          'location'   : inst_mast_location_string,})
+        
+    turb_atts['sigV' ]           .update({'long_name'  :'Standard deviation of cross-stream wind vector',
+                                          'cf_name'    :'',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['Kurt_v']          .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
+    turb_atts['sigW' ]           .update({'long_name'  :'Standard deviation of the vertical-orthogonal (to stream) wind vector',
+                                          'cf_name'    :'',
                                           'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_w']          .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_T']          .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_q']          .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_c']          .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_uw']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_vw']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_wT']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_uT']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_wq']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_uq']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_wc']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Kurt_uc']         .update({'long_name'  : 'Kurtosis',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_u']          .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_v']          .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_w']          .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_T']          .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_q']          .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_c']          .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_uw']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_vw']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_wT']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_uT']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : sonic_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_wq']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_uq']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_wc']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
-
-    turb_atts['Skew_uc']         .update({'long_name'  : 'Skewness',
-                                          'cf_name'    : '',
-                                          'height'     : licor_height,
-                                          'location'   : inst_mast_location_string,})
+                                          'location'   : inst_mast_location_string,})   
 
     turb_atts['fs']              .update({'long_name'  : 'frequency',
                                           'cf_name'    : '',
                                           'height'     : 'n/a',
                                           'location'   : 'n/a',})
 
-    turb_atts['sus']             .update({'long_name'  : 'smoothed power spectral density (Welch) of u wind vector on frequency, fs',
+    turb_atts['sUs']             .update({'long_name'  : 'smoothed power spectral density (Welch) of the streamwise wind vector on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['svs']             .update({'long_name'  : 'smoothed power spectral density (Welch) of v wind vector on frequency, fs',
+    turb_atts['sVs']             .update({'long_name'  : 'smoothed power spectral density (Welch) of the cross-stream wind vector on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['sws']             .update({'long_name'  : 'smoothed power spectral density (Welch) of w wind vector on frequency, fs',
+    turb_atts['sWs']             .update({'long_name'  : 'smoothed power spectral density (Welch) of the vertical-orthogonal (to stream) wind vector on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
@@ -1735,62 +1585,62 @@ def define_turb_variables():
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cwus']            .update({'long_name'  : 'smoothed co-spectral density between w and u wind vectors on frequency, fs',
+    turb_atts['cWUs']            .update({'long_name'  : 'smoothed co-spectral density between the vertical-orthogonal (to stream) and streamwise wind vectors on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cwvs']            .update({'long_name'  : 'smoothed co-spectral density between w and v wind vectors on frequency, fs',
+    turb_atts['cWVs']            .update({'long_name'  : 'smoothed co-spectral density between the vertical-orthogonal (to stream) and cross-stream wind vectors on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cuvs']            .update({'long_name'  : 'smoothed co-spectral density between u and v wind vectors on frequency, fs',
+    turb_atts['cUVs']            .update({'long_name'  : 'smoothed co-spectral density between the streamwise and cross-stream wind vectors on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cwTs']            .update({'long_name'  : 'smoothed co-spectral density between w wind vector and sonic temperature on frequency, fs',
+    turb_atts['cWTs']            .update({'long_name'  : 'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and sonic temperature on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cuTs']            .update({'long_name'  : 'smoothed co-spectral density between u wind vector and sonic temperature on frequency, fs',
+    turb_atts['cUTs']            .update({'long_name'  : 'smoothed co-spectral density between the streamwise wind vector and sonic temperature on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cvTs']            .update({'long_name'  : 'smoothed co-spectral density between v wind vector and sonic temperature on frequency, fs',
+    turb_atts['cVTs']            .update({'long_name'  : 'smoothed co-spectral density between the cross-stream wind vector and sonic temperature on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cwqs']            .update({'long_name'  : 'smoothed co-spectral density between w wind vector and q on frequency, fs',
+    turb_atts['cWqs']            .update({'long_name'  : 'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and q on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cuqs']            .update({'long_name'  : 'smoothed co-spectral density between u wind vector and q on frequency, fs',
+    turb_atts['cUqs']            .update({'long_name'  : 'smoothed co-spectral density between the streamwise wind vector and q on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cvqs']            .update({'long_name'  : 'smoothed co-spectral density between v wind vector and q on frequency, fs',
+    turb_atts['cVqs']            .update({'long_name'  : 'smoothed co-spectral density between the cross-wind wind vector and q on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cwcs']            .update({'long_name'  : 'smoothed co-spectral density between w wind vector and co2 on frequency, fs',
+    turb_atts['cWcs']            .update({'long_name'  : 'smoothed co-spectral density between the vertical-orthogonal (to stream) wind vector and co2 on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cucs']            .update({'long_name'  : 'smoothed co-spectral density between u wind vector and co2 on frequency, fs',
+    turb_atts['cUcs']            .update({'long_name'  : 'smoothed co-spectral density between the streamwise wind vector and co2 on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
-    turb_atts['cvcs']            .update({'long_name'  : 'smoothed co-spectral density between v wind vector and co2 on frequency, fs',
+    turb_atts['cVcs']            .update({'long_name'  : 'smoothed co-spectral density between the cross-stream wind vector and co2 on frequency, fs',
                                           'cf_name'    : '',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
