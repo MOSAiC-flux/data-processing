@@ -79,7 +79,7 @@ import socket
 global nthreads 
 if '.psd.' in socket.gethostname():
     nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 12 # laptops don't tend to have 64 cores
+else: nthreads = 4 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
@@ -616,6 +616,11 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
     ldb = date-half_day_delta           # lower_date_bound for data to pull in for today
     udb = date+day_delta+half_day_delta # upper_date_bound for data to pull in for today
 
+    # used radio data on these days :|
+    if datetime(2020, 4, 10)< date < datetime(2020, 6, 1):
+        ldb = date-pd.to_timedelta(8, unit='d')
+        udb = date+day_delta+half_day_delta # upper_date_bound for data to pull in for today
+
     inds_to_use = [i for i, tstamp in enumerate(first_timestamp_list) if (tstamp>ldb and tstamp<udb)]
 
     if len(inds_to_use) == 0 :
@@ -636,6 +641,7 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
             frame = pd.read_csv(data_file, parse_dates=[0], sep=',', na_values=na_vals,\
                                 engine='c', names=cols)
             frame_list.append(frame)
+
         except Exception as e:
             printline()
             print(e)
@@ -644,40 +650,58 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
 
     # reindex each frame to avoid collisions before concatting/interpolating the time column/axis
     reindex_start = 0 
+    terped_frame_list = []
     for curr_frame in frame_list: # reindex each data frame properly to avoid collisions 
         curr_frame.index = range(reindex_start, reindex_start+len(curr_frame.index))
         reindex_start    = reindex_start + len(curr_frame.index) # increment by num data rows for next loop
 
-    full_frame  = pd.concat(frame_list) # is concat computationally efficient?
+        # check asfs50/30 for doubles due to logger scan weirdness in difficult times
+        # april 10th to may 7th asfs30
+        # may 5th to july 1st asfs50
+        if datetime(2020, 4, 10)< date < datetime(2020, 6, 1):
+            screwymet  = curr_frame[['metek_x','metek_y','metek_z','metek_T']]    
+            dupes      = screwymet.duplicated(keep='last') # we want to keep the second half of the duplicates, no tilde, I told you it was weird
+            old_frame  = curr_frame #placeholder for debuggging
+            curr_frame = old_frame.drop(old_frame[dupes == True].index, 0)
 
-    # full_frame contains all the data now, in the correct order, but times are wonky and
-    # it's indexed by an incremented integer, not so useful. fix it by interpolating timestamps
-    # and then reindexing return_frame with interpolated timestamps
-    times = pd.DataFrame(full_frame["TIMESTAMP"])
-    extra_seconds = times["TIMESTAMP"].iloc[-1]+timedelta(seconds=5) # boundary case, don't lose data at tail
-    times = times.append({"TIMESTAMP": extra_seconds}, ignore_index=True)
-    times.loc[times["TIMESTAMP"].duplicated(),"TIMESTAMP"] = nan # replace duplicate values with nan
+        # full_frame contains all the data now, in the correct order, but times are wonky and
+        # it's indexed by an incremented integer, not so useful. fix it by interpolating timestamps
+        # and then reindexing return_frame with interpolated timestamps
+        
+        times = pd.DataFrame(curr_frame["TIMESTAMP"])
+        extra_seconds = times["TIMESTAMP"].iloc[-1]+timedelta(seconds=5) # boundary case, don't lose data at tail
+        times         = times.append({"TIMESTAMP": extra_seconds}, ignore_index=True)
+        times.loc[times["TIMESTAMP"].duplicated(),"TIMESTAMP"] = nan # replace duplicate values with nan
 
-    # to interpolate times, we convert the timestamps to a float timedelta
-    # ... interp... then convert interpolated deltas back to complete timestamp series
-    t0 = times["TIMESTAMP"].min()
-    nn_times = times["TIMESTAMP"].notnull()
-    times.loc[nn_times, 'T_DELTA'] = (times.loc[nn_times,"TIMESTAMP"] - t0).dt.total_seconds()
-    times_interped = t0 + pd.to_timedelta(times.T_DELTA.interpolate(), unit='s')
-    return_times   = times_interped.iloc[0:-1].copy() # pop the boundary case added above
+        # to interpolate times, we convert the timestamps to a float timedelta
+        # ... interp... then convert interpolated deltas back to complete timestamp series
+        t0 = times["TIMESTAMP"].min()
+        nn_times = times["TIMESTAMP"].notnull()
+        times.loc[nn_times, 'T_DELTA'] = (times.loc[nn_times,"TIMESTAMP"] - t0).dt.total_seconds()
+        times_interped = t0 + pd.to_timedelta(times.T_DELTA.interpolate(), unit='s')
+        return_times   = times_interped.iloc[0:-1].copy() # pop the boundary case added above
 
-    # all done, put the interpolated time column back into complete dataframe and send back to processing
-    full_frame["TIMESTAMP"] = np.where(True, return_times, return_times) # np.where is _much_ faster than pandas.. :\
-    full_frame.index        = full_frame["TIMESTAMP"]
-    
-    # not quite done. now we subtract 5 sec (length of the scan) from the index so that the times mark the beginning rather than the end
-    full_frame.index = full_frame.index-pd.Timedelta(5,unit='sec')
+        # all done, put the interpolated time column back into complete dataframe and send back to processing
+        curr_frame["TIMESTAMP"] = np.where(True, return_times, return_times) # np.where is _much_ faster than pandas.. :\
+        curr_frame.index        = curr_frame["TIMESTAMP"]
 
-    return_frame = full_frame.sort_index()
-    return_frame = return_frame[date:date+day_delta]
-    return_frame = return_frame.drop_duplicates()
+        # not quite done. now we subtract 5 sec (length of the scan) from the index so that the times mark the beginning rather than the end
+        curr_frame.index = curr_frame.index-pd.Timedelta(5,unit='sec')
+        curr_frame = curr_frame.sort_index()
+
+        terped_frame_list.append(curr_frame)
+
+    full_frame   = pd.concat(terped_frame_list) # is concat computationally efficient?
+    full_frame   = full_frame.sort_index()
+    full_frame   = full_frame[date:date+day_delta]
+
+    # this drop_duplicates is complicated because of duplicates between the shunted radio files and sd cards
+    sub_frame    = full_frame[data_cols[1:6]]
+    dupes        = sub_frame.duplicated() # we want to keep the second half of the duplicates, no tilde, I told you it was weird
+    return_frame = full_frame[dupes == False]
+
     n_entries    = return_frame.index.size
-    
+
     if any(return_frame.duplicated()): 
         raise Exception
 
