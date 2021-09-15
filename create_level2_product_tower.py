@@ -761,10 +761,6 @@ def main(): # the main data crunching program
         Pws10 = np.exp( ( bm1*o10m**-1 + b0*o10m**0 + b1*o10m**1 + b2*o10m**2 + b3*o10m**3 ) + b4*np.log(o10m) ) # [Pa]
         sd['vaisala_RH_10m'] = 100*(Pw10/Pws10) 
 
-        omm = tmm - ( c0*tmm**0 + c1*tmm**1 + c2*tmm**2 + c3*tmm**3 )
-        Pwsm = np.exp( ( bm1*omm**-1 + b0*omm**0 + b1*omm**1 + b2*omm**2 + b3*omm**3 ) + b4*np.log(omm) ) # [Pa]
-        sd['mast_RH'] = 100*(Pwm/Pwsm) 
-
         # now actually apply the offsets
         sd['vaisala_RH_2m']       .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
             sd['vaisala_RH_2m']   .loc[datetime(2019,10,19) : datetime(2020,9,21)] + 1.04   
