@@ -1,5 +1,7 @@
 **/__pycache__
 .gitignore
+debug_functions.py
+ramdisk
 *.log
 *.pyc
 *.CR1X
@@ -8,4 +10,5 @@
 *.m
 *.mat
 *.org
+*.pkl
 .DS_Store
