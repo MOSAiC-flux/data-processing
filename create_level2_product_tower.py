@@ -1432,7 +1432,7 @@ def main(): # the main data crunching program
                                                         Pr_time_i, T_time_i, Q_time_i, verbose=v)
 
                         # Sanity check on Cd. Ditch the whole run if it fails
-                        data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True)
+                        #data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True)
                         data = data.add_suffix(suffix_list[i_inst])                                        
 
                         # doubtless there is a better way to initialize this

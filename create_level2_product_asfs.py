@@ -1248,7 +1248,7 @@ def main(): # the main data crunching program
                         if verbose: v = True;
                         sonic_z       = 3.3 # what is sonic_z for the flux stations
                         data = fl.grachev_fluxcapacitor(sonic_z, metek_in, licor_data, 'g/m3', 'mg/m3', Pr_time_i, T_time_i, Q_time_i, verbose=v)
-                        data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True) # Sanity check on Cd. Ditch the run if it fails
+                        #data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True) # Sanity check on Cd. Ditch the run if it fails
 
                         # doubtless there is a better way to initialize this
                         if time_i == 0: turbulencetom = data
