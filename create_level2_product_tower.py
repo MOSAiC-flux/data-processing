@@ -1311,7 +1311,7 @@ def main(): # the main data crunching program
                 metek_stats[inst]['wspd_w_std_'+height] = \
                     fast_data_10hz[inst][inst+'_w'].resample('1T',label ='left').std()
 
-                metek_stats[inst]['acoustic_temp_std_'+height] = \
+                metek_stats[inst]['temp_acoustic_std_'+height] = \
                     fast_data_10hz[inst][inst+'_T'].resample('1T',label ='left').std()
 
             # Each mean is followed by a screeening that rejects mean containing < 50% (300/600 10Hz samples

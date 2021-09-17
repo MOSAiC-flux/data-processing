@@ -174,8 +174,8 @@ def qc_stations(curr_station, station_data):
         station_data['heading'] .loc[datetime(2020,4,15,11,58):datetime(2020,4,15,12,13)] = nan 
                        
         # acoustic temp
-        station_data['acoustic_temp'] .loc[datetime(2019,11,10,13,58) :datetime(2019,11,12,0,0)] = nan
-        station_data['acoustic_temp'] .loc[datetime(2020,3,31,23,7) :datetime(2020,3,31,23,8)] = nan
+        station_data['temp_acoustic'] .loc[datetime(2019,11,10,13,58) :datetime(2019,11,12,0,0)] = nan
+        station_data['temp_acoustic'] .loc[datetime(2020,3,31,23,7) :datetime(2020,3,31,23,8)] = nan
 
     elif 'asfs40' in curr_station:
 
@@ -370,12 +370,12 @@ def qc_stations(curr_station, station_data):
         station_data['heading']       .loc[datetime(2020,2,5,3,7):datetime(2020,2,5,3,24)] = nan
         
         # acoustic temp
-        station_data['acoustic_temp'] .loc[datetime(2020,1,22,21,56) :datetime(2020,1,22,22,50)] = nan
-        station_data['acoustic_temp'] .loc[datetime(2020,8,5,9,54)   :datetime(2020,8,5,9,55)]   = nan
+        station_data['temp_acoustic'] .loc[datetime(2020,1,22,21,56) :datetime(2020,1,22,22,50)] = nan
+        station_data['temp_acoustic'] .loc[datetime(2020,8,5,9,54)   :datetime(2020,8,5,9,55)]   = nan
 
         # data gap due to fast data stream issues early on 
-        station_data['acoustic_temp'] .loc[datetime(2020,1,22,21,56) :datetime(2020,1,22,22,50)] = nan
-        station_data['acoustic_temp'] .loc[datetime(2020,8,5,9,54)   :datetime(2020,8,5,9,55)]   = nan
+        station_data['temp_acoustic'] .loc[datetime(2020,1,22,21,56) :datetime(2020,1,22,22,50)] = nan
+        station_data['temp_acoustic'] .loc[datetime(2020,8,5,9,54)   :datetime(2020,8,5,9,55)]   = nan
         
 
     return station_data;

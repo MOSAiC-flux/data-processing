@@ -1122,18 +1122,32 @@ def main(): # the main data crunching program
             u_min = fdt_10hz['metek_u'].resample('1T',label='left').apply(fl.take_average)
             v_min = fdt_10hz['metek_v'].resample('1T',label='left').apply(fl.take_average)
             w_min = fdt_10hz['metek_w'].resample('1T',label='left').apply(fl.take_average)
+
+            u_sigmin = fdt_10hz['metek_u'].resample('1T',label='left').std()
+            v_sigmin = fdt_10hz['metek_v'].resample('1T',label='left').std()
+            w_sigmin = fdt_10hz['metek_w'].resample('1T',label='left').std()
+            
             ws = np.sqrt(u_min**2+v_min**2)
             wd = np.mod((np.arctan2(-u_min,-v_min)*180/np.pi),360)
 
             # manually patch time period where asfs30 had fast datastream issue
             if today > datetime(2019,10,15) and today < datetime(2019,10,30) and curr_station == 'asfs30':
+                
                 ct_u, ct_v, ct_w = fl.tilt_rotation(sdt['metek_InclY_Avg'], sdt['metek_InclX_Avg'],\
                                                     sdt['heading'],\
                                                     sdt['metek_y_Avg'], sdt['metek_x_Avg'], sdt['metek_z_Avg'])
+                
+                ct_usig, ct_vsig, ct_wsig = fl.tilt_rotation(sdt['metek_InclY_A'], sdt['metek_InclX_Avg'],\
+                                                    sdt['heading'],\
+                                                    sdt['metek_y_Std'], sdt['metek_x_Std'], sdt['metek_z_Std'])
 
                 u_min_slow = ct_v # swapping u and v convention to met  
                 v_min_slow = ct_u # swapping u and v convention to met
-                w_min_slow = ct_w   
+                w_min_slow = ct_w
+                u_sigmin_slow = ct_vsig
+                v_sigmin_slow = ct_usig
+                w_sigmin_slow = ct_wsig
+                
                 ws_slow    = np.sqrt(u_min_slow**2+v_min_slow**2)
                 wd_slow    = np.mod((np.arctan2(-u_min_slow,-v_min_slow)*180/np.pi),360)
 
@@ -1141,7 +1155,10 @@ def main(): # the main data crunching program
                 wd[np.isnan(wd)]       = wd_slow[np.isnan(wd)]
                 u_min[np.isnan(u_min)] = u_min_slow[np.isnan(u_min)]
                 v_min[np.isnan(v_min)] = v_min_slow[np.isnan(v_min)]
-                w_min[np.isnan(w_min)] = w_min_slow[np.isnan(w_min)]
+                w_min[np.isnan(w_min)] = w_min_slow[np.isnan(w_min)]          
+                u_sigmin[np.isnan(u_sigmin)] = u_sigmin_slow[np.isnan(u_sigmin)]
+                v_sigmin[np.isnan(v_sigmin)] = v_sigmin_slow[np.isnan(v_sigmin)]
+                w_sigmin[np.isnan(w_sigmin)] = w_sigmin_slow[np.isnan(w_sigmin)]
 
             # ~~~~~~~~~~~~~~~~~~ (5) Recalculate Stats ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             # !!  Sorry... This is a little messed up. The original stats are read from the NOAA Services stats
@@ -1155,8 +1172,11 @@ def main(): # the main data crunching program
             sdt['wspd_u_mean']   = u_min
             sdt['wspd_v_mean']   = v_min
             sdt['wspd_w_mean']   = w_min
-            sdt['temp_variance_metek'] = fdt_10hz['metek_T'].resample('1T',label='left').var()
-            sdt['acoustic_temp']       = fdt_10hz['metek_T'].resample('1T',label='left').mean()
+            sdt['wspd_u_std']   = u_sigmin
+            sdt['wspd_v_std']   = v_sigmin
+            sdt['wspd_w_std']   = w_sigmin            
+            sdt['temp_acoustic_std']   = fdt_10hz['metek_T'].resample('1T',label='left').std()
+            sdt['temp_acoustic']       = fdt_10hz['metek_T'].resample('1T',label='left').mean()
 
             sdt['h2o_licor']            = fdt_10hz['licor_h2o'].resample('1T',label='left').mean()
             sdt['co2_licor']            = fdt_10hz['licor_co2'].resample('1T',label='left').mean()

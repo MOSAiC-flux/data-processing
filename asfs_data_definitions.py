@@ -936,12 +936,16 @@ def define_level2_variables():
     lev2_atts['skin_temp_surface']       = {'units' : 'deg C'}
     lev2_atts['subsurface_heat_flux_A']  = {'units' : 'W/m2'}
     lev2_atts['subsurface_heat_flux_B']  = {'units' : 'W/m2'}
-    lev2_atts['wspd_u_mean']             = {'units' :'m/s'}
-    lev2_atts['wspd_v_mean']             = {'units' :'m/s'}
-    lev2_atts['wspd_w_mean']             = {'units' :'m/s'}
+    lev2_atts['wspd_u_mean']             = {'units' : 'm/s'}
+    lev2_atts['wspd_v_mean']             = {'units' : 'm/s'}
+    lev2_atts['wspd_w_mean']             = {'units' : 'm/s'}
     lev2_atts['wspd_vec_mean']           = {'units' : 'm/s'}
     lev2_atts['wdir_vec_mean']           = {'units' : 'degrees'}
-    lev2_atts['acoustic_temp']           = {'units' : 'deg C'}
+    lev2_atts['temp_acoustic']           = {'units' : 'deg C'}
+    lev2_atts['wspd_u_std']              = {'units' : 'm/s'}
+    lev2_atts['wspd_v_std']              = {'units' : 'm/s'}
+    lev2_atts['wspd_w_std']              = {'units' : 'm/s'}
+    lev2_atts['temp_acoustic_std']       = {'units' : 'deg C'}
     lev2_atts['h2o_licor']               = {'units' : 'g/m3'}
     lev2_atts['co2_licor']               = {'units' : 'mg/m3'}
     lev2_atts['down_long_hemisp']        = {'units' : 'W/m2'}
@@ -1134,13 +1138,41 @@ def define_level2_variables():
                                                 'height'        : sonic_height,
                                                 'location'      : inst_mast_location_string,})
     
-    lev2_atts['acoustic_temp']        .update({ 'long_name'     : 'acoustic temperature',
+    lev2_atts['temp_acoustic']        .update({ 'long_name'     : 'acoustic temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
                                                 'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
                                                 'height'        : sonic_height,
                                                 'location'      : inst_mast_location_string,})
-
+        
+    lev2_atts['wspd_u_std']           .update({ 'long_name'     : 'u metek obs standard deviation',
+                                                'cf_name'       : '',
+                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                'methods'       : 'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
+                                                'height'        : sonic_height,
+                                                'location'      : inst_mast_location_string,})    
+    
+    lev2_atts['wspd_v_std']           .update({ 'long_name'     : 'v metek obs standard deviation',
+                                                'cf_name'       : '',
+                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                'methods'       : 'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
+                                                'height'        : sonic_height,
+                                                'location'      : inst_mast_location_string,})
+    
+    lev2_atts['wspd_w_std']           .update({ 'long_name'     : 'w metek obs standard deviation',
+                                                'cf_name'       : '',
+                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                'methods'       : 'derived from horizontal wind components after coordinate transformation from body to earth reference frame',
+                                                'height'        : sonic_height,
+                                                'location'      : inst_mast_location_string,})   
+    
+    lev2_atts['temp_acoustic_std']    .update({ 'long_name'     : 'acoustic temperature metek obs standard deviation',
+                                                'cf_name'       : '',
+                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
+                                                'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
+                                                'height'        : sonic_height,
+                                                'location'      : inst_mast_location_string,})   
+        
     lev2_atts['h2o_licor']            .update({ 'long_name'     : 'Licor water vapor mass density',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Licor 7500-DS',
