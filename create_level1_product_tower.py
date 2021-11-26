@@ -61,7 +61,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores, set to 1 to debug
 
 # need to debug something? kills multithreading to step through function calls

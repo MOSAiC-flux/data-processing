@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-  
 # ############################################################################################
 # AUTHOR: Michael Gallagher (CIRES/NOAA)
@@ -28,8 +28,8 @@ import matplotlib.pyplot as plt
 import colorsys
 
 if '.psd.' in socket.gethostname():
-    nthreads = 16 # the twins have 64 cores, it won't hurt if we use ~30
-else: nthreads = 16 # if nthreads < nplots then plotting will not be threaded
+    nthreads = 32 # the twins have 64 cores, it won't hurt if we use ~30
+else: nthreads = 10 # if nthreads < nplots then plotting will not be threaded
 
 # need to debug something? kills multithreading to step through function calls
 # from multiprocessing.dummy import Process as P
@@ -57,13 +57,15 @@ from tower_data_definitions import define_level2_variables
 import functions_library as fl 
 from get_data_functions import get_flux_data
 
+from debug_functions import drop_me as dm
+
 #import warnings
 mpl.warnings.filterwarnings("ignore", category=mpl.MatplotlibDeprecationWarning)
 mpl.warnings.filterwarnings("ignore", category=UserWarning) 
 
 def main(): # the main data crunching program
 
-    default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
+    default_data_dir = '/Projects/MOSAiC_internal/flux_data_tests/' # give '-p your_directory' to the script if you don't like this
 
     make_daily_plots = True
     make_leg_plots   = True # make plots that include data from each leg
@@ -159,16 +161,19 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks_test/tower/2_level/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks/tower/2_level/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 
     # plot for all of leg 2.
     day_series = pd.date_range(start_time, end_time) # we're going to get date for these days between start->end
     df, code_version = get_flux_data('tower', start_time, end_time, 2,
-                                     data_dir, 'met', True, nthreads, pickle_dir=pickle_dir)
+                                     data_dir, 'seb', True, nthreads, pickle_dir=pickle_dir)
 
-    
+    #df.index = df.index.droplevel("freq")
+    df = df[~df.index.duplicated(keep='first')]
+    #df = df.drop_duplicates()
+
     #filter_up = df['up_short_hemisp'].notnull() & df['up_long_hemisp'].isna()
     #filter_down = df['down_short_hemisp'].notnull() & ~np.array(df['down_long_hemisp'].isna()
     df['up_short_hemisp'].where(df['up_short_hemisp'].notnull(), df['up_long_hemisp']*0, inplace=True)
@@ -229,7 +234,7 @@ def main(): # the main data crunching program
     print("\n ... daily plotting done!!!")
     print("-----------------------------------------------")
     print(" ... resampling for non-daily plots, we have to")
-    df = df.resample('1T',label='left').mean()
+    df = df.resample('30T',label='left').mean()
 
     if make_leg_plots:
         print(" ... making leg plots for ",end='', flush=True)

@@ -67,7 +67,7 @@ from asfs_data_definitions import define_level1_slow, define_level1_fast
 
 import functions_library as fl
 
-import os, inspect, argparse, time
+import os, inspect, argparse, time, subprocess
  
 import numpy  as np
 import pandas as pd
@@ -78,7 +78,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 30  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 15  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 4 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -259,14 +259,16 @@ def main(): # the main data crunching program
     fast_atts, fast_cols = define_level1_fast()
     fast_file_list       = {} # a list of fast data files for each station and the
     first_timestamp_list = {} # corresponding first file timestamp, sorted in time
+    last_timestamp_list = {} # corresponding first file timestamp, sorted in time
     fast_file_q = {}
     for curr_station in flux_stations: # get station file lists in parallel
         fast_file_q[curr_station] = Q()
         P(target=get_fast_file_list, \
-               args=(curr_station, fast_file_q[curr_station])).start()
+               args=(curr_station, pickle_dir, fast_file_q[curr_station])).start()
 
     for curr_station in flux_stations: # wait for threads and get return values
         first_timestamp_list[curr_station] = fast_file_q[curr_station].get()
+        last_timestamp_list[curr_station] = fast_file_q[curr_station].get()
         fast_file_list[curr_station]       = fast_file_q[curr_station].get()
 
     # we have to actually import the fast data on a daily basis for each station, so this
@@ -278,7 +280,6 @@ def main(): # the main data crunching program
 
     printline()
     print("\n Got all slow data and have a list of fast files, now processing each day...\n")
-    printline()
 
     nthreads_station = int(np.floor(nthreads/3))
     station_q_dict = {}
@@ -290,7 +291,7 @@ def main(): # the main data crunching program
 
         # run the threads for retreiving data
         fast_data_today = get_fast_data(today, fast_file_list[curr_station],
-                                        first_timestamp_list[curr_station], curr_station)
+                                        first_timestamp_list[curr_station], last_timestamp_list[curr_station], curr_station)
 
         # ########################################################################
         # level 1 cleaning and QC starts here. this is *only* minimal fixes fit for
@@ -386,7 +387,7 @@ def main(): # the main data crunching program
 
     # call processing by day then station (allows threading for processing a single days data)
     for curr_station in flux_stations:
-        printline(endline=f"\n\n  Processing all requested days of data for {curr_station}\n\n"); printline()
+        printline(endline=f"\n\n  Processing all requested days of data for {curr_station}\n"); printline()
         day_ind = -1*nthreads
         while day_ind < len(day_series): # loop over the days in the processing range and crunch away
             day_ind += nthreads
@@ -537,56 +538,78 @@ def get_slow_data(station, start_time, end_time, pickle_dir):
 
 # finds all files for station, returning a list of the timestamps from
 # the first lines of each file and a sorted list of filenames
-def get_fast_file_list(station, qq):
+def get_fast_file_list(station, pickle_dir, qq):
 
-    # look through station subdirectories and only take data file if it's an "SDcard" folder... 
-    # returns list of every data file path in sdcard subdirs
-    searchdir          = data_dir+station+'/0_level_raw/site_visits/'
-    entire_file_list   = get_card_file_list('fast', searchdir) 
-    first_ts_series    = []  # keep the timestamp from first line to concat in the correct order
-    unsorted_file_list = []
-    print('... found {} fast files in directory {}'.format(len(entire_file_list), searchdir))
+    import pickle
+    ffl_pkl = f'{pickle_dir}/ffl_objs{station}.pkl'
+    if pickle_dir and os.path.exists(ffl_pkl):
+        with open(ffl_pkl, 'rb') as pickme:
+            sorted_first_timestamps, sorted_last_timestamps, sorted_file_list = pickle.load(pickme)
 
-    for file_n, data_file in enumerate(entire_file_list):
-        if file_n % 1000 == 0 and file_n != 0:  
-            verboseprint("... currently on file {} of {} for fast files in {} "
-                         .format(file_n, len(entire_file_list), searchdir))
+    else:
+        # look through station subdirectories and only take data file if it's an "SDcard" folder... 
+        # returns list of every data file path in sdcard subdirs
+        searchdir          = data_dir+station+'/0_level_raw/site_visits/'
+        entire_file_list   = get_card_file_list('fast', searchdir) 
+        first_ts_series    = []  # keep the timestamp from first line to concat in the correct order
+        last_ts_series    = []  # keep the timestamp from first line to concat in the correct order
+        unsorted_file_list = []
+        print('... found {} fast files in directory {}'.format(len(entire_file_list), searchdir))
 
-        # count the columns in the first line, if less than expected, bail
-        f = open(data_file)
-        try: firstline=f.readline().rsplit(',')
-        except Exception as e:
-            print("!!! problem with data file {}!!!".format(data_file))
-            print("!!! {} !!!".format(e))
-            continue
-        f.close()
+        for file_n, data_file in enumerate(entire_file_list):
+            if file_n % 1000 == 0 and file_n != 0:  
+                verboseprint("... currently on file {} of {} for fast files in {} "
+                             .format(file_n, len(entire_file_list), searchdir))
 
-        num_cols  = len(firstline)
-        if (num_cols not in [7,11,12]):
-            print("!!! The number of columns should be 7 or 11, something's up !!!")
-            print("!!! not using {} with cols {}".format(data_file,num_cols))
-            continue
+            # count the columns in the first line, if less than expected, bail
 
-        # keep first timestamp for sorting
-        try: 
-            first_timestamp = np.datetime64(datetime.strptime(firstline[0].strip('"'), '%Y-%m-%d %H:%M:%S'))
-        except Exception as e:
-            print("!!! something was wrong with the timestamp format in {} !!!".format(data_file))
-            print("!!! {} !!!".format(firstline))
-            print("!!! {} !!!".format(e))
-            continue
+            try: 
+                f = open(data_file)
+                firstline=f.readline().rsplit(',')
+                f.close()
+                #... stupid, but fast
+                lastline = subprocess.check_output(['tail', '-1', data_file]).decode("utf-8")[0:-1].rsplit(',')
+            except Exception as e:
+                print("!!! problem with data file {}!!!".format(data_file))
+                print("!!! {} !!!".format(e))
+                continue
+            f.close()
 
-        first_ts_series.append(first_timestamp)
-        unsorted_file_list.append(data_file)
+            num_cols  = len(firstline)
+            if (num_cols not in [7,11,12]):
+                print("!!! The number of columns should be 7 or 11, something's up !!!")
+                print("!!! not using {} with cols {}".format(data_file,num_cols))
+                continue
 
-    # use numpy to sort files by first timestamp
-    ftss = np.array(first_ts_series)
-    ufl  = np.array(unsorted_file_list)
+            # keep first timestamp for sorting
+            try: 
+                first_timestamp = np.datetime64(datetime.strptime(firstline[0].strip('"'), '%Y-%m-%d %H:%M:%S'))
+                last_timestamp = np.datetime64(datetime.strptime(lastline[0].strip('"'), '%Y-%m-%d %H:%M:%S'))
+            except Exception as e:
+                print("!!! something was wrong with the timestamp format in {} !!!".format(data_file))
+                print("!!! {} !!!".format(firstline))
+                print("!!! {} !!!".format(e))
+                continue
 
-    sorted_timestamps = ftss[np.argsort(ftss)]
-    sorted_file_list  = ufl[np.argsort(ftss)]
+            first_ts_series.append(first_timestamp)
+            last_ts_series.append(last_timestamp)
+            unsorted_file_list.append(data_file)
 
-    qq.put(sorted_timestamps.tolist())
+        # use numpy to sort files by first timestamp
+        ftss = np.array(first_ts_series)
+        ltss = np.array(last_ts_series)
+        ufl  = np.array(unsorted_file_list)
+
+        sorted_first_timestamps = ftss[np.argsort(ftss)]
+        sorted_last_timestamps = ltss[np.argsort(ftss)]
+        sorted_file_list  = ufl[np.argsort(ftss)]
+
+        if pickle_dir: 
+            with open(ffl_pkl, 'wb') as pickme:
+                list = pickle.dump((sorted_first_timestamps, sorted_last_timestamps, sorted_file_list), pickme)
+            
+    qq.put(sorted_first_timestamps.tolist())
+    qq.put(sorted_last_timestamps.tolist())
     qq.put(sorted_file_list.tolist())
 
 # gets data for the 20hz metek sonics, complicated because of nuances grabbing fast data
@@ -597,14 +620,14 @@ def get_fast_file_list(station, qq):
 # ########################################################################################
 # sorry Chris, I hope this function isn't too incomprehensible/ugly. and if it is, then I
 # hope it just_works(tm) and you don't have to touch it.
-def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station): 
+def get_fast_data(date, fast_file_list, first_timestamp_list, last_timestamp_list, curr_station): 
 
     # get data cols/attributes from definitions file
     data_atts, data_cols = define_level1_fast()
 
     day_delta        = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
-    half_day_delta = pd.to_timedelta(43200000000 ,unit='us') # we want to eliminate interpolation boundary conds
-    #eighth_day_delta = pd.to_timedelta(10800000000 ,unit='us') # we want to eliminate interpolation boundary conds
+    half_day_delta   = pd.to_timedelta(43200000000 ,unit='us') # we want to eliminate interpolation boundary conds
+    eighth_day_delta = pd.to_timedelta(10800000000 ,unit='us') # we want to eliminate interpolation boundary conds
 
     na_vals = ['nan','NaN','NAN','NA','\"INF\"','\"-INF\"','\"NAN\"','\"NA','\"NAN','inf','-inf''\"inf\"','\"-inf\"','']
 
@@ -617,21 +640,28 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
     udb = date+day_delta+half_day_delta # upper_date_bound for data to pull in for today
 
     # used radio data on these days :|
-    if datetime(2020, 4, 10)< date < datetime(2020, 6, 1):
+    if ((curr_station=='asfs50' and (datetime(2020, 4, 10) <= date <= datetime(2020, 5, 7))) 
+        or (curr_station=='asfs30' and (datetime(2020, 5, 5) <= date <= datetime(2020, 6, 1)))):
+
+        print("... de-duping the strange fast data from the spring")
         ldb = date-pd.to_timedelta(8, unit='d')
         udb = date+day_delta+half_day_delta # upper_date_bound for data to pull in for today
 
-    inds_to_use = [i for i, tstamp in enumerate(first_timestamp_list) if (tstamp>ldb and tstamp<udb)]
+    inds_to_use = []
+    for i, ftstamp in enumerate(first_timestamp_list):
+        ltstamp = last_timestamp_list[i]
+        if (ftstamp<udb and ltstamp>ldb):
+            inds_to_use.append(i)
 
     if len(inds_to_use) == 0 :
         verboseprint("!!! NO FAST DATA FROM {} FOR DAY {} !!!".format(curr_station, date))
         return pd.DataFrame(columns=data_cols)
 
-    frame_list  = [] # all the frames created from files from today
+    frame_list = [] # all the frames created from files from today
+    files_used = []
     for file_i in inds_to_use:
         cols      = data_cols.copy()
         data_file = fast_file_list[file_i]
-
         # count the columns in the first line, if less than expected, bail
         with open(data_file) as f: 
             firstline = f.readline().rsplit(',')
@@ -641,6 +671,8 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
             frame = pd.read_csv(data_file, parse_dates=[0], sep=',', na_values=na_vals,\
                                 engine='c', names=cols)
             frame_list.append(frame)
+            files_used.append(data_file)
+
 
         except Exception as e:
             printline()
@@ -648,58 +680,124 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
             print("!!! There was an exception reading file {}, {}skipping!!!".format(data_file, num_cols))
             printline()
 
+    #print(f" ... files that went into today:\n--------------\n{files_used}")
+
     # reindex each frame to avoid collisions before concatting/interpolating the time column/axis
     reindex_start = 0 
-    terped_frame_list = []
-    for curr_frame in frame_list: # reindex each data frame properly to avoid collisions 
+    for iframe, curr_frame in enumerate(frame_list): # reindex each data frame properly to avoid collisions 
         curr_frame.index = range(reindex_start, reindex_start+len(curr_frame.index))
         reindex_start    = reindex_start + len(curr_frame.index) # increment by num data rows for next loop
 
         # check asfs50/30 for doubles due to logger scan weirdness in difficult times
-        # april 10th to may 7th asfs30
-        # may 5th to july 1st asfs50
-        if datetime(2020, 4, 10)< date < datetime(2020, 6, 1):
-            screwymet  = curr_frame[['metek_x','metek_y','metek_z','metek_T']]    
-            dupes      = screwymet.duplicated(keep='last') # we want to keep the second half of the duplicates, no tilde, I told you it was weird
-            old_frame  = curr_frame #placeholder for debuggging
-            curr_frame = old_frame.drop(old_frame[dupes == True].index, 0)
+        # april 10th to may 7th asfs50
+        # may 5th to july 1st asfs30
+        if ((curr_station=='asfs50' and (datetime(2020, 4, 10) <= date <= datetime(2020, 5, 7)))
+            or (curr_station=='asfs30' and (datetime(2020, 5, 5) <= date <= datetime(2020, 6, 1)))):
 
-        # full_frame contains all the data now, in the correct order, but times are wonky and
-        # it's indexed by an incremented integer, not so useful. fix it by interpolating timestamps
-        # and then reindexing return_frame with interpolated timestamps
-        
-        times = pd.DataFrame(curr_frame["TIMESTAMP"])
-        extra_seconds = times["TIMESTAMP"].iloc[-1]+timedelta(seconds=5) # boundary case, don't lose data at tail
-        times         = times.append({"TIMESTAMP": extra_seconds}, ignore_index=True)
-        times.loc[times["TIMESTAMP"].duplicated(),"TIMESTAMP"] = nan # replace duplicate values with nan
+            cf = curr_frame
+            edd        = eighth_day_delta
+            stamps     = cf.loc[ (cf['TIMESTAMP']>=date-edd) & (cf['TIMESTAMP'] <= date+day_delta+edd) ]
+            curr_frame = cf.loc[stamps.index.values] #slim down
 
-        # to interpolate times, we convert the timestamps to a float timedelta
-        # ... interp... then convert interpolated deltas back to complete timestamp series
-        t0 = times["TIMESTAMP"].min()
-        nn_times = times["TIMESTAMP"].notnull()
-        times.loc[nn_times, 'T_DELTA'] = (times.loc[nn_times,"TIMESTAMP"] - t0).dt.total_seconds()
-        times_interped = t0 + pd.to_timedelta(times.T_DELTA.interpolate(), unit='s')
-        return_times   = times_interped.iloc[0:-1].copy() # pop the boundary case added above
+            ### old dupes code, might do weird stuff, testing
+            # screwymet  = curr_frame[['metek_x','metek_y','metek_z','metek_T']]    
+            # dupes      = screwymet.duplicated(keep='last') # we want to keep the second half of the duplicates, no tilde, I told you it was weird
+            # old_frame  = curr_frame #placeholder for debuggging
+            # curr_frame = old_frame.drop(old_frame[dupes == True].index, 0)
 
-        # all done, put the interpolated time column back into complete dataframe and send back to processing
-        curr_frame["TIMESTAMP"] = np.where(True, return_times, return_times) # np.where is _much_ faster than pandas.. :\
-        curr_frame.index        = curr_frame["TIMESTAMP"]
+            times = pd.DataFrame(curr_frame["TIMESTAMP"])
+            dupes = times[times.duplicated()==False]
+            ind_iter = iter(dupes.index)
 
-        # not quite done. now we subtract 5 sec (length of the scan) from the index so that the times mark the beginning rather than the end
-        curr_frame.index = curr_frame.index-pd.Timedelta(5,unit='sec')
-        curr_frame = curr_frame.sort_index()
+            kept_inds = []
+            try: curr_i = next(ind_iter)
+            except: 
+                not_do = "true-true"
+                continue
 
-        terped_frame_list.append(curr_frame)
+            while True:
+                try: next_i = next(ind_iter)
+                except: 
+                    break
 
-    full_frame   = pd.concat(terped_frame_list) # is concat computationally efficient?
-    full_frame   = full_frame.sort_index()
-    full_frame   = full_frame[date:date+day_delta]
+                dist = next_i-curr_i
+                if dist == 200: 
+                    kept_inds += [i for i in range(next_i-100,next_i)]
+                else:
+                    do_nothign_string = 'should maybe print a warning here'
+                curr_i  = next_i
+
+            curr_frame = curr_frame.loc[kept_inds]
+
+        frame_list[iframe] = curr_frame
+
+    catted_frame = pd.concat(frame_list)
+    catted_frame = catted_frame.sort_index()
+    catted_frame = catted_frame.drop_duplicates() 
 
     # this drop_duplicates is complicated because of duplicates between the shunted radio files and sd cards
-    sub_frame    = full_frame[data_cols[1:6]]
-    dupes        = sub_frame.duplicated() # we want to keep the second half of the duplicates, no tilde, I told you it was weird
-    return_frame = full_frame[dupes == False]
+    sub_frame     = catted_frame[data_cols[1:7]]
+    dupes         = sub_frame.duplicated() # we want to keep the second half of the duplicates, no tilde, I told you it was weird
+    deduped_frame = catted_frame[dupes == False]
+    full_frame    = deduped_frame
 
+    # this fixes the fast timestamping in 5 second blocks issues...
+    # ... it's way slower than the old interpolation, but much more correct
+    def correct_timestamps(df):
+
+        verboseprint("... correcting fast data timestamps, extremely slow")
+
+        df.index = range(0, len(df)) # have to give it a simple index to count points with
+
+        # use 'duplicated' to mark the start of the next scan cycle
+        times     = df["TIMESTAMP"].copy()
+        new_times = times.copy()
+        dupes     = times[times.duplicated()==False]
+        ind_iter  = iter(dupes.index)
+
+        tot_len = len(df)
+
+        try: curr_i = next(ind_iter)
+        except: 
+            not_do = "true-true" # this condition should never be hit
+
+        # loop over each block of equal timestamps and interpolate only between blocks
+        break_me = False
+        while True:
+            try: next_i = next(ind_iter)
+            except:
+                break_me = True
+                next_i = tot_len-1
+
+            dist = next_i-curr_i
+            if dist == 0: break #weird
+            tstep = 5/dist
+            tdelt = timedelta(0,tstep)
+
+            for ii in range(curr_i, next_i):
+                new_times.at[ii] = times.loc[ii]+(ii-curr_i)*tdelt
+
+            if break_me:
+                break
+            curr_i  = next_i
+
+        # well. not quite done. now we subtract 5 sec (length of the scan) from the index so that
+        # the times mark the beginning rather than the end
+        offset_delta  = pd.to_timedelta(5,unit='s') 
+
+        new_times = new_times - offset_delta
+        df['TIMESTAMP'] = new_times
+        df.index = new_times
+
+        return df
+
+    # full_frame contains all the data now, in the correct order, but times are wonky and
+    # it's indexed by an incremented integer, not so useful. fix it
+    full_frame = correct_timestamps(full_frame)
+    full_frame = full_frame.sort_index()
+    full_frame = full_frame[date:date+day_delta] # now we finally pick *only* today
+
+    return_frame = full_frame
     n_entries    = return_frame.index.size
 
     if any(return_frame.duplicated()): 
@@ -707,6 +805,7 @@ def get_fast_data(date, fast_file_list, first_timestamp_list, curr_station):
 
     verboseprint("... {}/1728000 fast entries on {} for {}, representing {}% data coverage"
                  .format(n_entries, date, curr_station, round((n_entries/1728000)*100.,2)))
+
     return return_frame
 
 # function that searches sitevisit dirs looking for SDcard directory and returns data file paths in a list
@@ -778,7 +877,7 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
 
     print("... writing level1 for {} on {}, ~{}% of slow data is present".format(curr_station, date, 100-avg_missing_slow))
 
-    out_dir       = level1_dir+curr_station+"/1_level_ingest_"+curr_station
+    out_dir       = level1_dir+curr_station+"/1_level_mgallagh_test_"+curr_station
     file_str_fast = '/mos{}fast.level1.{}.nc'.format(curr_station, date.strftime('%Y%m%d.%H%M%S'))
     file_str_slow = '/mos{}slow.level1.{}.nc'.format(curr_station, date.strftime('%Y%m%d.%H%M%S'))
 
@@ -805,8 +904,8 @@ def write_level1_netcdfs(slow_data, slow_atts, fast_data, fast_atts, curr_statio
         fms = slow_data.index[0]
     except Exception as e:
         print("\n\n\n!!! Something went wrong, there's fast data for today but no slow data")
-        print("... the code doesn't handle that currently")
-        raise e
+        print("... the code doesn't handle that currently, no files will be written")
+        return False
         
     # base_time, ARM spec, the difference between the time of the first data point and the BOT
     today_midnight = datetime(fms.year, fms.month, fms.day)

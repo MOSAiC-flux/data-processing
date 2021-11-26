@@ -82,7 +82,7 @@ import os, inspect, argparse, time, sys
 import socket 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 20  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 32  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -93,8 +93,6 @@ from multiprocessing import Queue   as Q
 #from multiprocessing.dummy import Process as P
 #from multiprocessing.dummy import Queue   as Q
      
-#from debug_functions import drop_me as dm
-
 import numpy  as np
 import pandas as pd
 import xarray as xr
@@ -1358,7 +1356,7 @@ def main(): # the main data crunching program
                     data_to_return.append(('turb', turbulencetom.copy(), win_len))
                     if win_len < len(integ_time_turb_flux)-1: print('\n')
 
-            out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/'+version+'/' # where will level 2 data written?
+            out_dir   = data_dir+'/'+curr_station+'/2_level_mgallagh_test_'+curr_station+'/' # where will level 2 data written?
     
             try: 
                 trash_var = write_level2_10hz(curr_station, metek_10hz[today:tomorrow], licor_10hz[today:tomorrow], today, out_dir)
@@ -1448,7 +1446,7 @@ def main(): # the main data crunching program
     def write_todays_data(curr_station, today, day_q):
         tomorrow = today+day_delta
 
-        out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/'+version+'/' # where will level 2 data written?
+        out_dir   = data_dir+'/'+curr_station+'/2_level_mgallagh_test_'+curr_station+'/' # where will level 2 data written?
         trash_var = write_level2_netcdf(slow_all[curr_station][today:tomorrow], curr_station, today, "1min", out_dir)
 
         for win_len in range(0, len(integ_time_turb_flux)):

@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 import colorsys
 
 if '.psd.' in socket.gethostname():
-    nthreads = 30 # the twins have 64 cores, it won't hurt if we use ~30
+    nthreads = 64 # the twins have 64 cores, it won't hurt if we use ~30
 else: nthreads = 8 # if nthreads < nplots then plotting will not be threaded
 
 # need to debug something? kills multithreading to step through function calls
@@ -188,7 +188,7 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks_test/asfs/2_level/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks_test_mgallagh/asfs/2_level/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 
