@@ -63,18 +63,18 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 32  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 12 # laptops don't tend to have 64 cores
+    nthreads = 24  # the twins have 64 cores, it won't hurt if we use <20
+else: nthreads = 4 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-#from multiprocessing.dummy import Process as P
-#from multiprocessing.dummy import Queue   as Q
-#nthreads = 1
- 
-#from debug_functions import drop_me as dm
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+# nthreads = 1
+  
+from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd
@@ -92,14 +92,12 @@ import warnings; warnings.filterwarnings(action='ignore') # vm python version pr
 os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
 os.environ['HDF5_MPI_OPT_TYPES']='TRUE'     # just in case
 
-
 version_msg = '\n\nPS-122 MOSAiC Met Tower processing code v.'+code_version[0]\
               +', last updates: '+code_version[1]+' by '+code_version[2]+'\n\n'
 
 print('---------------------------------------------------------------------------------------------')
 print(version_msg)
 print('---------------------------------------------------------------------------------------------')
-
 
 def main(): # the main data crunching program
 
@@ -153,15 +151,16 @@ def main(): # the main data crunching program
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
-    level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product/test/'                    # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product/test/'                    # where does level2 data go
-    leica_dir  = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/' # this is where the ship track lives 
+    level1_dir = data_dir+'/tower/1_level_ingest/'                       # where does level1 data live?
+    level2_dir = data_dir+'/tower/2_level_product/version2/'             # where does level2 data go
+    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/version2/'             # where does level2 data go
+    turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
     arm_dir    = '/Projects/MOSAiC_internal/partner_data/'
+    leica_dir  = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/'
  
-    # leica_dir = data_dir+'/partner_data/AWI/polarstern/WXstation/'
+    #leica_dir = data_dir+'/partner_data/AWI/polarstern/WXstation/'
     # arm_dir = data_dir
-
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
               .format(startline, endline))
@@ -486,8 +485,9 @@ def main(): # the main data crunching program
     slow_data = slow_data.sort_index(); 
     slow_inds = slow_data.index
 
-    # now we have to match the ARM timestamps up to the flux timestamps, the naive pd.concat([slow_data, arm_data], axis=1)
-    # is so absurdly slow that we wrote a custom function that does this in a more clever way
+    # now we have to match the ARM timestamps up to the flux timestamps, the naive
+    # pd.concat([slow_data, arm_data], axis=1) is so absurdly slow that we wrote a
+    # custom function that does this in a more clever way
     not_present, index_map = compare_indexes(arm_inds, slow_inds)
     slow_map = np.array(index_map[0]) # these just say which index in ARM data relates to which
     arm_map  = np.array(index_map[1]) # index in the slow data
@@ -723,23 +723,39 @@ def main(): # the main data crunching program
         slow_data['mixing_ratio_mast']         = xm
 
 
+
         # #####################################################################################
         # air temperature offsets from Ola Persson's "Met_Tower_Intercomparison_Results.docx"
-        sd['vaisala_T_2m']       .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-            sd['vaisala_T_2m']   .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.00   
+        # further augmented to be time dependent in an email discussion titled: "temperature
+        # offsets" from Oct 6th 2021
+        
+        # R218 (2m): no offset
+        # P917 (P197) (6m after Dec 2019): dT = 7.5e-5 x YD - 0.13
+        # R217 (6m before Dec 2019): dT = 0.0972
+        # R428 (10 m throughout MOSAiC): dT = -0.000302 x YD + 0.17
+        # mast (30 m & 22 m): dT = 0.338
 
-        sd['vaisala_T_6m']       .loc[datetime(2019,10,19) : datetime(2019,12,4)] = \
-            sd['vaisala_T_6m']   .loc[datetime(2019,10,19) : datetime(2019,12,4)] - 0.0972
+        year_day = today.timetuple().tm_yday
+        if today.year == 2020: year_day += 365
 
-        sd['vaisala_T_6m']       .loc[datetime(2019,12,4) : datetime(2020,9,21)] = \
-            sd['vaisala_T_6m']   .loc[datetime(2019,12,4) : datetime(2020,9,21)] + 0.0854
+        # year_day is the continuous 2019 Year Day (e. g., 2019 is <=365 while days in 2020 are >= than
+        # 366.0; 00Z Jan 31, 2020 is YD396.00, etc). a. la. ola 
+        sd['vaisala_T_2m']         .loc[today:tomorrow] = \
+            sd['vaisala_T_2m']     .loc[today:tomorrow] - 0.00   # no offset 
 
-        sd['vaisala_T_10m']      .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-             sd['vaisala_T_10m'] .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.0146
+        if today < datetime(2019,12,4): # P917 (P197) (6m after Dec 2019):
+            sd['vaisala_T_6m']     .loc[today:tomorrow] = \
+                sd['vaisala_T_6m'] .loc[today:tomorrow] - 0.0972 
+        else:
+            sd['vaisala_T_6m']     .loc[today:tomorrow] = \
+                sd['vaisala_T_6m'] .loc[today:tomorrow] - ((7.5e-5*year_day) - 0.13)
 
-        sd['mast_T']             .loc[datetime(2019,10,19) : datetime(2020,9,21)] = \
-            sd['mast_T']         .loc[datetime(2019,10,19) : datetime(2020,9,21)] - 0.3380
+        sd['vaisala_T_10m']        .loc[today:tomorrow] = \
+             sd['vaisala_T_10m']   .loc[today:tomorrow]  - (-1*(0.000302*year_day) + 0.17)
 
+        sd['mast_T']               .loc[today:tomorrow] = \
+            sd['mast_T']           .loc[today:tomorrow] - 0.3380
+ 
         # now re-calculate RH with the corrected temperatures and the not-corrected q, as requested by Ola 
         # coefficients from calc_humidity_ptu300 to re-derive RH after correcting temp
         c0 = 0.4931358; c1 = -0.46094296*1e-2; c2 = 0.13746454*1e-4; c3 = -0.12743214*1e-7
@@ -916,6 +932,12 @@ def main(): # the main data crunching program
         slow_data['radiation_LWnet'] = slow_data['down_long_hemisp']-slow_data['up_long_hemisp']
         slow_data['radiation_SWnet'] = slow_data['down_short_hemisp']-slow_data['up_short_hemisp']
         slow_data['net_radiation']   = slow_data['radiation_LWnet'] + slow_data['radiation_SWnet'] 
+
+        # arm data corrections, via Matt Shupe, citing "Correcting_LWandIRT.pptx" received in
+        # email titled "LWD, LWU, IRT corrections" to be referenced
+        slow_data['down_long_hemisp'] = slow_data['down_long_hemisp'] -(2.005 - 0.029*slow_data['radiation_LWnet'])
+        slow_data['up_long_hemisp']   = slow_data['up_long_hemisp']   -(0.619 + 0.003*slow_data['radiation_LWnet'])
+        slow_data['radiation_LWnet']  = slow_data['down_long_hemisp'] -slow_data['up_long_hemisp']
 
         # surface skin temperature Persson et al. (2002) https://www.doi.org/10.1029/2000JC000705
         slow_data['skin_temp_surface'] = (((slow_data['up_long_hemisp']-(1-emis)*slow_data['down_long_hemisp'])/(emis*sb))**0.25)-K_offset
@@ -1285,7 +1307,7 @@ def main(): # the main data crunching program
 
             for inst in metek_inst_keys:
                 height = inst_dict[inst]
-
+                
                 metek_stats[inst] = pd.DataFrame()
                 metek_stats[inst]['wspd_vec_mean_'+height] = metek_ws[inst]
                 metek_stats[inst]['wdir_vec_mean_'+height] = metek_wd[inst]
@@ -1311,7 +1333,7 @@ def main(): # the main data crunching program
                 metek_stats[inst]['wspd_w_std_'+height] = \
                     fast_data_10hz[inst][inst+'_w'].resample('1T',label ='left').std()
 
-                metek_stats[inst]['acoustic_temp_std_'+height] = \
+                metek_stats[inst]['temp_acoustic_std_'+height] = \
                     fast_data_10hz[inst][inst+'_T'].resample('1T',label ='left').std()
 
             # Each mean is followed by a screeening that rejects mean containing < 50% (300/600 10Hz samples
@@ -1796,20 +1818,41 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
         write_data = write_data[date:tomorrow]
 
         # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
+        first_exception = True
         for var_name, var_atts in turb_atts.items(): 
-
+            chosen_index = 0
             if turb_vars[var_name].isnull().all():
                 if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
                     turb_vars[var_name] = np.float64(turb_vars[var_name])     
-            elif turb_vars[var_name][0].size > 1:
-                if turb_vars[var_name][0].dtype == object: # happens when all fast data is missing...
-                    turb_vars[var_name] = np.float64(turb_vars[var_name])
-            else:         
-                if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
-                    turb_vars[var_name] = np.float64(turb_vars[var_name])
-                        # create variable, # dtype inferred from data file via pandas
+            try:
+                if turb_vars[var_name][chosen_index].size > 1:
+                    if turb_vars[var_name][chosen_index].dtype == object: # happens when all fast data is missing...
+                        turb_vars[var_name] = np.float64(turb_vars[var_name])
+                else:         
+                    if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
+                        turb_vars[var_name] = np.float64(turb_vars[var_name])
+
+            except AttributeError as ae:
+                if first_exception: 
+                    print(f"... something was strange about the fast data on {date}"); first_exception = False
+
+                max_size = 0 
+                for i in turb_vars.index: 
+                    try:
+                        this_size = turb_vars[var_name][i].size
+                        if this_size > max_size:
+                            max_size = this_size
+                            chosen_index = i
+                    except: do_nothing = True
+
+                for i in turb_vars.index: 
+                    try: this_size = turb_vars[var_name][i].size
+                    except: 
+                        turb_vars[var_name][i] = pd.Series([nan]*max_size)
+                
+            # create variable, # dtype inferred from data file via pandas
             if 'fs' in var_name:
-                netcdf_lev2.createDimension('freq', turb_vars[var_name][0].size)   
+                netcdf_lev2.createDimension('freq', turb_vars[var_name][chosen_index].size)   
  
     else: write_data = l2_data #no turbulence data
 
@@ -1951,11 +1994,8 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
         else:
             fill_val  = def_fill_flt
 
-        vtmp = write_data[var_name]
-        vtmp.fillna(fill_val, inplace=True)
-
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
-        var[:] = vtmp
+        vtmp = write_data[var_name]
 
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
@@ -1968,6 +2008,9 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
         netcdf_lev2[var_name].setncattr('max_val', max_val)
         netcdf_lev2[var_name].setncattr('min_val', min_val)
         netcdf_lev2[var_name].setncattr('avg_val', avg_val)
+
+        vtmp.fillna(fill_val, inplace=True)
+        var[:] = vtmp
 
         try:
             height_today, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date)
@@ -2364,9 +2407,6 @@ def write_level2_10hz(sonic_data, licor_data, date):
     netcdf_lev1_fast.close()
     return True
 
-
-
- 
 # this runs the function main as the main program... this is a hack that allows functions
 # to come after the main code so it presents in a more logical, C-like, way
 if __name__ == '__main__':

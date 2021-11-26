@@ -26,7 +26,7 @@ def qc_flagging(tower_data):
     tower_flags = tower_data 
 
     var_atts, var_names = define_level2_variables()
-    flag_df   = get_qc_table("./manual_qc_table.csv")
+    flag_df   = get_qc_table("./qc_table_tower.csv")
 
     zero_array = np.array([0]*len(tower_data))
     qc_var_list = []
@@ -35,17 +35,26 @@ def qc_flagging(tower_data):
             tower_data[v] =  0
             qc_var_list.append(v)
 
+    # lookup table for "group" names, these need to include the "_qc", as the code below
+    # puts the value into that field, i.e. temp_qc, not just temp
+    lookup_table = {
+        'ALL_FIELDS' : [v for v in tower_data.columns if v.split('_')[-1]=='qc'], # if the variable has an "_qc", then it deserves a flag
+    }
+
     for irow, row in flag_df.iterrows():
         var_to_qc = row['var_name']+'_qc'
-        try: 
-            tower_data[var_to_qc].loc[row['start_date']:row['end_date']] = row['qc_val']
+        try: tower_data[var_to_qc].loc[row['start_date']:row['end_date']] = row['qc_val']
         except KeyError as ke: 
-            print(f"!!! problem with entry in manual QC table for var {var_to_qc}!!!")
+            special_key = row['var_name'] # things like "ALL_FIELDS", grouped vars
+            if special_key in lookup_table.keys():
+                for v in lookup_table[special_key]: 
+                    tower_data[v].loc[row['start_date']:row['end_date']] = row['qc_val']
+            else:
+                print(f"!!! problem with entry in manual QC table for var {var_to_qc}!!!")
 
     return tower_data 
-        
 
-def get_qc_table(table_file="./manual_qc_table.csv"):
+def get_qc_table(table_file="./qc_table_tower.csv"):
     
     mos_begin = '20191015 000000'
     mos_end = '20200919 000000'
@@ -65,7 +74,7 @@ def get_qc_table(table_file="./manual_qc_table.csv"):
         return date.strptime(date_str, "%Y%m%d %H:%M:%S")
 
     cols = ['var_name', 'start_date', 'end_date', 'qc_val', 'explanation', 'author']
-    mqc = pd.read_csv("./manual_qc_table.csv", skiprows=range(0,6), names=cols)     
+    mqc = pd.read_csv("./qc_table_tower.csv", skiprows=range(0,6), names=cols)     
 
     mqc['start_date'] = mqc['start_date'].apply(custom_date_parser)
     mqc['end_date'] = mqc['end_date'].apply(custom_date_parser)

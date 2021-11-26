@@ -94,14 +94,14 @@ def get_flux_data(station, start_day, end_day, level,
                 subdir   = f'/{level}_level_{level_str}/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
-                    file_str = f'/mos{data_type}.metcity.level{level}v2.1min.{date_str}.nc'
-                    subdir = subdir+'test/'
+                    file_str = f'/mos{data_type}.metcity.level{level}v2.10min.{date_str}.nc'
+                    subdir = subdir+'/'
 
             else:
                 file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
-                    file_str = f'/mos{station}{data_type}.level{level}.1min.{date_str}.nc'
-                    subdir = subdir+'test/'
+                    file_str = f'/mos{data_type}.{station}.level{level}v2.1min.{date_str}.nc'
+                    subdir = subdir+'/'
 
             files_dir = data_dir+station+subdir
             curr_file = files_dir+file_str
@@ -123,6 +123,12 @@ def get_flux_data(station, start_day, end_day, level,
         if verbose: print("... concatting, takes some time...")
         try    : df = pd.concat(df_list)
         except : pd.DataFrame()
+
+        try: 
+            df.index = df.index.droplevel("freq")
+            df       = df[~df.index.duplicated(keep='first')]
+        except: pass # this only applices to 'seb'
+
 
         time_dates = df.index
         df['time'] = time_dates # duplicates index... but it can be convenient

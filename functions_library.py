@@ -223,7 +223,12 @@ def decode_licor_diag(raw_diag):
     if non_nan_inds.any():
 
         licor_diag_bin = bin_v(licor_diag[non_nan_inds])
-        chopper_temp_bin = licor_diag_bin[:][2]
+
+        # asfs radio data doesn't contain good licor_diags, so this fails, treat as if we had nans
+        try: chopper_temp_bin = licor_diag_bin[:][2]
+        except:
+            print("!!! no licor diags for today !!!")
+            pass
 
         # try to use vectorized functions?
         # chopper_temp[non_nan_inds]  = get_ct_v(licor_diag_bin)
