@@ -1015,6 +1015,94 @@ def main(): # the main data crunching program
         # group and now they're mashed with a prefix into the same standard netcdf. this converts to the old structure
         metek_inst_keys = ['metek_2m', 'metek_6m', 'metek_10m', 'metek_mast']
         fast_data = get_fast_data(today, data_dir) # dictionary of dataframes with keys above
+        
+        # Add empiraclly-calculated offsets to the Metek inclinometer to make it plumb 
+        
+        fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
+            fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + 1.75   
+        fast_data['metek_2m']['metek_2m_incy']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
+            fast_data['metek_2m']['metek_2m_incy']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + -1.25 
+
+        fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2019,12,19) : datetime(2020,3,10)] = \
+            fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2019,12,19) : datetime(2020,3,10)] + 0.5   
+        fast_data['metek_2m']['metek_2m_incy']       .loc[datetime(2019,12,19) : datetime(2020,3,10)] = \
+            fast_data['metek_2m']['metek_2m_incy']   .loc[datetime(2019,12,19) : datetime(2020,3,10)] + -0.75
+            
+        fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2020,3,10) : datetime(2020,5,10)] = \
+            fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2020,3,10) : datetime(2020,5,10)] + 1.   
+        fast_data['metek_2m']['metek_2m_incy']       .loc[datetime(2020,3,10) : datetime(2020,5,10)] = \
+            fast_data['metek_2m']['metek_2m_incy']   .loc[datetime(2020,3,10) : datetime(2020,5,10)] + -1.75 
+            
+        fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2020,6,24) : datetime(2020,7,29)] = \
+            fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2020,6,24) : datetime(2020,7,29)] + -1.75   
+        fast_data['metek_2m']['metek_2m_incy']       .loc[datetime(2020,6,24) : datetime(2020,7,29)] = \
+            fast_data['metek_2m']['metek_2m_incy']   .loc[datetime(2020,6,24) : datetime(2020,7,29)] + -0.5 
+            
+        fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2020,8,25) : datetime(2020,9,18)] = \
+            fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2020,8,25) : datetime(2020,9,18)] + -2.   
+        fast_data['metek_2m']['metek_2m_incy']       .loc[datetime(2020,8,25) : datetime(2020,9,18)] = \
+            fast_data['metek_2m']['metek_2m_incy']   .loc[datetime(2020,8,25) : datetime(2020,9,18)] + -0.5
+            
+        fast_data['metek_6m']['metek_6m_incx']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
+            fast_data['metek_6m']['metek_6m_incx']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + 2.75   
+        fast_data['metek_6m']['metek_6m_incy']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
+            fast_data['metek_6m']['metek_6m_incy']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + 1.25            
+            
+        fast_data['metek_6m']['metek_6m_incx']       .loc[datetime(2019,12,19) : datetime(2020,3,10)] = \
+            fast_data['metek_6m']['metek_6m_incx']   .loc[datetime(2019,12,19) : datetime(2020,3,10)] + 3.25   
+        fast_data['metek_6m']['metek_6m_incy']       .loc[datetime(2019,12,19) : datetime(2020,3,10)] = \
+            fast_data['metek_6m']['metek_6m_incy']   .loc[datetime(2019,12,19) : datetime(2020,3,10)] + 2.5
+            
+        fast_data['metek_6m']['metek_6m_incx']       .loc[datetime(2020,3,10) : datetime(2020,5,10)] = \
+            fast_data['metek_6m']['metek_6m_incx']   .loc[datetime(2020,3,10) : datetime(2020,5,10)] + 3.25   
+        fast_data['metek_6m']['metek_6m_incy']       .loc[datetime(2020,3,10) : datetime(2020,5,10)] = \
+            fast_data['metek_6m']['metek_6m_incy']   .loc[datetime(2020,3,10) : datetime(2020,5,10)] + 1.75            
+            
+        fast_data['metek_6m']['metek_6m_incx']       .loc[datetime(2020,6,24) : datetime(2020,7,29)] = \
+            fast_data['metek_6m']['metek_6m_incx']   .loc[datetime(2020,6,24) : datetime(2020,7,29)] + -2.   
+        fast_data['metek_6m']['metek_6m_incy']       .loc[datetime(2020,6,24) : datetime(2020,7,29)] = \
+            fast_data['metek_6m']['metek_6m_incy']   .loc[datetime(2020,6,24) : datetime(2020,7,29)] + -3.5 
+
+        fast_data['metek_6m']['metek_6m_incx']       .loc[datetime(2020,8,25) : datetime(2020,9,18)] = \
+            fast_data['metek_6m']['metek_6m_incx']   .loc[datetime(2020,8,25) : datetime(2020,9,18)] + -0.75   
+        fast_data['metek_6m']['metek_6m_incy']       .loc[datetime(2020,8,25) : datetime(2020,9,18)] = \
+            fast_data['metek_6m']['metek_6m_incy']   .loc[datetime(2020,8,25) : datetime(2020,9,18)] + 3
+            
+        fast_data['metek_10m']['metek_10m_incx']       .loc[datetime(2019,10,15) : datetime(2019,11,17)] = \
+            fast_data['metek_10m']['metek_10m_incx']   .loc[datetime(2019,10,15) : datetime(2019,11,17)] + 2.5   
+        fast_data['metek_10m']['metek_10m_incy']       .loc[datetime(2019,10,15) : datetime(2019,11,17)] = \
+            fast_data['metek_10m']['metek_10m_incy']   .loc[datetime(2019,10,15) : datetime(2019,11,17)] + 1.75            
+
+        fast_data['metek_10m']['metek_10m_incx']       .loc[datetime(2019,11,17) : datetime(2019,12,19)] = \
+            fast_data['metek_10m']['metek_10m_incx']   .loc[datetime(2019,11,17) : datetime(2019,12,19)] + 2.5   
+        fast_data['metek_10m']['metek_10m_incy']       .loc[datetime(2019,11,17) : datetime(2019,12,19)] = \
+            fast_data['metek_10m']['metek_10m_incy']   .loc[datetime(2019,11,17) : datetime(2019,12,19)] + 1 
+            
+        fast_data['metek_10m']['metek_10m_incx']       .loc[datetime(2019,12,19) : datetime(2020,2,7)] = \
+            fast_data['metek_10m']['metek_10m_incx']   .loc[datetime(2019,12,19) : datetime(2020,2,7)] + 2.5   
+        fast_data['metek_10m']['metek_10m_incy']       .loc[datetime(2019,12,19) : datetime(2020,2,7)] = \
+            fast_data['metek_10m']['metek_10m_incy']   .loc[datetime(2019,12,19) : datetime(2020,2,7)] + 1.25 
+            
+        fast_data['metek_10m']['metek_10m_incx']       .loc[datetime(2020,2,7) : datetime(2020,4,13)] = \
+            fast_data['metek_10m']['metek_10m_incx']   .loc[datetime(2020,2,7) : datetime(2020,4,13)] + 2.   
+        fast_data['metek_10m']['metek_10m_incy']       .loc[datetime(2020,2,7) : datetime(2020,4,13)] = \
+            fast_data['metek_10m']['metek_10m_incy']   .loc[datetime(2020,2,7) : datetime(2020,4,13)] + 0.25 
+            
+        fast_data['metek_10m']['metek_10m_incx']       .loc[datetime(2020,4,13) : datetime(2020,5,10)] = \
+            fast_data['metek_10m']['metek_10m_incx']   .loc[datetime(2020,4,13) : datetime(2020,5,10)] + 2.   
+        fast_data['metek_10m']['metek_10m_incy']       .loc[datetime(2020,4,13) : datetime(2020,5,10)] = \
+            fast_data['metek_10m']['metek_10m_incy']   .loc[datetime(2020,4,13) : datetime(2020,5,10)] + 0.75
+        
+        fast_data['metek_10m']['metek_10m_incx']       .loc[datetime(2020,6,24) : datetime(2020,7,29)] = \
+            fast_data['metek_10m']['metek_10m_incx']   .loc[datetime(2020,6,24) : datetime(2020,7,29)] + 0.75   
+        fast_data['metek_10m']['metek_10m_incy']       .loc[datetime(2020,6,24) : datetime(2020,7,29)] = \
+            fast_data['metek_10m']['metek_10m_incy']   .loc[datetime(2020,6,24) : datetime(2020,7,29)] + -2.75
+            
+        fast_data['metek_10m']['metek_10m_incx']       .loc[datetime(2020,8,25) : datetime(2020,9,18)] = \
+            fast_data['metek_10m']['metek_10m_incx']   .loc[datetime(2020,8,25) : datetime(2020,9,18)] + -1.75   
+        fast_data['metek_10m']['metek_10m_incy']       .loc[datetime(2020,8,25) : datetime(2020,9,18)] = \
+            fast_data['metek_10m']['metek_10m_incy']   .loc[datetime(2020,8,25) : datetime(2020,9,18)] + 2.
+           
              
         if all([fast_data[k].empty for k in metek_inst_keys]):
             verboseprint(f"!!! No fast data available today... {today_str}!!! ")

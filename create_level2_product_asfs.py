@@ -899,7 +899,141 @@ def main(): # the main data crunching program
 
             # surface skin temperature Persson et al. (2002) https://www.doi.org/10.1029/2000JC000705
             sdt['skin_temp_surface'] = (((sdt['up_long_hemisp']-(1-emis)*sdt['down_long_hemisp'])/(emis*sb))**0.25)-K_offset
+            
+            # Add empiraclly-calculated offsets to the Metek inclinometer to make it plumb  
+            # we need to use the original values for the radiometer tilt correction, but this correction has already been done about 50 lines up
+            if curr_station == 'asfs30':
+                sdt['metek_InclX_Avg']       .loc[datetime(2019,10,7) : datetime(2019,11,7)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2019,10,7) : datetime(2019,11,7)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2019,10,7) : datetime(2019,11,7)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,10,7) : datetime(2019,11,7)] + 0.
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2019,11,7) : datetime(2020,1,1)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2019,11,7) : datetime(2020,1,1)] + 1.5   
+                sdt['metek_InclY_Avg']       .loc[datetime(2019,11,7) : datetime(2020,1,1)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,11,7) : datetime(2020,1,1)] + 2.25
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,1,1) : datetime(2020,2,25)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,1,1) : datetime(2020,2,25)] + 2.25   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,1,1) : datetime(2020,2,25)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,1,1) : datetime(2020,2,25)] + 1.5
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,2,25) : datetime(2020,4,1)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,2,25) : datetime(2020,4,1)] + 2.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,2,25) : datetime(2020,4,1)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,2,25) : datetime(2020,4,1)] + 2.75
 
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,4,1) : datetime(2020,4,14)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,4,1) : datetime(2020,4,14)] + -2.25   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,4,1) : datetime(2020,4,14)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,4,1) : datetime(2020,4,14)] + 7.5
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,4,14) : datetime(2020,5,7)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,4,14) : datetime(2020,5,7)] + 0.75   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,4,14) : datetime(2020,5,7)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,4,14) : datetime(2020,5,7)] + 3.
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,5,7) : datetime(2020,5,13)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,5,7) : datetime(2020,5,13)] + 2.75   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,5,7) : datetime(2020,5,13)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,5,7) : datetime(2020,5,13)] + 0.25
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,5,13) : datetime(2020,5,27)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,5,13) : datetime(2020,5,27)] + 0.5   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,5,13) : datetime(2020,5,27)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,5,13) : datetime(2020,5,27)] + 1.25
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,5,27) : datetime(2020,6,21)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,5,27) : datetime(2020,6,21)] + -2.5   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,5,27) : datetime(2020,6,21)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,5,27) : datetime(2020,6,21)] + 6.75
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,6,21) : datetime(2020,6,30)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,6,21) : datetime(2020,6,30)] + -1.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,6,21) : datetime(2020,6,30)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,6,21) : datetime(2020,6,30)] + 4.75
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,6,30) : datetime(2020,8,3)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,6,30) : datetime(2020,8,3)] + 1.5   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,6,30) : datetime(2020,8,3)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,6,30) : datetime(2020,8,3)] + 0.5
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,8,3) : datetime(2020,8,22)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,8,3) : datetime(2020,8,22)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,8,3) : datetime(2020,8,22)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,8,3) : datetime(2020,8,22)] + 0.
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,8,22) : datetime(2020,9,20)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,8,22) : datetime(2020,9,20)] + -0.25  
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,8,22) : datetime(2020,9,20)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,8,22) : datetime(2020,9,20)] + 2.
+            
+            elif curr_station == 'asfs40':
+                
+                sdt['metek_InclX_Avg']       .loc[datetime(2019,10,5) : datetime(2019,11,10)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2019,10,5) : datetime(2019,11,10)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2019,10,5) : datetime(2019,11,10)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,10,5) : datetime(2019,11,10)] + 0.
+                
+                sdt['metek_InclX_Avg']       .loc[datetime(2019,11,10) : datetime(2019,12,20)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2019,11,10) : datetime(2019,12,20)] + -1.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2019,11,10) : datetime(2019,12,20)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,11,10) : datetime(2019,12,20)] + -0.25.
+
+                sdt['metek_InclX_Avg']       .loc[datetime(2019,12,20) : datetime(2020,1,30)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2019,12,20) : datetime(2020,1,30)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2019,12,20) : datetime(2020,1,30)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,12,20) : datetime(2020,1,30)] + 0.                    
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,1,30) : datetime(2020,2,28)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,1,30) : datetime(2020,2,28)] + -1.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,1,30) : datetime(2020,2,28)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,1,30) : datetime(2020,2,28)] + 0.
+
+            elif curr_station == 'asfs50':
+                
+                sdt['metek_InclX_Avg']       .loc[datetime(2019,10,10) : datetime(2019,12,22)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2019,10,10) : datetime(2019,12,22)] + 0.25   
+                sdt['metek_InclY_Avg']       .loc[datetime(2019,10,10) : datetime(2019,12,22)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,10,10) : datetime(2019,12,22)] + 0.25  
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2019,12,22) : datetime(2020,4,9)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2019,12,22) : datetime(2020,4,9)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2019,12,22) : datetime(2020,4,9)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,12,22) : datetime(2020,4,9)] + -0.25
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,4,9) : datetime(2020,5,12)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,4,9) : datetime(2020,5,12)] + 9.25   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,4,9) : datetime(2020,5,12)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,4,9) : datetime(2020,5,12)] + 1.75 
+                    
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,5,12) : datetime(2020,6,29)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,5,12) : datetime(2020,6,29)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,5,12) : datetime(2020,6,29)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,5,12) : datetime(2020,6,29)] + 0.   
+                                        
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,6,29) : datetime(2020,7,10)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,6,29) : datetime(2020,7,10)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,6,29) : datetime(2020,7,10)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,6,29) : datetime(2020,7,10)] + 0.
+                                        
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,7,10) : datetime(2020,7,30)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,7,10) : datetime(2020,7,30)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,7,10) : datetime(2020,7,30)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,7,10) : datetime(2020,7,30)] + 0.
+                                        
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,7,30) : datetime(2020,8,21)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,7,30) : datetime(2020,8,21)] + 0.   
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,7,30) : datetime(2020,8,21)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,7,30) : datetime(2020,8,21)] + 0.
+                                        
+                sdt['metek_InclX_Avg']       .loc[datetime(2020,8,21) : datetime(2020,10,1)] = \
+                    sdt['metek_InclX_Avg']   .loc[datetime(2020,8,21) : datetime(2020,10,1)] + 0.5  
+                sdt['metek_InclY_Avg']       .loc[datetime(2020,8,21) : datetime(2020,10,1)] = \
+                    sdt['metek_InclY_Avg']   .loc[datetime(2020,8,21) : datetime(2020,10,1)] + -0.25 
+                
+                    
+                    
             # ###################################################################################################
 
             # all the 0.1 seconds today, for obs. we buffer by 1 hr for easy of po2 in turbulent fluxes below
