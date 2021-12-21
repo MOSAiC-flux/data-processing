@@ -1655,7 +1655,6 @@ def main(): # the main data crunching program
                 ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v']**2)**0.5
                 ws = ws.resample('1s',label='left').apply(fl.take_average)
                     # make a better surface temperature
-                tsfc = (((slow_data['brightness_temp_surface']+273.15)**4 / 0.985)**0.25)-273.15
                 empty_data = np.zeros(np.size(slow_data['mixing_ratio_10m'][seconds_today]))
                 bulk_input = pd.DataFrame()
                 bulk_input['u']  = ws[seconds_today]                                  # wind speed                (m/s)
