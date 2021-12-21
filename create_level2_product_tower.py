@@ -1658,15 +1658,15 @@ def main(): # the main data crunching program
                 tsfc = (((slow_data['brightness_temp_surface']+273.15)**4 / 0.985)**0.25)-273.15
                 empty_data = np.zeros(np.size(slow_data['mixing_ratio_10m'][seconds_today]))
                 bulk_input = pd.DataFrame()
-                bulk_input['u']  = ws[seconds_today]                                # wind speed                (m/s)
-                bulk_input['t']  = slow_data['temp_10m'][seconds_today]     # air temperature           (degC) 
+                bulk_input['u']  = ws[seconds_today]                                  # wind speed                (m/s)
+                bulk_input['t']  = slow_data['temp_10m'][seconds_today]               # air temperature           (degC) 
                 bulk_input['Q']  = slow_data['mixing_ratio_10m'][seconds_today]/1000  # air moisture mixing ratio (kg/kg)
-                bulk_input['zi'] = empty_data+600                                   # inversion height          (m) guess!
-                bulk_input['P']  = slow_data['atmos_pressure_2m'][seconds_today]  # surface pressure          (mb)
-                bulk_input['zu'] = empty_data+10                                    # height of anemometer      (m)
-                bulk_input['zt'] = empty_data+10                                    # height of thermometer     (m)
-                bulk_input['zq'] = empty_data+10                                    # height of hygrometer      (m)      
-                bulk_input['ts'] = tsfc # bulk h2o/ice surface tempetature (degC) needs to be corrected for reflected
+                bulk_input['zi'] = empty_data+600                                     # inversion height          (m) guess!
+                bulk_input['P']  = slow_data['atmos_pressure_2m'][seconds_today]      # surface pressure          (mb)
+                bulk_input['zu'] = empty_data+10                                      # height of anemometer      (m)
+                bulk_input['zt'] = empty_data+10                                      # height of thermometer     (m)
+                bulk_input['zq'] = empty_data+10                                      # height of hygrometer      (m)      
+                bulk_input['ts'] = slow_data['skin_temp_surface'][second_today]       # bulk water/ice surface tempetature (degC) 
 
                 bulk_input = bulk_input.resample(str(integ_time_step[win_len])+'min',label='left').apply(fl.take_average)
 
