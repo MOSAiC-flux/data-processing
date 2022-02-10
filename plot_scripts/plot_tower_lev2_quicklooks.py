@@ -65,7 +65,7 @@ mpl.warnings.filterwarnings("ignore", category=UserWarning)
 
 def main(): # the main data crunching program
 
-    default_data_dir = '/Projects/MOSAiC_internal/flux_data_tests/' # give '-p your_directory' to the script if you don't like this
+    default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
 
     make_daily_plots = True
     make_leg_plots   = True # make plots that include data from each leg

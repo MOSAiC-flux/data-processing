@@ -40,7 +40,7 @@ code_version = code_version()
 # import our code modules
 from tower_data_definitions import define_global_atts, define_level2_variables, define_turb_variables
 from tower_data_definitions import define_10hz_variables, define_level1_slow, define_level1_fast
-from qc_level2_tower        import qc_tower, qc_flagging
+from qc_level2 import qc_tower
 from get_data_functions     import get_flux_data, get_arm_radiation_data
 from site_metadata          import metcity_metadata
 
@@ -63,7 +63,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 24  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 10  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 4 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -73,8 +73,7 @@ from multiprocessing import Queue   as Q
 # from multiprocessing.dummy import Process as P
 # from multiprocessing.dummy import Queue   as Q
 # nthreads = 1
-  
-from debug_functions import drop_me as dm
+# from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd
@@ -151,10 +150,10 @@ def main(): # the main data crunching program
 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
-    level1_dir = data_dir+'/tower/1_level_ingest/'                       # where does level1 data live?
-    level2_dir = data_dir+'/tower/2_level_product/version2/'             # where does level2 data go
+    level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
+    level2_dir = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
     level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
-    turb_dir   = data_dir+'/tower/2_level_product/version2/'             # where does level2 data go
+    turb_dir   = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
     turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
     arm_dir    = '/Projects/MOSAiC_internal/partner_data/'
     leica_dir  = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/'
@@ -521,7 +520,7 @@ def main(): # the main data crunching program
 
 
     verboseprint("... creating qc flags... takes a minute and some RAM")
-    slow_data = qc_flagging(slow_data)
+    slow_data = qc_tower(slow_data)
 
     print('... done with the slow stuff, moving into parallelized daily processing') 
     verboseprint("\n We've retreived and QCed all slow data, now processing each day...\n")
@@ -596,9 +595,6 @@ def main(): # the main data crunching program
 
 
         # begin slow_data QC, including automated boundary and hand groomed 
-        verboseprint("... manual data QC")
-        slow_data = qc_tower(slow_data)
-
         verboseprint("... automated data QC")
         
         sd = slow_data # shorthand notation to make things a little clearer, maybe... because pandas uses
@@ -723,7 +719,6 @@ def main(): # the main data crunching program
         slow_data['mixing_ratio_mast']         = xm
 
 
-
         # #####################################################################################
         # air temperature offsets from Ola Persson's "Met_Tower_Intercomparison_Results.docx"
         # further augmented to be time dependent in an email discussion titled: "temperature
@@ -731,7 +726,7 @@ def main(): # the main data crunching program
         
         # R218 (2m): no offset
         # P917 (P197) (6m after Dec 2019): dT = 7.5e-5 x YD - 0.13
-        # R217 (6m before Dec 2019): dT = 0.0972
+        # R217'https://mail.google.com/mail/u/0?ui=2&ik=50bf1b7bff&attid=0.1&permmsgid=msg-f:1722978961312138638&th=17e9403c907b458e&view=att&disp=safe&realattid=f_kyuvbuok0'  (6m before Dec 2019): dT = 0.0972
         # R428 (10 m throughout MOSAiC): dT = -0.000302 x YD + 0.17
         # mast (30 m & 22 m): dT = 0.338
 
@@ -1557,7 +1552,7 @@ def main(): # the main data crunching program
                     # ugh. there are 2 dimensions to the spectral variables, but the spectra are
                     # smoothed. The smoothing routine is a bit strange in that is is dependent on the length
                     # of the window (to which it should be orthogonal!) and worse, is not obviously
-                    # predictable...it groes in a for loop nested in a while loop that is seeded by a counter
+                    # predictable...it grows in a for loop nested in a while loop that is seeded by a counter
                     # and limited by half the length of the window, but the growth is not entirely
                     # predictable and neither is the result so I can't preallocate the frequency vector. I
                     # need to talk to Andrey about this and I need a programatic solution to assigning a
@@ -1665,7 +1660,7 @@ def main(): # the main data crunching program
                 bulk_input['zu'] = empty_data+10                                      # height of anemometer      (m)
                 bulk_input['zt'] = empty_data+10                                      # height of thermometer     (m)
                 bulk_input['zq'] = empty_data+10                                      # height of hygrometer      (m)      
-                bulk_input['ts'] = slow_data['skin_temp_surface'][second_today]       # bulk water/ice surface tempetature (degC) 
+                bulk_input['ts'] = slow_data['skin_temp_surface'][seconds_today]      # bulk water/ice surface tempetature (degC) 
 
                 bulk_input = bulk_input.resample(str(integ_time_step[win_len])+'min',label='left').apply(fl.take_average)
 
@@ -1706,6 +1701,48 @@ def main(): # the main data crunching program
                             else:
                                 bulk[bulk.columns[hh]][ii]=bulkout[hh]
 
+                # qc/flagging algorithm for turbulence calculations, this should likely be ripped out and put into
+                # functions_library once the qc-ing is satisfactorily performed....  similar to a despiker but based on
+                # derivatives and flags these values as -1 in case we want to use them in an algorithmic approach if you list
+                # a variable here, the associated *_qc var will created and then flagged according to the algorithm
+                def flag_swings(vals, threshold=5):  
+                    # put in by Michael, takes into account variance (invariant iqr) and flags large swings away
+                    # from that variance at a certain threshold. right now as -1
+                    def get_iqr(arr):
+                        q75, q25 = np.nanpercentile(arr, [75 ,25])
+                        iqr = q75 - q25; return iqr
+
+                    window_size = 24; sym = int(window_size/2) # window to calculate variance/iqr over
+                    mean_vals = vals.rolling(sym, win_type='gaussian', center=True, min_periods=1).mean(std=3)
+                    new_vals = vals-mean_vals
+                    try: 
+                        iqr  = get_iqr(new_vals)
+                        iqrs  = vals*np.nan
+                        means = vals*np.nan
+                        for i,v in enumerate(new_vals) : 
+                            if i < sym:
+                                iqrs[i] = get_iqr(new_vals[0:i+sym])
+                            elif i > len(new_vals)-sym :
+                                iqrs[i] = get_iqr(new_vals[i-sym:len(new_vals)-1])
+                            else:
+                                iqrs[i] = get_iqr(new_vals[i-sym:i+sym])
+
+                    except: return vals*0
+                    diffs     = vals*np.nan
+                    diffs[1:] = np.diff(new_vals)
+                    qc_vals   = np.array([-1 if d > iqr*threshold else 0 for i,d in enumerate(diffs)])
+
+                    return qc_vals, iqrs, diffs, new_vals
+
+                print("... running turbulence qc algorithm...")
+                height_list = ['2m', '6m', '10m', 'mast']
+                vars_to_flag = ['sigU', 'sigV', 'sigW', 'ustar']
+                for h in height_list: 
+                    for v in vars_to_flag: 
+                        var_name = f'{v}_{h}'
+                        turb_data[f'{var_name}_qc'] = flag_swings(turb_data[var_name], 6)[0]
+                print("... FINISHED turbulence qc algorithm...")
+
                 # add this to the EC data
                 turb_data = pd.concat( [turb_data, bulk], axis=1) # concat columns alongside each other without adding indexes
                 verboseprint('... writing {} turbulent fluxes to netcdf files: {}'.format(str(integ_time_step[win_len])+"min",today))
@@ -1736,9 +1773,7 @@ def main(): # the main data crunching program
 
     q_list = []  # setup queue storage
     for i_day, today in enumerate(day_series): # loop over the days in the processing range and crunch away
-
         tomorrow        = today+day_delta
-        
         slow_data_today = slow_data[today:tomorrow]
 
         q_today = Q()
@@ -1907,6 +1942,11 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
         # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
         first_exception = True
         for var_name, var_atts in turb_atts.items(): 
+            try: turb_vars[var_name]
+            except KeyError as ke: 
+                if var_name.split("_")[-1] == 'qc': continue; do_nothing = True # we don't fill in all qc variables yet
+                else: raise 
+                
             chosen_index = 0
             if turb_vars[var_name].isnull().all():
                 if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
@@ -1936,11 +1976,11 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
                     try: this_size = turb_vars[var_name][i].size
                     except: 
                         turb_vars[var_name][i] = pd.Series([nan]*max_size)
-                
+
             # create variable, # dtype inferred from data file via pandas
             if 'fs' in var_name:
                 netcdf_lev2.createDimension('freq', turb_vars[var_name][chosen_index].size)   
- 
+
     else: write_data = l2_data #no turbulence data
 
     all_missing     = True 
@@ -2128,6 +2168,13 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():
 
+        try: turb_vars[var_name]
+        except KeyError as ke: 
+            if var_name.split("_")[-1] == 'qc':
+                #print(f"... {var_name} won't be written to file")
+                continue; do_nothing = True # we don't fill in all qc variables yet
+            else: raise 
+
         # create variable, # dtype inferred from data file via pandas
         var_dtype = turb_vars[var_name][0].dtype
         if turb_vars[var_name][0].size == 1:
@@ -2216,6 +2263,13 @@ def write_turb_netcdf(turb_data, date, sonic_z, mast_height, licor_z, win_len):
     netcdf_turb.createDimension('time', None)# n_turb_in_day) 
     # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
     for var_name, var_atts in turb_atts.items(): 
+        try: turb_vars[var_name]
+        except KeyError as ke: 
+            if var_name.split("_")[-1] == 'qc':
+                #print(f"... {var_name} won't be written to file")
+                continue; do_nothing = True # we don't fill in all qc variables yet
+            else: raise 
+ 
         # seriously python, seriously????
         if turb_data[var_name].isnull().all():
             if turb_data[var_name].dtype == object: # happens when all fast data is missing...
@@ -2301,6 +2355,12 @@ def write_turb_netcdf(turb_data, date, sonic_z, mast_height, licor_z, win_len):
     
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():
+        try: turb_vars[var_name]
+        except KeyError as ke: 
+            if var_name.split("_")[-1] == 'qc':
+                #print(f"... {var_name} won't be written to file")
+                continue; do_nothing = True # we don't fill in all qc variables yet
+            else: raise 
 
         # create variable, # dtype inferred from data file via pandas
         var_dtype = turb_data[var_name][0].dtype

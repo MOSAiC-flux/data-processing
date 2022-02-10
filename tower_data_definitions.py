@@ -4039,6 +4039,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})   
  
+
     return turb_atts, list(turb_atts.keys()).copy() 
 
 def define_10hz_variables():

@@ -94,14 +94,16 @@ def get_flux_data(station, start_day, end_day, level,
                 subdir   = f'/{level}_level_{level_str}/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
-                    file_str = f'/mos{data_type}.metcity.level{level}v2.10min.{date_str}.nc'
-                    subdir = subdir+'/'
+                    file_str = f'/mos{data_type}.metcity.level{level}v3.10min.{date_str}.nc'
+                    subdir = subdir+'/version3'
 
             else:
                 file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
-                    file_str = f'/mos{data_type}.{station}.level{level}v2.1min.{date_str}.nc'
-                    subdir = subdir+'/'
+                    cadence = '1'
+                    if data_type=='seb': cadence = '10'
+                    file_str = f'/mos{data_type}.{station}.level{level}v3.{cadence}min.{date_str}.nc'
+                    subdir = subdir+'/version3'
 
             files_dir = data_dir+station+subdir
             curr_file = files_dir+file_str

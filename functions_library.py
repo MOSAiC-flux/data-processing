@@ -2003,3 +2003,11 @@ def tilt_corr(df,diff):
     
     return df
  
+# takes in any array and calls numpy interpolation instead of pandas
+def interpolate_nans_vectorized(arr):
+    
+    nans, x =  np.isnan(arr), lambda z: z.nonzero()[0]
+    try: arr[nans] = np.interp(x(nans), x(~nans), arr[~nans])
+    except ValueError:
+        arr = arr*nan
+    return arr

@@ -203,6 +203,7 @@ def main(): # the main data crunching program
         df_station = df_station.add_suffix('_{}'.format(station))
         df_list.append(df_station)
     df = pd.concat(df_list, axis=1)
+    dm(locals(),0)
 
     make_plots_pretty('seaborn-whitegrid') # ... and higher resolution
 
@@ -318,8 +319,8 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
                     plot_success = True
 
                 except Exception as e:
-                    #import traceback
-                    #traceback.print_exc()
+                    # import traceback
+                    # traceback.print_exc()
                     legend_additions.append('{} (no data)'.format(asfs_var))
                     continue
 

@@ -59,12 +59,11 @@ code_version = code_version()
 from asfs_data_definitions import define_global_atts, define_level2_variables, define_turb_variables 
 from asfs_data_definitions import define_level1_slow, define_level1_fast, define_10hz_variables
 
-from qc_level2_asfs import qc_stations
-
+from qc_level2 import qc_stations
 from get_data_functions import get_flux_data, get_arm_radiation_data
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
-#from debug_functions import drop_me as dm
+from debug_functions import drop_me as dm
 
 # Ephemeris
 # SPA is NREL's (Ibrahim Reda's) emphemeris calculator that all those BSRN/ARM radiometer geeks use ;) 
@@ -82,16 +81,17 @@ import os, inspect, argparse, time, sys
 import socket 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 32  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 16  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-#nthreads = 1
-#from multiprocessing.dummy import Process as P
-#from multiprocessing.dummy import Queue   as Q
+
+# nthreads = 1
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
      
 import numpy  as np
 import pandas as pd
@@ -978,7 +978,7 @@ def main(): # the main data crunching program
                 sdt['metek_InclX_Avg']       .loc[datetime(2019,11,10) : datetime(2019,12,20)] = \
                     sdt['metek_InclX_Avg']   .loc[datetime(2019,11,10) : datetime(2019,12,20)] + -1.   
                 sdt['metek_InclY_Avg']       .loc[datetime(2019,11,10) : datetime(2019,12,20)] = \
-                    sdt['metek_InclY_Avg']   .loc[datetime(2019,11,10) : datetime(2019,12,20)] + -0.25.
+                    sdt['metek_InclY_Avg']   .loc[datetime(2019,11,10) : datetime(2019,12,20)] + -0.25
 
                 sdt['metek_InclX_Avg']       .loc[datetime(2019,12,20) : datetime(2020,1,30)] = \
                     sdt['metek_InclX_Avg']   .loc[datetime(2019,12,20) : datetime(2020,1,30)] + 0.   
@@ -1269,7 +1269,7 @@ def main(): # the main data crunching program
                                                     sdt['heading'],\
                                                     sdt['metek_y_Avg'], sdt['metek_x_Avg'], sdt['metek_z_Avg'])
                 
-                ct_usig, ct_vsig, ct_wsig = fl.tilt_rotation(sdt['metek_InclY_A'], sdt['metek_InclX_Avg'],\
+                ct_usig, ct_vsig, ct_wsig = fl.tilt_rotation(sdt['metek_InclY_Avg'], sdt['metek_InclX_Avg'],\
                                                     sdt['heading'],\
                                                     sdt['metek_y_Std'], sdt['metek_x_Std'], sdt['metek_z_Std'])
 
@@ -1317,6 +1317,7 @@ def main(): # the main data crunching program
             # ~~~~~~~~~~~~~~~~~~~~ (6) Flux Capacitor  ~~~~~~~~~~~~~~~~~~~~~~~~~
     
             if calc_fluxes == True and len(fdt.index) > 0:
+
                 verboseprint('\nCalculating turbulent fluxes and associated MO parameters.')
 
                 # Rotation to the streamline, FFT window segmentation, detrending,
@@ -1510,7 +1511,7 @@ def main(): # the main data crunching program
                     data_to_return.append(('turb', turbulencetom.copy(), win_len))
                     if win_len < len(integ_time_turb_flux)-1: print('\n')
 
-            out_dir   = data_dir+'/'+curr_station+'/2_level_mgallagh_test_'+curr_station+'/' # where will level 2 data written?
+            out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
     
             try: 
                 trash_var = write_level2_10hz(curr_station, metek_10hz[today:tomorrow], licor_10hz[today:tomorrow], today, out_dir)
@@ -1596,19 +1597,19 @@ def main(): # the main data crunching program
         slow_all[curr_station] = qc_stations(curr_station, slow_all[curr_station])
 
     print(" ... done with concatting and QC, now we write!\n")
-
+    
     def write_todays_data(curr_station, today, day_q):
         tomorrow = today+day_delta
 
-        out_dir   = data_dir+'/'+curr_station+'/2_level_mgallagh_test_'+curr_station+'/' # where will level 2 data written?
-        trash_var = write_level2_netcdf(slow_all[curr_station][today:tomorrow], curr_station, today, "1min", out_dir)
+        out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+        #out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+        trash_var = write_level2_netcdf(slow_all[curr_station][today:tomorrow].copy(), curr_station, today, "1min", out_dir)
 
         for win_len in range(0, len(integ_time_turb_flux)):
             integration_window = integ_time_turb_flux[win_len]
-            trash_var = write_level2_netcdf(slow_all[curr_station][today:tomorrow], curr_station, today, f"{integ_time_turb_flux[win_len]}min",
-                                            out_dir, turb_all[curr_station][win_len][today:tomorrow])
+            trash_var = write_level2_netcdf(slow_all[curr_station][today:tomorrow].copy(), curr_station, today,
+                                            f"{integ_time_turb_flux[win_len]}min", out_dir, turb_all[curr_station][win_len][today:tomorrow])
 
-            #trash_var = write_turb_netcdf(turb_all[curr_station][win_len][today:tomorrow], curr_station, today, integration_window, win_len, out_dir)
 
         day_q.put(True) 
 
@@ -1704,6 +1705,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
             try: 
                 write_data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average))
             except Exception as e: 
+                print(f"{e} !!! oops ugh")
                 write_data_list.append(pd.Series(np.nan, name=var_name))
         write_data = pd.concat(write_data_list, axis=1)
         write_data = write_data[date:tomorrow]
@@ -1815,15 +1817,15 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
         netcdf_lev2[var_name].setncattr('missing_value', fill_val)
 
-        if timestep != "1min":
-            vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
-        else: vtmp = l2_data[var_name]
+        # if timestep != "1min":
+        #     vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
+        # else:
+        vtmp = l2_data[var_name]
         vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp.values
 
         # add a percent_missing attribute to give a first look at "data quality"
         netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
-
 
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():

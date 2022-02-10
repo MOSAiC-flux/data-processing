@@ -1222,6 +1222,41 @@ def define_level2_variables():
                                                 'height'        : boom_height,
                                                 'location'      : inst_boom_location_string,})
 
+    lev2_atts['lat_qc']                     = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['lon_qc']                     = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['heading_qc']                 = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['zenith_true_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['zenith_apparent_qc']         = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['azimuth_qc']                 = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['ship_distance_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['ship_bearing_qc']            = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['sr50_dist_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['snow_depth_qc']              = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['atmos_pressure_qc']          = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['temp_qc']                    = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['rh_qc']                      = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['dew_point_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['mixing_ratio_qc']            = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['vapor_pressure_qc']          = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['rhi_qc']                     = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['brightness_temp_surface_qc'] = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['skin_temp_surface_qc']       = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['subsurface_heat_flux_A_qc']  = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['subsurface_heat_flux_B_qc']  = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['wspd_u_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['wspd_v_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['wspd_w_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['wspd_vec_mean_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['wdir_vec_mean_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['temp_acoustic_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['h2o_licor_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['co2_licor_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['down_long_hemisp_qc']        = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['down_short_hemisp_qc']       = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['up_long_hemisp_qc']          = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['up_short_hemisp_qc']         = {'long_name' :'QC flag integer indicating data quality'}    
+    lev2_atts['net_radiation_qc']           = {'long_name' :'QC flag integer indicating data quality'}                  
+
     return lev2_atts, list(lev2_atts.keys()).copy()
 
 def define_turb_variables():
