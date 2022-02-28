@@ -70,10 +70,10 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
-# nthreads = 1
-# from debug_functions import drop_me as dm
+from multiprocessing.dummy import Process as P
+from multiprocessing.dummy import Queue   as Q
+nthreads = 1
+from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd
@@ -2122,6 +2122,11 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
             fill_val  = def_fill_flt
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+        # all qc flags set to -1 for when corresponding variables are missing data
+        if var_name.split('_')[-1] == 'qc':
+            fill_val = -1
+            write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+
         vtmp = write_data[var_name]
 
         # write atts to the var now
@@ -2138,6 +2143,7 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
 
         vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp
+
 
         try:
             height_today, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date)

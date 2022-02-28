@@ -157,3 +157,9 @@ Basically, this is the push for August through mid September by Cox that impleme
 - Add missing SWD > 50 qualifier for the Rayleigh limit test from ASFS QCRAD.
 - len(fdt.inx) > 1 to len(fdt.index > 0 in ASFS top of turbulence: fixes NaN issue showing up in turbulent netcdf instead of -9999 (reported by Amy)
 - Fix missing multidimensionality in 10 min file spectral vars when no turbulence at all for the day (reported by Amy)
+
+## Revision 3.0 2/9/22 mgallagher
+- ingest of manual qc table (https://docs.google.com/spreadsheets/d/1CgrC5zb9t6fZn8Nn5dnrkVSvmiqBD2Jl/edit#gid=302154633)
+- corresponding qc variables 
+- differential algorithm to despike outside of variance
+- minor bugfixes

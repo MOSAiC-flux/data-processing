@@ -88,7 +88,6 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-
 # nthreads = 1
 # from multiprocessing.dummy import Process as P
 # from multiprocessing.dummy import Queue   as Q
@@ -1765,10 +1764,10 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
     for att_name, att_val in base_atts.items(): netcdf_lev2['base_time'].setncattr(att_name,att_val)
 
     # here we create the array and attributes for 'time'
-    t_atts   = {'units'     : 'seconds since {}'.format(tm),
-                     'delta_t'   : '0000-00-00 00:01:00',
-                     'long_name' : 'Time offset from midnight',
-                     'calendar'  : 'standard',}
+    t_atts   = { 'units'     : 'seconds since {}'.format(tm),
+                 'delta_t'   : '0000-00-00 00:01:00',
+                 'long_name' : 'Time offset from midnight',
+                 'calendar'  : 'standard',}
 
 
     bt_atts   = {'units'     : 'seconds since {}'.format(bot),
@@ -1812,15 +1811,28 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
             fill_val  = def_fill_flt
             var_tmp = l2_data[var_name].values.astype(np.int32)
 
+        # all qc flags set to -1 for when corresponding variables are missing data
+        try:
+            if var_name.split('_')[-1] == 'qc':
+                fill_val = np.int32(-1)
+                l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+        except Exception as e: print(f"!!! failed to fill in qc var: {var_name}!!!\n !!! {e}")
+
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
         netcdf_lev2[var_name].setncattr('missing_value', fill_val)
 
-        # if timestep != "1min":
-        #     vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
-        # else:
-        vtmp = l2_data[var_name]
+        if timestep != "1min":
+            vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
+        else:
+            vtmp = l2_data[var_name]
+
+        # if timestep != '1min' and var_name =='lat':
+        #     print('single check')
+        #     dm(locals(),0)
+
         vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp.values
 

@@ -22,7 +22,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ('2.1', '9/8/2021', 'ccox')
+    cv = ['3.0', '2/14/2022', 'mgallagher']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -54,7 +54,9 @@ def define_global_atts(station_name, file_type):
         global_atts['quality_control']  = 'This "Level 1" product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
     elif file_type == "level2":
-        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use it this data for any analyses.',
+        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use it this data for any analyses.'
+        global_atts['qc_flags'] = "-1 = No Data: Instrument was not functional and no data exists.    0 = Good: High certainty that data is accurate to within the expected measurement uncertainty.    1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.    2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.    3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed."
+
     elif file_type == "10hz":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
 
@@ -65,7 +67,6 @@ def define_global_atts(station_name, file_type):
         global_atts['acknowledgements'] = 'Dr. Andrey Grachev (CIRES), Dr. Chris Fairall (NOAA), Dr. Ludovic Bariteau (CIRES)'
 
     return OrderedDict(global_atts)
-
 
 # we are reading SD card data, which was usually saved without headers, but the headers occasionally change when logger programs are modified. it is what it is...
 # the good news is that there are only a dozen or so permutations, so we can just store them here
@@ -1257,6 +1258,41 @@ def define_level2_variables():
     lev2_atts['up_short_hemisp_qc']         = {'long_name' :'QC flag integer indicating data quality'}    
     lev2_atts['net_radiation_qc']           = {'long_name' :'QC flag integer indicating data quality'}                  
 
+    lev2_atts['lat_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['lon_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['heading_qc']                 .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['zenith_true_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['zenith_apparent_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['azimuth_qc']                 .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['ship_distance_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['ship_bearing_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['sr50_dist_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['snow_depth_qc']              .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['atmos_pressure_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['temp_qc']                    .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['rh_qc']                      .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['dew_point_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['mixing_ratio_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['vapor_pressure_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['rhi_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['brightness_temp_surface_qc'] .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['skin_temp_surface_qc']       .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['subsurface_heat_flux_A_qc']  .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['subsurface_heat_flux_B_qc']  .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['wspd_u_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['wspd_v_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['wspd_w_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['wspd_vec_mean_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['wdir_vec_mean_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['temp_acoustic_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['h2o_licor_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['co2_licor_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['down_long_hemisp_qc']        .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['down_short_hemisp_qc']       .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['up_long_hemisp_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['up_short_hemisp_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
+    lev2_atts['net_radiation_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+                                            
     return lev2_atts, list(lev2_atts.keys()).copy()
 
 def define_turb_variables():
