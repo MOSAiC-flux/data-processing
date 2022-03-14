@@ -73,7 +73,7 @@ from multiprocessing import Queue   as Q
 from multiprocessing.dummy import Process as P
 from multiprocessing.dummy import Queue   as Q
 nthreads = 1
-from debug_functions import drop_me as dm
+#from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd
@@ -182,7 +182,7 @@ def main(): # the main data crunching program
     end_time = end_time+timedelta(1)
 
     print('The first day we  process data is:     %s' % str(start_time+timedelta(1)))
-    print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
+    print('The last day we will process dataa is:  %s' % str(end_time-timedelta(1)))
     printline()
 
     global mc_site_metadata
@@ -520,7 +520,7 @@ def main(): # the main data crunching program
 
 
     verboseprint("... creating qc flags... takes a minute and some RAM")
-    slow_data = qc_tower(slow_data)
+    #slow_data = qc_tower(slow_data)
 
     print('... done with the slow stuff, moving into parallelized daily processing') 
     verboseprint("\n We've retreived and QCed all slow data, now processing each day...\n")
@@ -680,8 +680,9 @@ def main(): # the main data crunching program
         slow_data['mixing_ratio_2m']         = x2
 
         # atm pressure adjusted assuming 1 hPa per 10 m (1[hPA]*ht[m]/10[m]), except for mast, which has a direct meas.
-        p6    = slow_data['vaisala_P_2m']-1*6/10
-        p10   = slow_data['vaisala_P_2m']-1*10/10    
+        # 3/14/22 imrproved precision of heights using actual humidity sensor height reported in attributes
+        p6    = slow_data['vaisala_P_2m']-1*(5.24-1.45)/10
+        p10   = slow_data['vaisala_P_2m']-1*(9.14-1.45)/10    
 
         # we are missing a lot of the mast pressures so I will fill in with an approximation    
         pmast = slow_data['mast_P'] 
@@ -938,7 +939,7 @@ def main(): # the main data crunching program
         slow_data['skin_temp_surface'] = (((slow_data['up_long_hemisp']-(1-emis)*slow_data['down_long_hemisp'])/(emis*sb))**0.25)-K_offset
 
         # verboseprint("... manual data QC")
-        # slow_data = qc_tower(slow_data)
+        slow_data = qc_tower(slow_data)
 
         # rename columns to match expected level2 names from data_definitions
         # there's probably a more clever way to do this
