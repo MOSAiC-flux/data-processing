@@ -1921,36 +1921,41 @@ def define_10hz_variables():
     atts_10hz['licor_co2']            = {'units' : 'mmol/m3' }
     atts_10hz['licor_h2o']            = {'units' : 'mmol/m3' }
 
-    atts_10hz['metek_u']           .update({ 'long_name'  : 'wind velocity in u',
-                                                'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
-                                                'location'   : metek_location,})
+    atts_10hz ['metek_u']  .update({'long_name'  : 'wind velocity in u',
+                                    'cf_name'    : 'eastward_wind',
+                                    'methods'    : 'u defined positive west-to-east',
+                                    'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                    'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
+                                    'location'   : metek_location,})
 
-    atts_10hz['metek_v']           .update({  'long_name'  : 'wind velocity in v',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : metek_location,})
+    atts_10hz['metek_v']   .update({'long_name'  : 'wind velocity in v',
+                                    'cf_name'    : 'northward_wind',
+                                    'methods'    : 'v defined positive south-to-north',
+                                    'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                    'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                    'location'   : metek_location,})
 
-    atts_10hz['metek_w']           .update({  'long_name'  : 'wind velocity in w',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : metek_location,})
+    atts_10hz['metek_w']   .update({'long_name'  : 'wind velocity in w',
+                                    'methods'    : 'w defined positive up',
+                                    'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                    'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                    'location'   : metek_location,})
 
-    atts_10hz['metek_T']           .update({  'long_name'  : 'acoustic temperature',
-                                                 'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                                 'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : metek_location,})
+    atts_10hz['metek_T']   .update({'long_name'  : 'acoustic temperature',
+                                    'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
+                                    'methods'    : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
+                                    'location'   : metek_location,})
 
 
-    atts_10hz['licor_co2']            .update({  'long_name'  : 'CO2 gas density',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_co2'] .update({'long_name'  : 'CO2 gas density',
+                                    'instrument' : 'Licor 7500-DS',
+                                    'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                    'location'   : licor_location,})
 
-    atts_10hz['licor_h2o']            .update({  'long_name'  : 'water vapor density',
-                                                 'instrument' : 'Licor 7500-DS',
-                                                 'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
-                                                 'location'   : licor_location,})
+    atts_10hz['licor_h2o'] .update({'long_name'  : 'water vapor density',
+                                    'instrument' : 'Licor 7500-DS',
+                                    'methods'    : 'open-path optical gas analyzer, data reported at 20 Hz; TCP/IP protocol',
+                                    'location'   : licor_location,})
 
     return atts_10hz, list(atts_10hz.keys()).copy() 
 

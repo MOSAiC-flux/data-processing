@@ -4201,18 +4201,23 @@ def define_10hz_variables():
 
 
     atts_10hz['metek_2m_u']           .update({  'long_name'       : 'wind velocity in u',
+                                                 'cf_name'         : 'eastward_wind',
+                                                 'methods'         :'u defined positive west-to-east',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
                                                  'funding_sources' : flux_funding,
                                                  'location'        : bottom_location_string,})
 
     atts_10hz['metek_2m_v']           .update({  'long_name'       : 'wind velocity in v',
+                                                 'cf_name'         : 'northward_wind',
+                                                 'methods'         : 'v defined positive south-to-north',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
                                                  'location'        : bottom_location_string,})
 
     atts_10hz['metek_2m_w']           .update({  'long_name'       : 'wind velocity in w',
+                                                 'methods'         : 'w defined positive up',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
@@ -4255,18 +4260,23 @@ def define_10hz_variables():
                                                  'location'        : bottom_location_string,})
 
     atts_10hz['metek_6m_u']           .update({  'long_name'       : 'wind velocity in u',
+                                                 'cf_name'         : 'eastward_wind',
+                                                 'methods'         :'u defined positive west-to-east',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
                                                  'location'        : middle_location_string,})
 
     atts_10hz['metek_6m_v']           .update({  'long_name'       : 'wind velocity in v',
+                                                 'cf_name'         : 'northward_wind',
+                                                 'methods'         : 'v defined positive south-to-north',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
                                                  'location'        : middle_location_string,})
 
     atts_10hz['metek_6m_w']           .update({  'long_name'       : 'wind velocity in w',
+                                                 'methods'         : 'w defined positive up',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
@@ -4309,18 +4319,23 @@ def define_10hz_variables():
                                                  'location'        : middle_location_string,})
 
     atts_10hz['metek_10m_u']          .update({  'long_name'       : 'wind velocity in u',
+                                                 'cf_name'         : 'eastward_wind',
+                                                 'methods'         :'u defined positive west-to-east',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
                                                  'location'        : top_location_string,})
 
     atts_10hz['metek_10m_v']          .update({  'long_name'       : 'wind velocity in v',
+                                                 'cf_name'         : 'northward_wind',
+                                                 'methods'         : 'v defined positive south-to-north',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
                                                  'location'        : top_location_string,})
 
     atts_10hz['metek_10m_w']          .update({  'long_name'       : 'wind velocity in w',
+                                                 'methods'         : 'w defined positive up',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : flux_funding,
@@ -4363,18 +4378,23 @@ def define_10hz_variables():
                                                  'location'        : top_location_string,})
 
     atts_10hz['metek_mast_u']         .update({  'long_name'       : 'wind velocity in u',
+                                                 'cf_name'         : 'eastward_wind',
+                                                 'methods'         :'u defined positive west-to-east',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : mast_funding,
                                                  'location'        : mast_location_string,})
 
     atts_10hz['metek_mast_v']         .update({  'long_name'       : 'wind velocity in v',
+                                                 'cf_name'         : 'northward_wind',
+                                                 'methods'         : 'v defined positive south-to-north',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : mast_funding,
                                                  'location'        : mast_location_string,})
 
     atts_10hz['metek_mast_w']         .update({  'long_name'       : 'wind velocity in w',
+                                                 'methods'         : 'w defined positive up',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol',
                                                  'funding_sources' : mast_funding,
