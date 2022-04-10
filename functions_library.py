@@ -598,29 +598,36 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
 
     # Rotate!
 
+    # method used until 14 March 2022 (commented out rot, phi, x, xr lines below)    
     # We used the most common method, which is a double rotation of the anemometer coordinate system, to
     # compute the longitudinal, lateral, and vertical velocity components in real time (Kaimal and Finnigan
     # 1994, Sect. 6.6).
-    ss = (um**2+vm**2)**0.5
+    #
+    # As of 14 Mar 2022 we swtiched to a single azimuthal rotation to manage the w bias in the uSonic
+    #ss = (um**2+vm**2)**0.5
     # working in radians in this block
     thet     = np.arctan2(vm,um)
-    phi      = np.arctan2(wm,ss)
-    rot      = np.array([[1.,1.,1.],[1.,1.,1.],[1.,1.,1.]])
-    rot[0,0] = np.cos(phi)*np.cos(thet)
-    rot[0,1] = np.cos(phi)*np.sin(thet)
-    rot[0,2] = np.sin(phi)
-    rot[1,0] = -np.sin(thet)
-    rot[1,1] = np.cos(thet)
-    rot[1,2] = 0
-    rot[2,0] = -1*np.sin(phi)*np.cos(thet)
-    rot[2,1] = -1*np.sin(phi)*np.sin(thet)
-    rot[2,2] = np.cos(phi)
+    #phi      = np.arctan2(wm,ss)
+    #rot      = np.array([[1.,1.,1.],[1.,1.,1.],[1.,1.,1.]])
+    #rot[0,0] = np.cos(phi)*np.cos(thet)
+    #rot[0,1] = np.cos(phi)*np.sin(thet)
+    #rot[0,2] = np.sin(phi)
+    #rot[1,0] = -np.sin(thet)
+    #rot[1,1] = np.cos(thet)
+    #rot[1,2] = 0
+    #rot[2,0] = -1*np.sin(phi)*np.cos(thet)
+    #rot[2,1] = -1*np.sin(phi)*np.sin(thet)
+    #rot[2,2] = np.cos(phi)
+    
+    U = np.array (  U*np.cos(thet) + V*np.sin(thet) )
+    V = np.array ( -U*np.sin(thet) + V*np.cos(thet) )  
+    W = np.array (  W )
 
-    x=np.array([U,V,W])
-    xr=np.dot(rot,x)
-    U = xr[0,:]
-    V = xr[1,:]
-    W = xr[2,:]
+    #x=np.array([U,V,W])
+    #xr=np.dot(rot,x)
+    #U = xr[0,:]
+    #V = xr[1,:]
+    #W = xr[2,:]
 
     # Mean rotated wind speed components:
     # vrm and wrm can be used for QC purposes (theoretically vrm = 0 and wrm = 0)
