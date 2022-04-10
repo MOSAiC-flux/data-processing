@@ -52,7 +52,7 @@ import xarray as xr
 
 sys.path.insert(0,'../')
 
-from tower_data_definitions import define_level2_variables
+from tower_data_definitions import define_level2_variables, define_turb_variables
 
 import functions_library as fl 
 from get_data_functions import get_flux_data
@@ -83,9 +83,9 @@ def main(): # the main data crunching program
     # what are we plotting? dict key is the full plot name, value is another dict...
     # ... of subplot titles and the variables to put on each subplot
     var_dict = {} # code below plots strings with vaisala_T/RH in the name at 3 heights
-    var_dict['meteorology']        = {'temperature'      : ['temp'],
-                                      'humidity'         : ['rh'],
-                                      'pressure'         : ['atmos_pressure_2m', 'atmos_pressure_mast'],
+    var_dict['meteorology']        = {'temperature'    : ['temp'],
+                                      'humidity'       : ['rh'],
+                                      'pressure'       : ['atmos_pressure_2m', 'atmos_pressure_mast'],
                                       }
     var_dict['winds']              = {'speed'          : ['wspd_vec_mean'],  
                                       'direction'      : ['wdir_vec_mean'],
@@ -98,20 +98,26 @@ def main(): # the main data crunching program
                                       'depth'          : ['snow_depth'],
                                       'surface temp'   : ['brightness_temp_surface'],
                                       }
-    var_dict['lat_lon']            = {'latitude'         : ['lat_tower','lat_mast'],
-                                      'longitude'         : ['lon_tower','lon_mast'],
-                                      'heading'         : ['heading_tower','heading_mast'],
+    var_dict['lat_lon']            = {'latitude'       : ['lat_tower','lat_mast'],
+                                      'longitude'      : ['lon_tower','lon_mast'],
+                                      'heading'        : ['heading_tower','heading_mast'],
                                       }
 
-    var_dict['radiation']       = {'shortwave'        : ['up_short_hemisp','down_short_hemisp'], 
-                                   'longwave'         : ['up_long_hemisp','down_long_hemisp'], 
-                                   'net'              : ['net_radiation', 'radiation_SWnet', 'radiation_LWnet'], # CREATED BELOW
+    var_dict['radiation']       = {'shortwave'         : ['up_short_hemisp','down_short_hemisp'], 
+                                   'longwave'          : ['up_long_hemisp','down_long_hemisp'], 
+                                   'net'               : ['net_radiation', 'radiation_SWnet', 'radiation_LWnet'], # CREATED BELOW
                                    }
     var_dict['licor']              = {'gas'            : ['co2_licor','h2o_licor'],
                                       }
     var_dict['ship']               = {'distance'       : ['ship_distance'],
                                       'bearing'        : ['ship_bearing'],
                                       }
+    var_dict['turb']           = {'hs'        : ['Hs', 'bulk_Hs_10m'],
+                                  'hl'        : ['Hl', 'bulk_Hl_10m'],
+                                  'ustar'     : ['ustar'],
+                                  'windspeed' : ['wspd_vec_mean'],  
+                                 }
+
 
 
     # if you put a color in the list, (rgb or hex) the function below will all lines different luminosities
@@ -125,6 +131,7 @@ def main(): # the main data crunching program
     color_dict['lat_lon']            = [(0.8,0.8,0.8),(0.2,0.4,0.2),(0.8,0.6,0.6),(0.2,0.4,0.2),(0.9,0.5,0.9),(0.3,0.1,0.5),(0.1,0.01,0.01)]
     color_dict['licor']              = ['#23001a','#ffe000','#00fdff']
     color_dict['ship']               = ['#70722b','#c7a79a','#e5ca58']
+    color_dict['turb']               = ['#001C7F','#017517','#8C0900','#7600A1','#d62728','#9467bd','#8c564b','#e377c2']
 
     # gg_colors    = ['#E24A33','#348ABD','#988ED5','#777777','#FBC15E','#8EBA42','#FFB5B8']
     # muted_colors = ['#4878CF','#6ACC65','#D65F5F','#B47CC7','#C4AD66','#77BEDB','#4878CF']
@@ -184,14 +191,16 @@ def main(): # the main data crunching program
     df['net_radiation']   = df['radiation_LWnet'] + df['radiation_SWnet'] 
 
     l2_atts, l2_cols = define_level2_variables()
+    turb_atts, turb_cols = define_turb_variables()
 
+    l2_atts = {**l2_atts, **turb_atts}
     unit_dict = {}
     for plot_name, plot_dict in var_dict.items():
         unit_dict[plot_name] = {}
         for var_label, var_names in plot_dict.items():
             try: unit_dict[plot_name][var_label] = l2_atts[var_names[0]]['units']
-            except: unit_dict[plot_name][var_label] = l2_atts[var_names[0]+'_2m']['units'] 
-
+            except:
+                unit_dict[plot_name][var_label] = l2_atts[var_names[0]+'_2m']['units'] 
     make_plots_pretty('seaborn-whitegrid') # ... and higher resolution
 
     if make_daily_plots:
@@ -298,7 +307,7 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
     else:     fig, ax = plt.subplots(nsubs,1,figsize=(160,30*nsubs)) # more oblong for long time series
 
     all_height_names = ['temperature', 'humidity', 'speed', 'direction', 'dew point',
-                        'mixing ratio', 'vapor pressure']
+                        'mixing ratio', 'vapor pressure', 'hs', 'ustar']
     # loop over subplot list and plot all variables for each subplot
     ivar = -1; isub = -1
     for subplot_name, var_list in subplot_dict.items():

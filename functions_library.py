@@ -575,7 +575,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
 
     U = U.fillna(U.mean())
     V = V.fillna(V.mean())
-    W = W.fillna(W.mean())
+    W = W.fillna(W.mean()) - 0.3  # temporary bias correction for debugging of vertical wind speed bias, DO NOT LEAVE 
     T = T.fillna(T.mean())
     Q = Q.fillna(Q.mean())
     C = C.fillna(C.mean())
@@ -679,7 +679,6 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     F,sT = signal.welch(Ts-Tsm,10,signal.windows.hamming(nf),detrend='linear')
     F,sq = signal.welch(qs-qsm,10,signal.windows.hamming(nf),detrend='linear')
     F,sc = signal.welch(cs-csm,10,signal.windows.hamming(nf),detrend='linear')
-           
     F,swu = signal.csd(ws-wsm,us-usm,10,signal.windows.hamming(nf),detrend='linear')   # (csd = Cross Spectral Density)
     F,swv = signal.csd(ws-wsm,vs-vsm,10,signal.windows.hamming(nf),detrend='linear')
     F,swT = signal.csd(ws-wsm,Ts-Tsm,10,signal.windows.hamming(nf),detrend='linear')
@@ -699,8 +698,6 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
 
     # Also spectrum of wind speed direction is added (AG)
     F,swdir = signal.welch(wdirs-wdirsm,10,signal.windows.hamming(nf),detrend='linear')
-
-
 
     # Spectra smoothing
     nfd2 = nf/2

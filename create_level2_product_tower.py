@@ -70,10 +70,10 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-from multiprocessing.dummy import Process as P
-from multiprocessing.dummy import Queue   as Q
-nthreads = 1
-from debug_functions import drop_me as dm
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+# nthreads = 1
+# from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd

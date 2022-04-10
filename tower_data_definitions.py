@@ -4199,6 +4199,7 @@ def define_10hz_variables():
     atts_10hz['licor_dt']             = {'units' : 'boolean' }
     atts_10hz['licor_ct']             = {'units' : 'boolean' }
 
+
     atts_10hz['metek_2m_u']           .update({  'long_name'       : 'wind velocity in u',
                                                  'instrument'      : 'Metek uSonic-Cage MP sonic anemometer',
                                                  'methods'         : 'sonic anemometer; data reported at 20 Hz; TCP/IP protocol', 
