@@ -1441,7 +1441,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
 
     # Flagged if the values of different variables exceed user-defined (user-selected) thresholds
     # Angle of attack:
-    Phix = phi*180/np.pi
+    #Phix = phi*180/np.pi
 
     # If angle of attack is large (say > 15 deg) data should be filtered out or a correction to
     # compensate for the angle of attack error should be applied, e.g. see:
@@ -1526,7 +1526,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
         'nSU':nSu, 'nSV':nSv, 'nSW':nSw, 'nST':nSt, 'nSq':nSq, 'nSc': nSc, \
         'epsilon_U': epsilon_u,'epsilon_V': epsilon_v,'epsilon_W': epsilon_w,'epsilon': epsilon,'Phi_epsilon': Phi_epsilon, \
         'NT': Nt, \
-        'Phi_NT': Phi_Nt,'Phix': Phix, \
+        'Phi_NT': Phi_Nt, \
         'sigU': urs, 'sigV': vrs, 'sigW': wrs, \
         'DeltaU': Deltau,'DeltaV': Deltav,'DeltaT': DeltaT,'Deltaq': Deltaq,'Deltac': Deltac, \
         'sUs': pd.Series(sus),'sVs':pd.Series(svs),'sWs':pd.Series(sws),'sTs':pd.Series(sTs),'sqs':pd.Series(sqs),'scs':pd.Series(scs),'cWUs':pd.Series(cwus),'cWVs':pd.Series(cwvs),'cWTs':pd.Series(cwTs),'cUTs':pd.Series(cuTs),'cVTs':pd.Series(cvTs),'cWqs':pd.Series(cwqs),'cUqs':pd.Series(cuqs),'cVqs':pd.Series(cvqs),'cWcs':pd.Series(cwcs),'cUcs':pd.Series(cucs),'cVcs':pd.Series(cvcs),'cUVs':pd.Series(cuvs),'fs':pd.Series(fs)}])      

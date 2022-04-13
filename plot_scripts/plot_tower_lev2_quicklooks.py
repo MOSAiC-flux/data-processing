@@ -168,7 +168,7 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks/tower/2_level/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks/tower/2_level/windsqc/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 

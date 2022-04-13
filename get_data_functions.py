@@ -91,11 +91,13 @@ def get_flux_data(station, start_day, end_day, level,
 
             subdir   = f'/{level}_level_{level_str}_{station}/'
             if station == 'tower':
-                subdir   = f'/{level}_level_{level_str}/'
+                subdir   = f'/{level}_level_{level_str}/version3/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
-                    file_str = f'/mos{data_type}.metcity.level{level}v3.10min.{date_str}.nc'
-                    subdir = subdir+'/version3'
+                    cadence = '1'
+                    if data_type=='seb': cadence = '10'
+                    file_str = f'/mos{data_type}.metcity.level{level}v3.{cadence}min.{date_str}.nc'
+                    subdir = subdir+'/'
 
             else:
                 file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
@@ -158,11 +160,17 @@ def get_datafile(curr_file, q=None):
     if os.path.isfile(curr_file):
         xarr_ds = xr.open_dataset(curr_file)
         data_frame = xarr_ds.to_dataframe()
+
+        # for debugging the qc code and plotting
+        # data_frame.index = data_frame.index.droplevel("freq")
+        # data_frame       = data_frame[~data_frame.index.duplicated(keep='first')]
+
+        # from qc_level2 import qc_tower_winds
+        # no, no, data_frame = qc_tower_winds(data_frame)
+
     else:
         print(f"!!! requested file doesn't exist : {curr_file}")
         data_frame   = pd.DataFrame()
-
-        
 
     try:    q.put(data_frame)
     except: return data_frame

@@ -40,9 +40,9 @@ code_version = code_version()
 # import our code modules
 from tower_data_definitions import define_global_atts, define_level2_variables, define_turb_variables
 from tower_data_definitions import define_10hz_variables, define_level1_slow, define_level1_fast
-from qc_level2 import qc_tower
 from get_data_functions     import get_flux_data, get_arm_radiation_data
 from site_metadata          import metcity_metadata
+from qc_level2              import qc_tower, qc_tower_winds
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
 
@@ -63,7 +63,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 10  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 15  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 4 # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -124,7 +124,7 @@ def main(): # the main data crunching program
     emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Warren and so on
 
     # there are two command line options that effect processing, the start and end date...
-    # ... if not specified it runs over all the data. format: '20191001' AKA '%Y%m%d'
+    # ... if not specified it runs over OPall the data. format: '20191001' AKA '%Y%m%d'
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--start_time', metavar='str', help='beginning of processing period, Ymd syntax')
     parser.add_argument('-e', '--end_time', metavar='str', help='end  of processing period, Ymd syntax')
@@ -152,14 +152,12 @@ def main(): # the main data crunching program
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
     level2_dir = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
-    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
+    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/windsqc/' # where does level2 data go
     turb_dir   = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
-    turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
+    #turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
     arm_dir    = '/Projects/MOSAiC_internal/partner_data/'
     leica_dir  = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/'
- 
-    #leica_dir = data_dir+'/partner_data/AWI/polarstern/WXstation/'
-    # arm_dir = data_dir
+
     def printline(startline='',endline=''):
         print('{}--------------------------------------------------------------------------------------------{}'
               .format(startline, endline))
@@ -520,7 +518,7 @@ def main(): # the main data crunching program
 
 
     verboseprint("... creating qc flags... takes a minute and some RAM")
-    #slow_data = qc_tower(slow_data)
+    slow_data = qc_tower(slow_data)
 
     print('... done with the slow stuff, moving into parallelized daily processing') 
     verboseprint("\n We've retreived and QCed all slow data, now processing each day...\n")
@@ -1013,9 +1011,9 @@ def main(): # the main data crunching program
         fast_data = get_fast_data(today, data_dir) # dictionary of dataframes with keys above
         
         # Add empiraclly-calculated offsets to the Metek inclinometer to make it plumb 
-        
         fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
             fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + 1.75   
+
         fast_data['metek_2m']['metek_2m_incy']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
             fast_data['metek_2m']['metek_2m_incy']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + -1.25 
 
@@ -1758,6 +1756,8 @@ def main(): # the main data crunching program
         try: l2_data = pd.concat([logger_1min, stats_data], axis=1)
         except UnboundLocalError: l2_data = logger_1min # there was no fast data, rare
 
+        wr, sr, l2_data = qc_tower_winds(l2_data)
+
         # write out all the hard work that we've done
         write_level2_10hz(fast_data_10hz.copy(), licor_10hz.copy(), today)
         write_level2_netcdf(l2_data.copy(), today, "1min")
@@ -1862,7 +1862,9 @@ def get_fast_data(date, data_dir):
 
     data_atts, data_cols = define_level1_fast()
 
-    file_dir = level1_dir
+    level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
+    file_dir   = level1_dir
+
     date_str = date.strftime('%Y%m%d.%H%M%S')
     file_name = f'mosflxtowerfast.level1.{date_str}.nc'
     file_str = '{}/{}'.format(file_dir,file_name)

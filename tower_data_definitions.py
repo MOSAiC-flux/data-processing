@@ -1838,6 +1838,13 @@ def define_level2_variables():
                                                       'funding_sources'                        : radiation_funding,
                                                       'location'                               : arm_location_string,})
 
+    lev2_atts['wind_sector_qc_info_2m']               = {'long_name'                              :'QC flag integer indicating wind sector specifics, a beta'}    
+
+    lev2_atts['wind_sector_qc_info_6m']               = {'long_name'                              :'QC flag integer indicating wind sector specifics, a beta'}    
+
+    lev2_atts['wind_sector_qc_info_10m']               = {'long_name'                              :'QC flag integer indicating wind sector specifics, a beta'}    
+
+
     lev2_atts['lat_tower_qc']               = {'long_name'                              :'QC flag integer indicating data quality'}    
     lev2_atts['lon_tower_qc']               = {'long_name'                              :'QC flag integer indicating data quality'}    
     lev2_atts['heading_tower_qc']           = {'long_name'                              :'QC flag integer indicating data quality'}    
@@ -1930,6 +1937,10 @@ def define_level2_variables():
     lev2_atts['up_long_hemisp_qc']          = {'long_name'                              :'QC flag integer indicating data quality'}    
     lev2_atts['up_short_hemisp_qc']         = {'long_name'                              :'QC flag integer indicating data quality'}    
     lev2_atts['net_radiation_qc']           = {'long_name'                              :'QC flag integer indicating data quality'}    
+
+    lev2_atts['wind_sector_qc_info_2m'].update({'comment': 'See global attributes for wind qc specifics.'})
+    lev2_atts['wind_sector_qc_info_6m'].update({'comment': 'See global attributes for wind qc specifics.'})
+    lev2_atts['wind_sector_qc_info_10m'].update({'comment': 'See global attributes for wind qc specifics.'})
 
 
     lev2_atts['lat_tower_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
@@ -2032,12 +2043,12 @@ def define_turb_variables():
     # these are the installation heights recorded.
     # it is a nominal height because the surface height changed in time
     
-    licor_location ='first level on flux tower'
-    bottom_location_string ='first level on flux tower'
-    middle_location_string ='second level on flux tower'
-    top_location_string    ='third level on flux tower'
-    mast_location_string   ='top of radio mast'
-
+    licor_location         = 'first level on flux tower'
+    bottom_location_string = 'first level on flux tower'
+    middle_location_string = 'second level on flux tower'
+    top_location_string    = 'third level on flux tower'
+    mast_location_string   = 'top of radio mast'
+ 
     # platform
     tower_platform     = "10-m Met Tower"
     mast_platform      = "met Mast"
