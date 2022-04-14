@@ -163,3 +163,6 @@ Basically, this is the push for August through mid September by Cox that impleme
 - corresponding qc variables 
 - differential algorithm to despike outside of variance
 - minor bugfixes
+
+## Revision XX 4/14/22 cox
+- single rotation for tower, double for mast
