@@ -545,7 +545,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
         return turbulence_data
 
     # Reject the series of more than 50% of u- or v- or w-wind speed component are nan
-    if sum(U.isna()) > npt/2 or sum(V.isna()) > npt/2 or sum(W.isna()) > npt/2 or sum(T.isna()) > npt/2:
+    if sum(U.isna()) > np.floor((npt/2)-2) or sum(V.isna()) > np.floor((npt/2)-2) or sum(W.isna()) > np.floor((npt/2)-2) or sum(T.isna()) > np.floor((npt/2)-2):
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
         turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
@@ -557,7 +557,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     # Specical case for Licor. If the licor has inssufficient data, we still want to run the code for Hs so we will
     # set licor to -9999 so that nan-sensitive operations can complete then return it to nan at the end of the code
     licor_missing = 0 # assume licor data is suffcient
-    if sum(Q.isna()) > npt/2:
+    if sum(Q.isna()) > np.floor((npt/2)-2):
         Q[:] = -9999.
         C[:] = -9999.        
         licor_missing = 1
