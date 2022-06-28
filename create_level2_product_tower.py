@@ -56,6 +56,9 @@ from pvlib import spa
     # .. [2] I. Reda and A. Andreas, Corrigendum to Solar position algorithm for
     #    solar radiation applications. Solar Energy, vol. 81, no. 6, p. 838,
     #    2007.
+    
+from pyproj import Geod  
+global Geod  
 
 import os, inspect, argparse, time, gc
 
@@ -876,10 +879,10 @@ def main(): # the main data crunching program
 
         ship_df = ship_df.reindex(slow_data.index).interpolate()
 
-        sd['ship_distance'] = fl.distance(sd['lat_tower'],sd['lon_tower'],
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat_tower'],sd['lon_tower'],
                                                  ship_df['lat'],ship_df['lon'])*1000
 
-        sd['ship_bearing'] =  fl.calculate_initial_angle(sd['lat_tower'],
+        sd['ship_bearing'] =  fl.calculate_initial_angle_wgs84(sd['lat_tower'],
                                                                 sd['lon_tower'],
                                                                 ship_df['lat'],ship_df['lon']) 
 

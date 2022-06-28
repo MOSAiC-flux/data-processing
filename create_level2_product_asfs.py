@@ -75,6 +75,9 @@ from pvlib import spa
     # .. [2] I. Reda and A. Andreas, Corrigendum to Solar position algorithm for
     #    solar radiation applications. Solar Energy, vol. 81, no. 6, p. 838,
     #    2007.
+    
+from pyproj import Geod  
+global Geod  
 
 import os, inspect, argparse, time, sys
 
@@ -687,8 +690,8 @@ def main(): # the main data crunching program
                   
         # Get the bearing on the ship
         ship_df_now=ship_df.reindex(sd.index)
-        sd['ship_distance'] = fl.distance(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])*1000
-        sd['ship_bearing']  = fl.calculate_initial_angle(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])*1000
+        sd['ship_bearing']  = fl.calculate_initial_angle_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])
         sd['ship_distance'] = fl.despike(sd['ship_distance'],2,15,'yes')   # tiny spikes in lat/lon resulting in 
         sd['ship_bearing']  = fl.despike(sd['ship_bearing'],0.02,15,'yes') # spikes of ~5 m in distance, so despike
 

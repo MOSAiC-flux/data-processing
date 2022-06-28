@@ -102,6 +102,23 @@ def calc_humidity_ptu300(RHw, temp, press, Td):
     return Td, h, a, x, Pw, Pws, rhi
 
 
+def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
+    
+    # a little more accurate than calculate_initial_angle, which assumed a great circle. here we match gps datum wgs84
+    g = Geod(ellps='WGS84')
+    az12,az21,dist = g.inv(lonA,latA,lonB,latB)
+    compass_bearing = az12
+    return compass_bearing
+  
+def distance_wgs84(latA,lonA,latB,lonB):
+    
+    # a little more accurate than distance, which assumed a great circle. here we match gps datum wgs84
+    g = Geod(ellps='WGS84')
+    az12,az21,dist = g.inv(lonA,latA,lonB,latB)
+    d = dist
+    return d
+      
+
 def calculate_initial_angle(latA,lonA, latB, lonB):
 
     # Function provided by Martin Radenz, TROPOS
