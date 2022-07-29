@@ -1,4 +1,4 @@
-import os
+import os, time, pickle
 
 from datetime  import datetime, timedelta
 
@@ -12,6 +12,7 @@ from multiprocessing import Queue   as Q
 def get_flux_data(station, start_day, end_day, level,
                   data_dir='/Projects/MOSAiC/', data_type='slow',
                   verbose=False, nthreads=1, pickle_dir=None):
+
 
     """ Get a dataset from the MOSAiC flux project. 
 
@@ -62,7 +63,9 @@ def get_flux_data(station, start_day, end_day, level,
             for filename in files:
                 if pickled_filename in filename:
                     filename = pickle_dir+filename
-                    df = pd.read_pickle(filename)
+
+                    with open(filename, "rb") as f:
+                        df = pickle.load(f)
                     name_words = filename.rpartition('_')[-1].rpartition('.')
                     code_version = f"{name_words[0]}.{name_words[1]}"
                     was_pickled = True
@@ -91,21 +94,25 @@ def get_flux_data(station, start_day, end_day, level,
 
             subdir   = f'/{level}_level_{level_str}_{station}/'
             if station == 'tower':
-                subdir   = f'/{level}_level_{level_str}/version3/'
+                subdir   = f'/{level}_level_{level_str}/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
+                    #subdir = subdir+'version3/'
+                    subdir = subdir+'finalqc/'
                     cadence = '1'
                     if data_type=='seb': cadence = '10'
-                    file_str = f'/mos{data_type}.metcity.level{level}v3.{cadence}min.{date_str}.nc'
-                    subdir = subdir+'/'
+                    #file_str = f'/mos{data_type}.metcity.level{level}v3.{cadence}min.{date_str}.nc'
+                    file_str = f'/mos{data_type}.metcity.level{level}.4.{cadence}min.{date_str}.nc'
 
             else:
                 file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
                 if level == 2:
                     cadence = '1'
                     if data_type=='seb': cadence = '10'
-                    file_str = f'/mos{data_type}.{station}.level{level}v3.{cadence}min.{date_str}.nc'
-                    subdir = subdir+'/version3'
+                    file_str = f'/mos{data_type}.{station}.level{level}.4.{cadence}min.{date_str}.nc'
+                    subdir = subdir+'finalqc/'
+                    #subdir = subdir+'/version3'
+
 
             files_dir = data_dir+station+subdir
             curr_file = files_dir+file_str
@@ -158,15 +165,12 @@ def get_flux_data(station, start_day, end_day, level,
 def get_datafile(curr_file, q=None):
 
     if os.path.isfile(curr_file):
-        xarr_ds = xr.open_dataset(curr_file)
-        data_frame = xarr_ds.to_dataframe()
+        try: 
+            with xr.load_dataset(curr_file, engine='netcdf4') as xarr_ds: data_frame = xarr_ds.to_dataframe()
+        except Exception as e: 
+            print(curr_file, e, 'wtf')
+            return None 
 
-        # for debugging the qc code and plotting
-        # data_frame.index = data_frame.index.droplevel("freq")
-        # data_frame       = data_frame[~data_frame.index.duplicated(keep='first')]
-
-        # from qc_level2 import qc_tower_winds
-        # no, no, data_frame = qc_tower_winds(data_frame)
 
     else:
         print(f"!!! requested file doesn't exist : {curr_file}")
@@ -182,6 +186,23 @@ def get_datafile(curr_file, q=None):
     except:
         q.put("unknown") # code version threw exception
         return data_frame # can be implicit but doesn't matter, really
+
+def get_ship_df(ship_data_dir='/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/'):
+
+    ship_df = pd.read_csv(ship_data_dir+'Leica_Sep20_2019_Oct01_2020_clean.dat',
+                          sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
+
+    ship_df.columns = ['u1','lon_ew','latd','latm','lond','lonm','u2','u3','u4','u5','u6','u7']
+    ship_df['lat']=ship_df['latd']+ship_df['latm']/60
+    ship_df['lon']=ship_df['lond']+ship_df['lonm']/60
+
+    # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data
+    ship_df['lat'].mask(ship_df['lat'] == 9+9/60, inplace=True) 
+    ship_df['lon'].mask(ship_df['lon'] == 9+9/60, inplace=True)  
+
+    ship_df['lon'] = ship_df['lon']*ship_df['lon_ew'] # deg west will be negative now
+
+    return ship_df
 
 
 def get_arm_radiation_data(start_day, end_day, data_dir='/Projects/MOSAiC/',
@@ -229,7 +250,8 @@ def get_arm_radiation_data(start_day, end_day, data_dir='/Projects/MOSAiC/',
             for filename in files:
                 if pickled_filename in filename:
                     filename = pickle_dir+ filename
-                    df = pd.read_pickle(filename)
+                    with open(filename, "rb") as f:
+                        df = pickle.load(f)
                     name_words = filename.rpartition('_')[-1].rpartition('.')
                     code_version = f"{name_words[0]}.{name_words[1]}"
                     was_pickled = True

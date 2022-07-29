@@ -28,13 +28,18 @@ def code_version():
 # file_type must be "slow", "fast", "level2", or "turb"
 def define_global_atts(station_name, file_type):
     cv = code_version()
+
+    if station_name == 'asfs30' : doi = 'https://doi.org/10.18739/A20C4SM1J'
+    if station_name == 'asfs40' : doi = 'https://doi.org/10.18739/A2CJ87M7G'
+    if station_name == 'asfs50' : doi = 'https://doi.org/10.18739/A2445HD46'
+
     # global attributes to be written into the netcdf output file
     global_atts = {
         'date_created'     :'{}'.format(time.ctime(time.time())),
         'title'            :'MOSAiC flux group data product: ', # blank variables are specific to site characterization 
         'contact'          :'Matthew Shupe, University of Colorado, matthew.shupe@colorado.edu',
         'institution'      :'CIRES, University of Colorado and NOAA Physical Sciences Laboratory',
-        'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
+        'file_creator'     :'Christopher J. Cox; Michael R. Gallagher',
         'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
         'project'          :'Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
         'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
@@ -45,6 +50,7 @@ def define_global_atts(station_name, file_type):
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
         'history'          :'based on raw instrument data files',
         'version'          : cv[0]+', '+cv[1], 
+        'doi'              : doi,
     }
 
     if file_type == "slow":
@@ -942,18 +948,15 @@ def define_level2_variables():
     lev2_atts['wspd_w_mean']             = {'units' : 'm/s'}
     lev2_atts['wspd_vec_mean']           = {'units' : 'm/s'}
     lev2_atts['wdir_vec_mean']           = {'units' : 'degrees'}
-    lev2_atts['temp_acoustic']           = {'units' : 'deg C'}
     lev2_atts['wspd_u_std']              = {'units' : 'm/s'}
     lev2_atts['wspd_v_std']              = {'units' : 'm/s'}
     lev2_atts['wspd_w_std']              = {'units' : 'm/s'}
-    lev2_atts['temp_acoustic_std']       = {'units' : 'deg C'}
     lev2_atts['h2o_licor']               = {'units' : 'g/m3'}
     lev2_atts['co2_licor']               = {'units' : 'mg/m3'}
     lev2_atts['down_long_hemisp']        = {'units' : 'W/m2'}
     lev2_atts['down_short_hemisp']       = {'units' : 'W/m2'}
     lev2_atts['up_long_hemisp']          = {'units' : 'W/m2'}
     lev2_atts['up_short_hemisp']         = {'units' : 'W/m2'}
-    lev2_atts['net_radiation']           = {'units' : 'W/m2'}
 
     # add everything else to the variable NetCDF attributes
     # #########################################################################################################
@@ -1139,12 +1142,6 @@ def define_level2_variables():
                                                 'height'        : sonic_height,
                                                 'location'      : inst_mast_location_string,})
     
-    lev2_atts['temp_acoustic']        .update({ 'long_name'     : 'acoustic temperature',
-                                                'cf_name'       : '',
-                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                'height'        : sonic_height,
-                                                'location'      : inst_mast_location_string,})
         
     lev2_atts['wspd_u_std']           .update({ 'long_name'     : 'u metek obs standard deviation',
                                                 'cf_name'       : '',
@@ -1167,13 +1164,6 @@ def define_level2_variables():
                                                 'height'        : sonic_height,
                                                 'location'      : inst_mast_location_string,})   
     
-    lev2_atts['temp_acoustic_std']    .update({ 'long_name'     : 'acoustic temperature metek obs standard deviation',
-                                                'cf_name'       : '',
-                                                'instrument'    : 'Metek uSonic-Cage MP sonic anemometer',
-                                                'methods'       : 'this is an acoustic temperature, not a thermodynamic temperature',
-                                                'height'        : sonic_height,
-                                                'location'      : inst_mast_location_string,})   
-        
     lev2_atts['h2o_licor']            .update({ 'long_name'     : 'Licor water vapor mass density',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Licor 7500-DS',
@@ -1215,85 +1205,87 @@ def define_level2_variables():
                                                 'methods'       : 'hemispheric shortwave radiation',
                                                 'height'        : boom_height,
                                                 'location'      : inst_boom_location_string,})
-
-    lev2_atts['net_radiation']        .update({ 'long_name'     : 'cumulative surface radiative flux',
-                                                'cf_name'       : 'surface_net_radiative_flux',
-                                                'instrument'    : 'SR30 and IR20 radiometers',
-                                                'methods'       : 'combined hemispheric radiation measurements',
-                                                'height'        : boom_height,
-                                                'location'      : inst_boom_location_string,})
-
-    lev2_atts['lat_qc']                     = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['lon_qc']                     = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['heading_qc']                 = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['zenith_true_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['zenith_apparent_qc']         = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['azimuth_qc']                 = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['ship_distance_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['ship_bearing_qc']            = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['sr50_dist_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['snow_depth_qc']              = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['atmos_pressure_qc']          = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['temp_qc']                    = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['rh_qc']                      = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['dew_point_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['mixing_ratio_qc']            = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['vapor_pressure_qc']          = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['rhi_qc']                     = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['brightness_temp_surface_qc'] = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['skin_temp_surface_qc']       = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['subsurface_heat_flux_A_qc']  = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['subsurface_heat_flux_B_qc']  = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['wspd_u_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['wspd_v_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['wspd_w_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['wspd_vec_mean_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['wdir_vec_mean_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['temp_acoustic_qc']           = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['h2o_licor_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['co2_licor_qc']               = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['down_long_hemisp_qc']        = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['down_short_hemisp_qc']       = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['up_long_hemisp_qc']          = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['up_short_hemisp_qc']         = {'long_name' :'QC flag integer indicating data quality'}    
-    lev2_atts['net_radiation_qc']           = {'long_name' :'QC flag integer indicating data quality'}                  
-
-    lev2_atts['lat_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['lon_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['heading_qc']                 .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['zenith_true_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['zenith_apparent_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['azimuth_qc']                 .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['ship_distance_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['ship_bearing_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['sr50_dist_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['snow_depth_qc']              .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['atmos_pressure_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['temp_qc']                    .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['rh_qc']                      .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['dew_point_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['mixing_ratio_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['vapor_pressure_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['rhi_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['brightness_temp_surface_qc'] .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['skin_temp_surface_qc']       .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['subsurface_heat_flux_A_qc']  .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['subsurface_heat_flux_B_qc']  .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['wspd_u_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['wspd_v_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['wspd_w_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['wspd_vec_mean_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['wdir_vec_mean_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['temp_acoustic_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['h2o_licor_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['co2_licor_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['down_long_hemisp_qc']        .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['down_short_hemisp_qc']       .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['up_long_hemisp_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['up_short_hemisp_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
-    lev2_atts['net_radiation_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
                                             
     return lev2_atts, list(lev2_atts.keys()).copy()
+
+def define_qc_variables(include_turb=False):
+
+    qc_atts = OrderedDict()
+
+    qc_atts['lat_qc']                     = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['lon_qc']                     = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['heading_qc']                 = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['zenith_true_qc']             = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['zenith_apparent_qc']         = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['azimuth_qc']                 = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['ship_distance_qc']           = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['ship_bearing_qc']            = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['sr50_dist_qc']               = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['snow_depth_qc']              = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['atmos_pressure_qc']          = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['temp_qc']                    = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['rh_qc']                      = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['dew_point_qc']               = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['mixing_ratio_qc']            = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['vapor_pressure_qc']          = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['rhi_qc']                     = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['brightness_temp_surface_qc'] = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['skin_temp_surface_qc']       = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['subsurface_heat_flux_A_qc']  = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['subsurface_heat_flux_B_qc']  = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['wspd_u_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['wspd_v_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['wspd_w_mean_qc']             = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['wspd_vec_mean_qc']           = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['wdir_vec_mean_qc']           = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['h2o_licor_qc']               = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['co2_licor_qc']               = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['down_long_hemisp_qc']        = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['down_short_hemisp_qc']       = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['up_long_hemisp_qc']          = {'long_name' :'QC flag integer indicating data quality'}
+    qc_atts['up_short_hemisp_qc']         = {'long_name' :'QC flag integer indicating data quality'}
+
+    qc_atts['wind_sector_qc_info']     = {'long_name' : 'QC flag integer indicating wind sector specifics'}    
+    qc_atts['wind_sector_qc_info'].update({'comment': 'See global attributes for wind qc specifics.'})
+
+    qc_atts['lat_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['lon_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['heading_qc']                 .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['zenith_true_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['zenith_apparent_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['azimuth_qc']                 .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['ship_distance_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['ship_bearing_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['sr50_dist_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['snow_depth_qc']              .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['atmos_pressure_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['temp_qc']                    .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['rh_qc']                      .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['dew_point_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['mixing_ratio_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['vapor_pressure_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['rhi_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['brightness_temp_surface_qc'] .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['skin_temp_surface_qc']       .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['subsurface_heat_flux_A_qc']  .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['subsurface_heat_flux_B_qc']  .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['wspd_u_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['wspd_v_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['wspd_w_mean_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['wspd_vec_mean_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['wdir_vec_mean_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['h2o_licor_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['co2_licor_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['down_long_hemisp_qc']        .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['down_short_hemisp_qc']       .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['up_long_hemisp_qc']          .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['up_short_hemisp_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
+
+    if include_turb:
+        qc_atts['turbulence_qc'] = {'long_name' : 'QC flag integer indicating data quality'}    
+        qc_atts['turbulence_qc'].update({'comment': 'See global attributes for qc flag definitions.'})
+
+    return qc_atts, list(qc_atts.keys()).copy() 
 
 def define_turb_variables():
     

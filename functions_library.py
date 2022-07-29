@@ -25,8 +25,13 @@ import pandas as pd
 import numpy  as np
 import scipy  as sp
 
+
 from datetime import datetime, timedelta
 from scipy    import signal
+
+#global Geod
+
+global nan; nan = np.NaN
 
 # despiker
 def despike(spikey_panda, thresh, filterlen, medfill):
@@ -100,6 +105,27 @@ def calc_humidity_ptu300(RHw, temp, press, Td):
     rhi = 100*(RHw*0.01*Pws)/Psi
 
     return Td, h, a, x, Pw, Pws, rhi
+
+def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
+    
+    # a little more accurate than calculate_initial_angle, which assumed a great circle. here we match gps datum wgs84
+    from pyproj import Geod  
+
+    g = Geod(ellps='WGS84')
+    az12,az21,dist = g.inv(lonA,latA,lonB,latB)
+    compass_bearing = az12
+    return compass_bearing
+  
+def distance_wgs84(latA,lonA,latB,lonB):
+    
+    # a little more accurate than distance, which assumed a great circle. here we match gps datum wgs84
+    from pyproj import Geod  
+
+    g = Geod(ellps='WGS84')
+    az12,az21,dist = g.inv(lonA,latA,lonB,latB)
+    d = dist
+    return d
+      
 
 
 def calculate_initial_angle(latA,lonA, latB, lonB):
@@ -270,12 +296,12 @@ def take_average(array_like_thing, **kwargs):
     UFuncTypeError = np.core._exceptions.UFuncTypeError
     perc_allowed_missing = kwargs.get('perc_allowed_missing')
     if perc_allowed_missing is None:
-        perc_allowed_missing = 100.0
+        perc_allowed_missing = 50.0
     
     if array_like_thing.size == 0:
-        return nan
+        return np.nan
     perc_miss = np.round((np.count_nonzero(np.isnan(array_like_thing))/float(array_like_thing.size))*100.0, decimals=4)
-    if perc_allowed_missing < perc_miss:
+    if perc_miss > perc_allowed_missing:
         return np.nan
     else:
         try: mean_val = np.nanmean(array_like_thing)
@@ -283,6 +309,27 @@ def take_average(array_like_thing, **kwargs):
             mean_val = np.nan #  this exception should only happen when this function is used on a pandas array
                               #  that contains dates or other things where averages are hard to define
         return mean_val
+
+def take_vector_average(array_like_thing, **kwargs):
+
+    # this is for exceptions where you pass this function dates and such
+    UFuncTypeError = np.core._exceptions.UFuncTypeError
+    perc_allowed_missing = kwargs.get('perc_allowed_missing')
+    if perc_allowed_missing is None:
+        perc_allowed_missing = 50.0
+    
+    if array_like_thing.size == 0:
+        return np.nan
+    perc_miss = np.round((np.count_nonzero(np.isnan(array_like_thing))/float(array_like_thing.size))*100.0, decimals=4)
+    if perc_miss > perc_allowed_missing:
+        return np.nan
+    else:
+        try: mean_val = np.nanmean(array_like_thing)
+        except UFuncTypeError as e: 
+            mean_val = np.nan #  this exception should only happen when this function is used on a pandas array
+                              #  that contains dates or other things where averages are hard to define
+        return mean_val
+
 
 # functions to make grepping lines easier, differentiating between normal output, warnings, and fatal errors
 def warn(string):
@@ -400,7 +447,7 @@ def despik(uraw):
 
 # maybe this goes in a different file?
 def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, mr, verbose=False):
-   
+
     # define the verbose print option
     v_print      = print if verbose else lambda *a, **k: None
     verboseprint = v_print
@@ -535,13 +582,16 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     
     # Sanity check: Reject series if it is too short, less than 2^13 = 8192 points = 13.6 min @ 10 Hz
     if npt < 8192:
-        verboseprint('  No valid data for sonic at height (np<8192) '+np.str(z_level_n))
+        if npt!=7201: verboseprint(f'!!! no valid data on {metek.index[0]} for sonic at'+
+                                   f'height (np=={npt}<8192) {np.str(z_level_n)}')
+        # 7201 is the number of points you get if you cut a day by the previous hour like us, so it's not alarming
+
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
         turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
         #print(turbulence_data)
         turbulence_data.columns = turbulence_data.keys
-        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])  
+        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: np.nan}])  
         return turbulence_data
 
     # Reject the series of more than 50% of u- or v- or w-wind speed component are nan
@@ -604,10 +654,11 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     # 1994, Sect. 6.6).
     #
     # As of 14 Mar 2022 we swtiched to a single azimuthal rotation to manage the w bias in the uSonic
-    #ss = (um**2+vm**2)**0.5
+    #
     # working in radians in this block
     thet     = np.arctan2(vm,um)
     if z_level_n > 15: # it must be the mast so double rotate
+        ss = (um**2+vm**2)**0.5
         phi      = np.arctan2(wm,ss)
         rot      = np.array([[1.,1.,1.],[1.,1.,1.],[1.,1.,1.]])
         rot[0,0] = np.cos(phi)*np.cos(thet)
@@ -2016,3 +2067,25 @@ def interpolate_nans_vectorized(arr):
     except ValueError:
         arr = arr*nan
     return arr
+
+# takes in a pandas series of qc flags and returns the 10 minute "average" of those
+# flags, according to this defined logic
+def average_mosaic_flags(qc_series, fstr):
+
+    # Implement/fix the data averaging and qc flags into 10-min space (i.e., no averaging of bad data).  If
+    # >= 5 good then average good + flag good; If >= 5 caution or good then average those + flag caution; If
+    # >= 5 engineering then average those + flag engineering; Otherwise, average all + flag bad
+    # 0 = good, 1 = caution, 2 = bad, 3 = engineering
+
+    def take_qc_average(data_series):
+        tot_good             = (data_series == 0).sum()
+        tot_caution_and_good = tot_good + (data_series == 1).sum()
+        tot_engineering      = (data_series == 3).sum()
+
+        #print(f"{tot_good} -- {tot_caution_and_good} -- {tot_engineering}")
+        if tot_good/len(data_series) >= 0.5:             return 0 # if more than half are good, we're good
+        if tot_caution_and_good/len(data_series) >= 0.5: return 1 # if more than half are caution&&good, we're caution
+        if tot_engineering/len(data_series) >= 0.5:      return 3 # if more than half are engineering, we're engineers
+        return 0                                                  # any other combination is bad bad not good
+
+    return qc_series.resample(fstr, label='left').apply(take_qc_average)

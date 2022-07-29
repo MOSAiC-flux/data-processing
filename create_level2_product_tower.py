@@ -38,11 +38,11 @@ code_version = code_version()
 # ######################################################################################################
 
 # import our code modules
-from tower_data_definitions import define_global_atts, define_level2_variables, define_turb_variables
+from tower_data_definitions import define_global_atts, define_level2_variables, define_turb_variables, define_qc_variables
 from tower_data_definitions import define_10hz_variables, define_level1_slow, define_level1_fast
-from get_data_functions     import get_flux_data, get_arm_radiation_data
+from get_data_functions     import get_flux_data, get_arm_radiation_data, get_ship_df
 from site_metadata          import metcity_metadata
-from qc_level2              import qc_tower, qc_tower_winds
+from qc_level2              import qc_tower, qc_tower_winds, qc_tower_turb_data
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
 
@@ -63,17 +63,19 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 15  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 4 # laptops don't tend to have 64 cores
+    nthreads = 8  # the twins have 64 cores, it won't hurt if we use <20
+else: nthreads = 8  # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
-# nthreads = 1
-# from debug_functions import drop_me as dm
+we_want_to_debug = False
+if we_want_to_debug:
+    from multiprocessing.dummy import Process as P
+    from multiprocessing.dummy import Queue   as Q
+    nthreads = 1
+    from debug_functions import drop_me as dm
  
 import numpy  as np
 import pandas as pd
@@ -152,7 +154,7 @@ def main(): # the main data crunching program
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
     level2_dir = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
-    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/windsqc/' # where does level2 data go
+    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/newnewqc/' # where does level2 data go
     turb_dir   = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
     #turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
     arm_dir    = '/Projects/MOSAiC_internal/partner_data/'
@@ -482,6 +484,7 @@ def main(): # the main data crunching program
     slow_data = slow_data.sort_index(); 
     slow_inds = slow_data.index
 
+
     # now we have to match the ARM timestamps up to the flux timestamps, the naive
     # pd.concat([slow_data, arm_data], axis=1) is so absurdly slow that we wrote a
     # custom function that does this in a more clever way
@@ -497,6 +500,8 @@ def main(): # the main data crunching program
         val_arr = np.array([nan]*len(slow_inds))
         val_arr[slow_map] = arm_data[rv].values[arm_map]
         slow_data[rv] = val_arr
+        slow_data[rv] = slow_data[rv].interpolate(limit=59) # fill in the NaNs that should not be but leave
+                                                            # the ones that should be... one mins worth
 
     print('... finished with ARM data, processing mast heading for full time series')
 
@@ -519,6 +524,8 @@ def main(): # the main data crunching program
 
     verboseprint("... creating qc flags... takes a minute and some RAM")
     slow_data = qc_tower(slow_data)
+
+    ship_df = get_ship_df(leica_dir).reindex(slow_data.index).interpolate() # ship location used in daily calcs
 
     print('... done with the slow stuff, moving into parallelized daily processing') 
     verboseprint("\n We've retreived and QCed all slow data, now processing each day...\n")
@@ -804,6 +811,11 @@ def main(): # the main data crunching program
         sd['snow_depth'] = idt['init_dist'] + (idt['init_depth']-sd['sr50_dist']*100)
 
         # Flux Plate QC
+
+        # Fix the flux plates that were insalled upside down, why is this here... it doesn't have to be... vestigial
+        sd['fp_A_Wm2'] = sd['fp_A_Wm2'] * -1
+        sd['fp_B_Wm2'] = sd['fp_B_Wm2'] * -1
+
         sd['fp_A_Wm2'].mask( (sd['fp_A_Wm2']<flxp[1]) & (abs(sd['fp_A_Wm2'])>flxp[1]) , inplace=True) # ppl
         sd['fp_B_Wm2'].mask( (sd['fp_B_Wm2']<flxp[1]) & (abs(sd['fp_B_Wm2'])>flxp[1]) , inplace=True) # ppl
         sd['fp_A_Wm2'].loc[:fpA_bury_date] = nan # data is garbage before being buried
@@ -858,35 +870,16 @@ def main(): # the main data crunching program
             sd['heading_mast'] .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
 
 
-
         # Get the bearing on the ship... load the ship track and reindex to slow_data, calculate distance
         # [m] and bearing [deg from tower rel to true north, as wind direction]
-        ship_df = pd.read_csv(leica_dir+'Leica_Sep20_2019_Oct01_2020_clean.dat',
-                              sep='\s+',parse_dates={'date': [0,1]}).set_index('date')          
-
-        ship_df.columns = ['u1','lon_ew','latd','latm','lond','lonm','u2','u3','u4','u5','u6','u7']
-        ship_df['lat']=ship_df['latd']+ship_df['latm']/60
-        ship_df['lon']=ship_df['lond']+ship_df['lonm']/60
-
-        # 9 is a missing value in the original file. when combined from above line 9+9/60=9.15 is the new missing data
-        ship_df['lat'].mask(ship_df['lat'] == 9+9/60, inplace=True) 
-        ship_df['lon'].mask(ship_df['lon'] == 9+9/60, inplace=True)  
-
-        ship_df['lon'] = ship_df['lon']*ship_df['lon_ew'] # deg west will be negative now
-
-        ship_df = ship_df.reindex(slow_data.index).interpolate()
-
-        sd['ship_distance'] = fl.distance(sd['lat_tower'],sd['lon_tower'],
-                                                 ship_df['lat'],ship_df['lon'])*1000
-
-        sd['ship_bearing'] =  fl.calculate_initial_angle(sd['lat_tower'],
-                                                                sd['lon_tower'],
-                                                                ship_df['lat'],ship_df['lon']) 
+        sdf = ship_df[today:tomorrow]
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat_tower'],sd['lon_tower'], sdf['lat'],sdf['lon'])*1000
+        sd['ship_bearing']  = fl.calculate_initial_angle_wgs84(sd['lat_tower'], sd['lon_tower'], sdf['lat'], sdf['lon']) 
 
         sd['ship_distance'].mask( (sd['ship_distance']>700), inplace=True)
 
         # something breaks in the trig model briefly. its weird. i'll just screen it out
-        sd['ship_bearing'].loc[datetime(2020,3,9,0,0,0):datetime(2020,3,10,0,0,0)].mask( (sd['ship_bearing']>326), inplace=True) 
+        sd['ship_bearing'] .loc[datetime(2020,3,9,0,0,0):datetime(2020,3,10,0,0,0)].mask( (sd['ship_bearing']>326), inplace=True) 
         sd['ship_distance'].loc[datetime(2020,3,9,0,0,0):datetime(2020,3,10,0,0,0)].mask( (sd['ship_distance']>370), inplace=True) 
 
         # Ephemeris, set it up
@@ -936,9 +929,6 @@ def main(): # the main data crunching program
         # surface skin temperature Persson et al. (2002) https://www.doi.org/10.1029/2000JC000705
         slow_data['skin_temp_surface'] = (((slow_data['up_long_hemisp']-(1-emis)*slow_data['down_long_hemisp'])/(emis*sb))**0.25)-K_offset
 
-        # verboseprint("... manual data QC")
-        slow_data = qc_tower(slow_data)
-
         # rename columns to match expected level2 names from data_definitions
         # there's probably a more clever way to do this
         slow_data.rename(inplace=True, columns =\
@@ -986,12 +976,12 @@ def main(): # the main data crunching program
         # get the right instrument heights for this day... goes in the day loop
         height_list = ['2m', '6m', '10m']
         sonic_z = []; Tvais_z = []; RHvais_z = []
+
         for ih, h in enumerate(height_list):
             sonic_z.append  (mc_site_metadata.get_instr_metadata('sonic_'+h,     'height', today, True)[0])
             Tvais_z.append  (mc_site_metadata.get_instr_metadata('sensor_T_'+h,  'height', today, True)[0])
             RHvais_z.append (mc_site_metadata.get_instr_metadata('sensor_Rh_'+h, 'height', today, True)[0]) 
 
-        GPS_z    = mc_site_metadata.get_instr_metadata('GPS',         'height', today, True)[0]
         Pvais_z  = mc_site_metadata.get_instr_metadata('sensor_P_2m', 'height', today, True)[0]
         SR50_z   = mc_site_metadata.get_instr_metadata('SR50', 'height', today, True)[0]
 
@@ -1010,6 +1000,8 @@ def main(): # the main data crunching program
         metek_inst_keys = ['metek_2m', 'metek_6m', 'metek_10m', 'metek_mast']
         fast_data = get_fast_data(today, data_dir) # dictionary of dataframes with keys above
         
+        # #######################################################################################################
+
         # Add empiraclly-calculated offsets to the Metek inclinometer to make it plumb 
         fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
             fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + 1.75   
@@ -1292,8 +1284,11 @@ def main(): # the main data crunching program
                         th2 = twr_manual_hdg_data[inst]['heading_tower'].reindex(index=th.index,method='pad').interpolate()
                         th = th.fillna(value=th2)
                         logger_today['heading_tower'].fillna(value=291.3) # the tower frame of reference will be persisted back from when it was first raised
-                    
-                    twr_manual_hdg_data[inst] 
+
+                    if (datetime(2020,6,27,9,20) < today < datetime(2020,7,29,8,30)) and inst == 'metek_6m': 
+                        th = th - 7.4 # adjust tower heading for only six meter metek on leg 4
+                        th = np.mod(th, 360) # ? necessary? or tilt_rotation() take care of this?
+
                     ct_u, ct_v, ct_w = fl.tilt_rotation(fast_data_10hz[inst] [inst+'_incy'],
                                                         fast_data_10hz[inst] [inst+'_incx'],
                                                         th, 
@@ -1472,13 +1467,28 @@ def main(): # the main data crunching program
 
                 # a DatetimeIndex based on integ_time_step, the integration window
                 # for the calculations that is defined at the top  of the code
+
+                turb_winds = {}
+
                 for i_inst, inst in enumerate(metek_inst_keys):
                     verboseprint("... processing turbulence data for {}".format(inst))
+
+                    # recalculate wind vectors to be saved with turbulence data  later
+                    height = inst_dict[inst]
+                    u_min  = fast_data_10hz[inst] [inst+'_u'].resample(flux_freq,label='left').apply(fl.take_average)
+                    v_min  = fast_data_10hz[inst] [inst+'_v'].resample(flux_freq,label='left').apply(fl.take_average)
+                    ws     = np.sqrt(u_min**2+v_min**2)
+                    wd     = np.mod((np.arctan2(-u_min,-v_min)*180/np.pi),360)
+
+                    turb_winds[inst] = pd.DataFrame()
+                    turb_winds[inst]['wspd_vec_mean_'+height] = ws
+                    turb_winds[inst]['wdir_vec_mean_'+height] = wd
+
                     for time_i in range(0,len(flux_time_today)-1): # flux_time_today = 
                         # Get the index, ind, of the metek frame that pertains to the present calculation 
-                       # inds = (fast_data_10hz[inst].index >= flux_time_today[time_i]) \
-                       #        & \
-                       #        (fast_data_10hz[inst].index < flux_time_today[time_i+1]) 
+                        # indswrite = (fast_data_10hz[inst].index >= flux_time_today[time_i]) \
+                        #        & \
+                        #        (fast_data_10hz[inst].index < flux_time_today[time_i+1]) 
 
                         # Get the index, ind, of the metek frame that pertains to the present calculation A
                         # little tricky. We need to make sure we give it enough data to encompass the nearest
@@ -1543,10 +1553,12 @@ def main(): # the main data crunching program
                         if time_i == 0: inst_data = data
                         else: inst_data = inst_data.append(data)
 
-                    # now add the indexer datetime doohicky
+
+                        # now add the indexer datetime doohicky
+
                     verboseprint("... concatting turbulence calculations to one dataframe")
                     inst_data.index = flux_time_today[0:-1]
-                    turb_data = pd.concat( [turb_data, inst_data], axis=1) # concat columns alongside each other 
+                    turb_data = pd.concat( [turb_data, inst_data, turb_winds[inst]], axis=1) # concat columns alongside each other 
 
                     # ugh. there are 2 dimensions to the spectral variables, but the spectra are
                     # smoothed. The smoothing routine is a bit strange in that is is dependent on the length
@@ -1691,7 +1703,8 @@ def main(): # the main data crunching program
                 bulk=bulk.reindex(index=bulk_input.index)
 
                 for ii in range(len(bulk)):
-                    tmp = [bulk_input['u'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
+                    tmp = [bulk_input['u'][ii],bulk_input['ts'][ii],bulk_input['t'][ii],bulk_input['Q'][ii],
+                           bulk_input['zi'][ii],bulk_input['P'][ii],bulk_input['zu'][ii],bulk_input['zt'][ii],bulk_input['zq'][ii]] 
                     if not any(np.isnan(tmp)):
                         bulkout = fl.cor_ice_A10(tmp)
                         for hh in range(len(bulkout)):
@@ -1744,9 +1757,6 @@ def main(): # the main data crunching program
 
                 # add this to the EC data
                 turb_data = pd.concat( [turb_data, bulk], axis=1) # concat columns alongside each other without adding indexes
-                verboseprint('... writing {} turbulent fluxes to netcdf files: {}'.format(str(integ_time_step[win_len])+"min",today))
-
-                #write_turb_netcdf(turb_data.copy(), today, sonic_z, mast_sonic_height, licor_z, win_len)
                 turb_data_dict[win_len] = turb_data.copy()
                 
         verboseprint('... writing to level2 netcdf files and calcuating averages for day: {}'.format(today))
@@ -1756,13 +1766,65 @@ def main(): # the main data crunching program
         try: l2_data = pd.concat([logger_1min, stats_data], axis=1)
         except UnboundLocalError: l2_data = logger_1min # there was no fast data, rare
 
-        wr, sr, l2_data = qc_tower_winds(l2_data)
+        # run qc on wind sector for 1 minute data 
+        onemin_data = qc_tower_winds(l2_data.copy(), ship_df[today:tomorrow]) # ship_df necessary for calculating ship->mast vector
 
-        # write out all the hard work that we've done
+        # write out all the hard work that we've done at native resolution
         write_level2_10hz(fast_data_10hz.copy(), licor_10hz.copy(), today)
-        write_level2_netcdf(l2_data.copy(), today, "1min")
+        write_level2_netcdf(onemin_data, today, "1min")
+
+        # now resample variables at specified turbulence integration timestep, currently only 10 minutes
         for win_len in range(0,len(integ_time_step)):
-            write_level2_netcdf(l2_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data_dict[win_len].copy())
+
+            data_list = []
+
+            l2_atts, l2_cols = define_level2_variables(); qc_atts, qc_cols = define_qc_variables(include_turb=True)
+            l2_cols = l2_cols+qc_cols
+
+            vector_vars = ['wspd_vec_mean', 'wdir_vec_mean']
+
+            for ivar, var_name in enumerate(l2_cols):
+                fstr = f'{integ_time_step[win_len]}T' # pandas notation for timestep
+                
+                try: 
+                    if var_name.split('_')[-1] == 'qc':
+                        data_list.append(fl.average_mosaic_flags(l2_data[var_name], fstr))
+                    elif any(substr in var_name for substr in vector_vars):
+                         data_list.append(turb_data[var_name]) #
+                    else:
+                        data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average))
+                except Exception as e: 
+                    # this is a little silly, data didn't exist for var fill with nans
+                    print(f"... wait what/why/huh??? {var_name} {e}")
+                    data_list.append(pd.Series([np.nan]*len(l2_data), index=l2_data.index, name=var_name)\
+                                     .resample(fstr, label='left').apply(fl.take_average))
+
+            avged_data = pd.concat(data_list, axis=1)
+            avged_data = avged_data[today:tomorrow]
+
+            # run qc on wind sector for 10 minute data 
+            try: 
+                avged_data = qc_tower_winds(avged_data, ship_df[today:tomorrow].resample(fstr,label='left').apply(fl.take_average))
+                avged_data, turb_data = qc_tower_turb_data(avged_data, turb_data_dict[win_len].copy())
+
+                # for debugging the write function.... ugh
+                # import pickle
+                # seb_args = [avged_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data[today:tomorrow]]
+                # pkl_file = open(f'./{today.strftime("%Y%m%d")}_seb_data_write.pkl', 'wb')
+                # pickle.dump(seb_args, pkl_file)
+                # pkl_file.close()
+                
+                write_level2_netcdf(avged_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data[today:tomorrow])
+
+            except: 
+                print(f"!!! failed to qc and write turbulence data for {win_len} on {today} !!!")
+                print("==========================================================================================")
+                print("Python traceback: \n\n")
+                import traceback
+                import sys
+                print(traceback.format_exc())
+                print("==========================================================================================")
+                #print(sys.exc_info()[2])
 
         print(f"... finally finished with day {today_str}, returning worker process to parent")
         day_q.put(True); return
@@ -1819,7 +1881,7 @@ def compare_indexes(inds_sparse, inds_lush, guess_jump = 50):
         except Exception:
             inds_not_present.append(sparse_date)
 
-    print(f"... aligned 100% of ARM/flux \n", end='\r')
+    print(f"... aligned 100.000% of ARM/flux \n", end='\r')
 
     #print(f"!!!!!! there were these indexes weirdly skipped {n_missed_but_not_really} !!!!!!!!!")
     return inds_not_present, map_between
@@ -1876,6 +1938,7 @@ def get_fast_data(date, data_dir):
     # sometimes xarray throws exceptions on first try, had no time to debug it yet:
     try:
         xarr_ds = xr.open_dataset(file_str)
+
     except Exception as e:
         print("!!! xarray exception: {}".format(e))
         print("!!! file: {}".format(file_str))
@@ -1884,7 +1947,7 @@ def get_fast_data(date, data_dir):
         nan_frame = pd.DataFrame(nan_row, columns=data_cols, index=pd.DatetimeIndex([date]))
         return nan_frame
 
-    verboseprint("... converting level1 fast data to dataframe, takes a second")
+    print("... converting level1 fast data to dataframe, takes a second")
     
     # we can't call to_dataframe on full dataset, numpy doesn't like creating insanely large arrays:
     # https://github.com/pydata/xarray/issues/838
@@ -1897,7 +1960,7 @@ def get_fast_data(date, data_dir):
         except ValueError: df_dict[inst_name] = pd.DataFrame()
         if search_str == '2m': n_entries = len(df_dict[inst_name].index)
             
-    verboseprint("... {}/1728000 fast entries on {}, representing {}% data coverage"
+    print("... {}/1728000 fast entries on {}, representing {}% data coverage"
                  .format(n_entries, date, round((n_entries/1728000)*100.,2)))
 
     del tmp_ds, xarr_ds
@@ -1905,7 +1968,7 @@ def get_fast_data(date, data_dir):
     return df_dict
 
 #@profile
-def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
+def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
 
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
@@ -1915,94 +1978,98 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
     short_name = "met"
     if timestep != "1min":
         short_name = 'seb'
-    out_dir  = level2_dir
-    file_str = '/mos{}.metcity.level2v2.{}.{}.nc'.format(short_name, timestep,date.strftime('%Y%m%d.%H%M%S'))
 
-    lev2_name  = '{}/{}'.format(out_dir, file_str)
+
+    # THIS ALL NEEDS TO BE DELETED!!!!!!!!!!!!!!!!!!!!
+    # level2_dir  =  './'
+    # epoch_time        = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
+    # def_fill_flt = -9999.0
+    # def_fill_int = -9999
+    # nan = np.NaN
+   
+    out_dir  =  level2_dir
+    file_str = 'mos{}.metcity.level2.4.{}.{}.nc'.format(short_name, timestep,date.strftime('%Y%m%d.%H%M%S'))
+
+    lev2_name  = '{}{}'.format(out_dir, file_str)
 
     global_atts = define_global_atts("level2") # global atts for level 1 and level 2
-    netcdf_lev2 = Dataset(lev2_name, 'w', zlib=True)
+    netcdf_lev2 = Dataset(lev2_name, 'w', zlib=True, clobber=True)
 
-    if isinstance(turb_vars, type(pd.DataFrame())):
+    if isinstance(turb_data, type(pd.DataFrame())):
         turb_atts, turb_cols = define_turb_variables()
-    else: turb_atts = {}
+        qc_atts, qc_cols = define_qc_variables(include_turb=True)
+    else:
+        qc_atts, qc_cols = define_qc_variables()
+        turb_atts = {}
 
-    write_data_list = []
-    verboseprint(f"... resampling to {timestep} for write")
+    l2_atts.update(qc_atts) # combine qc atts/vars now
+    l2_cols = l2_cols+qc_cols
+
     fstr = '{}T'.format(timestep.rstrip("min"))
 
     if timestep != "1min":
 
-        # resample variables at specified timestep
-        for ivar, var_name in enumerate(l2_cols):
-            try: 
-                write_data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average))
-            except Exception as e: 
-                write_data_list.append(pd.Series(np.nan, name=var_name))
-        write_data = pd.concat(write_data_list, axis=1)
-        write_data = write_data[date:tomorrow]
-
         # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
+        # this loop effectively exists to normalize data in a way that the netcdf4 library 
+        # can easily write them out, clean up weird dtypes==object, multi dimensional
+        # missing data (time, freq) for turbulence calcultations, etc etc etc   
         first_exception = True
         for var_name, var_atts in turb_atts.items(): 
-            try: turb_vars[var_name]
+            try: turb_data[var_name]
             except KeyError as ke: 
                 if var_name.split("_")[-1] == 'qc': continue; do_nothing = True # we don't fill in all qc variables yet
                 else: raise 
                 
-            chosen_index = 0
-            if turb_vars[var_name].isnull().all():
-                if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
-                    turb_vars[var_name] = np.float64(turb_vars[var_name])     
-            try:
-                if turb_vars[var_name][chosen_index].size > 1:
-                    if turb_vars[var_name][chosen_index].dtype == object: # happens when all fast data is missing...
-                        turb_vars[var_name] = np.float64(turb_vars[var_name])
-                else:         
-                    if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
-                        turb_vars[var_name] = np.float64(turb_vars[var_name])
+            chosen_index = 0 # pick first time point to find the number of frequency datapoints written
 
-            except AttributeError as ae:
-                if first_exception: 
-                    print(f"... something was strange about the fast data on {date}"); first_exception = False
+            if turb_data[var_name].isna().all() or type(turb_data[var_name][chosen_index]) == type(float()):
+                turb_data[var_name] = np.float64(turb_data[var_name])
+
+            # this is weird and should only every happen if there was all nans in the fast data
+            elif turb_data[var_name][chosen_index].dtype != np.dtype('float64') and turb_data[var_name][chosen_index].len > 1:
+
+                if first_exception:
+                    print(f"... something was strange about the fast data on {date} {ae}"); first_exception = False
 
                 max_size = 0 
-                for i in turb_vars.index: 
+                for i in turb_data.index: 
                     try:
-                        this_size = turb_vars[var_name][i].size
+                        this_size = turb_data[var_name][i].size
                         if this_size > max_size:
                             max_size = this_size
                             chosen_index = i
                     except: do_nothing = True
 
-                for i in turb_vars.index: 
-                    try: this_size = turb_vars[var_name][i].size
+                for i in turb_data.index: 
+                    try: this_size = turb_data[var_name][i].size
                     except: 
-                        turb_vars[var_name][i] = pd.Series([nan]*max_size)
+                        turb_data[var_name][i] = pd.Series([nan]*max_size)
 
             # create variable, # dtype inferred from data file via pandas
             if 'fs' in var_name:
-                netcdf_lev2.createDimension('freq', turb_vars[var_name][chosen_index].size)   
+                netcdf_lev2.createDimension('freq', turb_data[var_name][chosen_index].size)   
 
-    else: write_data = l2_data #no turbulence data
+    else:
+        l2_data = l2_data #no turbulence data
+
 
     all_missing     = True 
     first_loop      = True
     n_missing_denom = 0
 
-    if write_data.empty:
+    if l2_data.empty:
         print("... there was no data to write today {} for {}" .format(date,timestep))
-        print(write_data)
+        print(l2_data)
         return False
 
     # get some useful missing data information for today and print it for the user
     for var_name, var_atts in l2_atts.items():
-        try: dt = write_data[var_name].dtype
+        try: dt = l2_data[var_name].dtype
         except KeyError as e: 
-            print(" !!! no {} in data ... does this make sense??".format(var_name))
+            print(" !!! no {} in data on {} ... does this make sense??".format(var_name, date))
             continue
         
-        perc_miss = fl.perc_missing(write_data[var_name].values)
+        perc_miss = fl.perc_missing(l2_data[var_name].values)
         if perc_miss < 100: all_missing = False
         if first_loop: 
             avg_missing = perc_miss
@@ -2033,12 +2100,12 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev2.createDimension('time', None)
 
-    dti = pd.DatetimeIndex(write_data.index.values)
+    dti = pd.DatetimeIndex(l2_data.index.values)
     if timestep != "1min":
         dti = pd.date_range(date, tomorrow, freq=fstr)
 
     try:
-        fms = write_data.index[0]
+        fms = l2_data.index[0]
     except Exception as e:
         print("... something went really wrong with the indexing")
         print("... the code doesn't handle that currently")
@@ -2108,29 +2175,31 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
     for var_name, var_atts in l2_atts.items():
 
         try:
-            var_dtype = write_data[var_name].dtype
+            var_dtype = l2_data[var_name].dtype
         except KeyError as e:
             var = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
             var[:] = t_ind.values*nan
             for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
             continue
 
-        perc_miss = fl.perc_missing(write_data[var_name])
+        perc_miss = fl.perc_missing(l2_data[var_name])
 
-        if fl.column_is_ints(write_data[var_name]):
+        if fl.column_is_ints(l2_data[var_name]):
             var_dtype = np.int32
             fill_val  = def_fill_int
-            write_data[var_name] = write_data[var_name].values.astype(np.int32)
+            l2_data[var_name] = l2_data[var_name].values.astype(np.int32)
         else:
             fill_val  = def_fill_flt
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
-        # all qc flags set to -1 for when corresponding variables are missing data
+
+        # all qc flags set to -01 for when corresponding variables are missing data
         if var_name.split('_')[-1] == 'qc':
             fill_val = -1
-            write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+            if ('turbulence_qc' not in var_name) and ('Hl_qc' not in var_name): 
+                l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
 
-        vtmp = write_data[var_name]
+        vtmp = l2_data[var_name]
 
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
@@ -2146,7 +2215,6 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
 
         vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp
-
 
         try:
             height_today, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date)
@@ -2174,237 +2242,66 @@ def write_level2_netcdf(l2_data, date, timestep, turb_vars=None):
         # add a percent_missing attribute to give a first look at "data quality"
         netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
 
+
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
     for var_name, var_atts in turb_atts.items():
 
-        try: turb_vars[var_name]
-        except KeyError as ke: 
-            if var_name.split("_")[-1] == 'qc':
-                #print(f"... {var_name} won't be written to file")
-                continue; do_nothing = True # we don't fill in all qc variables yet
-            else: raise 
+        try:
 
-        # create variable, # dtype inferred from data file via pandas
-        var_dtype = turb_vars[var_name][0].dtype
-        if turb_vars[var_name][0].size == 1:
-            var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
-            
-            # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
-            td = turb_vars[var_name].resample(fstr, label='left').apply(fl.take_average)
-            td.fillna(def_fill_flt, inplace=True)
-            var_turb[:] = td.values
+            try: turb_data[var_name]
+            except keyerror as ke: 
+                if var_name.split("_")[-1] == 'qc':
+                    #print(f"... {var_name} won't be written to file")
+                    continue; do_nothing = true # we don't fill in all qc variables yet
+                else: raise 
 
-        else:
-            if 'fs' in var_name:  
-                var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('freq'))
-                # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
-                td = turb_vars[var_name][0]
+            # create variable, # dtype inferred from data file via pandas
+            var_dtype = turb_data[var_name][0].dtype
+
+            if turb_data[var_name][0].size == 1:
+                var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+
+                # convert dataframe to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
+                td = turb_data[var_name].copy()
                 td.fillna(def_fill_flt, inplace=True)
                 var_turb[:] = td.values
-            else:   
-                var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('time','freq'))
 
-                tmp_df = pd.DataFrame(index=turb_vars.index)
+            else:
+                if 'fs' in var_name:  
+                    var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('freq'))
+                    # convert dataframe to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
+                    td = turb_data[var_name][0]
+                    td.fillna(def_fill_flt, inplace=True)
+                    var_turb[:] = td.values
+                else:   
 
-                # put the timeseries into a temporary DF that's a simple timeseries, not an array of 'freq'
-                for irow, ind in enumerate(turb_vars.index):
-                    freq_arr = np.array(turb_vars[var_name][ind])
-                    for kk in range(0,len(freq_arr)):
-                        if irow == 0: tmp_df[f"{var_name}_{kk}"] = nan
-                        tmp_df[f"{var_name}_{kk}"][ind] = freq_arr[kk]
+                    var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('time','freq'))
 
-                # now actually resample it
-                rs_list = []
-                for col in tmp_df.columns:
-                    rs_list.append(tmp_df[col].resample(fstr, label='left').apply(fl.take_average))
-                resamped_df = pd.concat(rs_list, axis=1)
+                    # replaced some sketchy code loops with functional OO calls and list comprehensions
+                    # put the timeseries into a temporary DF that's a simple timeseries, not an array of 'freq'
+                    tmp_list    = [col.values for col in turb_data[var_name].values]
+                    tmp_df      = pd.DataFrame(tmp_list, index=turb_data.index).fillna(def_fill_flt)
+                    tmp         = tmp_df.to_numpy()
+                    var_turb[:] = tmp         
 
-                # this is the same as before, take the resampled data and put it in an array to be written out 
+            # add variable descriptions from above to each file
+            for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name] .setncattr(att_name, att_desc)
 
-                # convert resamped DataFrame to np.ndarray and pass data into
-                # netcdf (netcdf can't handle raw pandas data). this is even stupider in multiple dime nsions
-                tmp = np.empty([resamped_df[col].size, len(freq_arr)])
-                for kk in range(0,len(freq_arr)):
-                    resamped_df[f"{var_name}_{kk}"].fillna(def_fill_flt, inplace=True)
-                    tmp[:,kk]=np.array(resamped_df[f"{var_name}_{kk}"])
-                var_turb[:] = tmp         
+            # add a percent_missing attribute to give a first look at "data quality"
+            perc_miss = fl.perc_missing(var_turb)
+            netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
+            netcdf_lev2[var_name].setncattr('missing_value', def_fill_flt)
 
-        # add variable descriptions from above to each file
-        for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name] .setncattr(att_name, att_desc)
+        except:
+            import traceback
+            import sys
+            print(traceback.format_exc())
 
-        # add a percent_missing attribute to give a first look at "data quality"
-        perc_miss = fl.perc_missing(var_turb)
-        netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
-        netcdf_lev2[var_name].setncattr('missing_value', def_fill_flt)
+
+    try: turb_data.index; print(f"... wrote out {date} with turbulence data at {timestep}")
+    except: do_nothing = True
 
     netcdf_lev2.close() # close and write files for today
-
-def write_turb_netcdf(turb_data, date, sonic_z, mast_height, licor_z, win_len):
-    
-    day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
-    tomorrow  = date+day_delta
-
-    turb_atts, turb_cols = define_turb_variables(sonic_z, mast_height, licor_z)
-
-    if turb_data.empty:
-        print("... there was no turbulence data to write today {}".format(date))
-        return False
-
-    # get some useful missing data information for today and print it for the user
-    if not turb_data.empty: avg_missing = (1-turb_data.iloc[:,0].notnull().count()/len(turb_data.iloc[:,1]))*100.
-    #fl.perc_missing(turb_data.iloc[:,0].values)
-    else: avg_missing = 100.
-
-    print("... writing turbulence data for on {}, ~{}% of data is present".format(date, 100-avg_missing))
-
-    out_dir  = turb_dir
-    file_str = '/mosflxtowerturb.level2.{}min.{}.nc'.format(integ_time_step[win_len], date.strftime('%Y%m%d.%H%M%S'))
-
-    turb_name  = '{}/{}'.format(out_dir, file_str)
-
-    global_atts = define_global_atts("turb") # global atts for level 1 and level 2
-    netcdf_turb = Dataset(turb_name, 'w', zlib=True) 
-
-    for att_name, att_val in global_atts.items(): netcdf_turb.setncattr(att_name, att_val) 
-    n_turb_in_day = np.int(24*60/integ_time_step[win_len])
-
-    # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
-    netcdf_turb.createDimension('time', None)# n_turb_in_day) 
-    # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
-    for var_name, var_atts in turb_atts.items(): 
-        try: turb_vars[var_name]
-        except KeyError as ke: 
-            if var_name.split("_")[-1] == 'qc':
-                #print(f"... {var_name} won't be written to file")
-                continue; do_nothing = True # we don't fill in all qc variables yet
-            else: raise 
- 
-        # seriously python, seriously????
-        if turb_data[var_name].isnull().all():
-            if turb_data[var_name].dtype == object: # happens when all fast data is missing...
-                turb_data[var_name] = np.float64(turb_data[var_name])     
-            elif turb_data[var_name][0].size > 1:
-                if turb_data[var_name][0].dtype == object: # happens when all fast data is missing...
-                    turb_data[var_name] = np.float64(turb_data[var_name])
-            else:         
-                if turb_data[var_name].dtype == object: # happens when all fast data is missing...
-                    turb_data[var_name] = np.float64(turb_data[var_name])
-                    # create variable, # dtype inferred from data file via pandas
-        if 'fs' in var_name:
-            netcdf_turb.createDimension('freq', turb_data[var_name][0].size)   
-
-    try:
-        fms = turb_data.index[0]
-    except Exception as e:
-        print("... something went really wrong with the indexing")
-        print("... the code doesn't handle that currently")
-        raise e
-
-    # base_time, ARM spec, the difference between the time of the first data point and the BOT
-    today_midnight = datetime(fms.year, fms.month, fms.day)
-    beginning_of_time = fms 
-
-    # create the three 'bases' that serve for calculating the time arrays
-    et = np.datetime64(epoch_time)
-    bot = np.datetime64(beginning_of_time)
-    tm =  np.datetime64(today_midnight)
-
-    # first write the int base_time, the temporal distance from the UNIX epoch
-    base = netcdf_turb.createVariable('base_time', 'i') # seconds since
-    base[:] = int((pd.DatetimeIndex([bot]) - et).total_seconds().values[0])      # seconds
-
-    base_atts = {'string'     : '{}'.format(bot),
-                 'long_name' : 'Base time in Epoch',
-                 'units'     : 'seconds since {}'.format(et),
-                 'ancillary_variables'  : 'time_offset',}
-    for att_name, att_val in base_atts.items(): netcdf_turb['base_time'].setncattr(att_name,att_val)
-
-    if integ_time_step[win_len] < 10:
-        delt_str = f"0000-00-00 00:0{integ_time_step[win_len]}:00"
-    else:
-        delt_str = f"0000-00-00 00:{integ_time_step[win_len]}:00"
-
-    # here we create the array and attributes for 'time'
-    t_atts   = {'units'     : 'seconds since {}'.format(tm),
-                'delta_t'   : delt_str,
-                'long_name' : 'Time offset from midnight',
-                'calendar'  : 'standard',}
-
-
-    bt_atts   = {'units'     : 'seconds since {}'.format(bot),
-                 'delta_t'   : delt_str,
-                 'long_name' : 'Time offset from base_time',
-                 'ancillary_variables'  : 'base_time',
-                 'calendar'  : 'standard',}
-
-    dti = pd.DatetimeIndex(turb_data.index.values)
-    delta_ints = np.floor((dti - tm).total_seconds())      # seconds
-
-    t_ind = pd.Int64Index(delta_ints)
-
-    # set the time dimension and variable attributes to what's defined above
-    t = netcdf_turb.createVariable('time', 'd','time') # seconds since
-
-    # now we create the array and attributes for 'time_offset'
-    bt_dti = pd.DatetimeIndex(turb_data.index.values)   
-
-    bt_delta_ints = np.floor((bt_dti - bot).total_seconds())      # seconds
-
-    bt_ind = pd.Int64Index(bt_delta_ints)
-
-    # set the time dimension and variable attributes to what's defined above
-    bt = netcdf_turb.createVariable('time_offset', 'd','time') # seconds since
-
-    # this try/except is vestigial, this bug should be fixed
-    t[:]  = t_ind.values
-    bt[:] = bt_ind.values
-
-    for att_name, att_val in t_atts.items(): netcdf_turb['time'].setncattr(att_name,att_val)
-    for att_name, att_val in bt_atts.items(): netcdf_turb['time_offset'].setncattr(att_name,att_val)
-    
-    # loop over all the data_out variables and save them to the netcdf along with their atts, etc
-    for var_name, var_atts in turb_atts.items():
-        try: turb_vars[var_name]
-        except KeyError as ke: 
-            if var_name.split("_")[-1] == 'qc':
-                #print(f"... {var_name} won't be written to file")
-                continue; do_nothing = True # we don't fill in all qc variables yet
-            else: raise 
-
-        # create variable, # dtype inferred from data file via pandas
-        var_dtype = turb_data[var_name][0].dtype
-        if turb_data[var_name][0].size == 1:
-            var_turb  = netcdf_turb.createVariable(var_name, var_dtype, 'time')
-            turb_data[var_name].fillna(def_fill_flt, inplace=True)
-            # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
-            var_turb[:] = turb_data[var_name].values
-        else:
-            if 'fs' in var_name:  
-                var_turb  = netcdf_turb.createVariable(var_name, var_dtype, ('freq'))
-                turb_data[var_name][0].fillna(def_fill_flt, inplace=True)
-                # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
-                var_turb[:] = turb_data[var_name][0].values      
-            else:   
-                var_turb  = netcdf_turb.createVariable(var_name, var_dtype, ('time','freq'))
-                for jj in range(0,turb_data[var_name].size):
-                    turb_data[var_name][jj].fillna(def_fill_flt, inplace=True)
-                # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dime nsions
-                tmp = np.empty([turb_data[var_name].size,turb_data[var_name][0].size])
-                for jj in range(0,turb_data[var_name].size):
-                    tmp[jj,:]=np.array(turb_data[var_name][jj])
-                var_turb[:] = tmp         
-
-
-        # add variable descriptions from above to each file
-        for att_name, att_desc in var_atts.items(): netcdf_turb[var_name] .setncattr(att_name, att_desc)
-
-        # add a percent_missing attribute to give a first look at "data quality"
-        perc_miss = fl.perc_missing(var_turb)
-        netcdf_turb[var_name].setncattr('percent_missing', perc_miss)
-        netcdf_turb[var_name].setncattr('missing_value', def_fill_flt)
-
-    netcdf_turb.close() # close and write files for today
-    return True
 
 def write_level2_10hz(sonic_data, licor_data, date):
 
@@ -2436,7 +2333,7 @@ def write_level2_10hz(sonic_data, licor_data, date):
         return False
 
     out_dir       = level2_dir
-    file_str_fast = 'moswind10hz.metcity.level2v2.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
+    file_str_fast = 'moswind10hz.metcity.level2.4.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
     
     lev1_fast_name  = '{}/{}'.format(out_dir, file_str_fast)
 

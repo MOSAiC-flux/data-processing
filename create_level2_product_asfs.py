@@ -56,14 +56,13 @@ code_version = code_version()
 #
 # look at these files for documentation on netcdf vars and nomenclature
 # as well as additional information on the syntax used to designate certain variables here
-from asfs_data_definitions import define_global_atts, define_level2_variables, define_turb_variables 
+from asfs_data_definitions import define_global_atts, define_level2_variables, define_turb_variables, define_qc_variables
 from asfs_data_definitions import define_level1_slow, define_level1_fast, define_10hz_variables
 
-from qc_level2 import qc_stations
+from qc_level2 import qc_asfs_winds, qc_stations, qc_asfs_turb_data
 from get_data_functions import get_flux_data, get_arm_radiation_data
 
 import functions_library as fl # includes a bunch of helper functions that we wrote
-from debug_functions import drop_me as dm
 
 # Ephemeris
 # SPA is NREL's (Ibrahim Reda's) emphemeris calculator that all those BSRN/ARM radiometer geeks use ;) 
@@ -76,21 +75,22 @@ from pvlib import spa
     #    solar radiation applications. Solar Energy, vol. 81, no. 6, p. 838,
     #    2007.
 
-import os, inspect, argparse, time, sys
+import os, inspect, argparse, time, sys, socket
 
-import socket 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 16  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 8 # laptops don't tend to have 64 cores
-
+    nthreads = 64  # the twins have 64 cores, it won't hurt if we use <20
+else: nthreads = 2 # laptops don't tend to have 64 cores
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? kills multithreading to step through function calls
-# nthreads = 1
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
+we_want_to_debug = False
+if we_want_to_debug:
+    from multiprocessing.dummy import Process as P
+    from multiprocessing.dummy import Queue   as Q
+    from debug_functions import drop_me as dm
+    nthreads = 1
      
 import numpy  as np
 import pandas as pd
@@ -104,9 +104,6 @@ from netCDF4   import Dataset, MFDataset, num2date
 
 import warnings; warnings.filterwarnings(action='ignore') # vm python version problems, cleans output....
 
-# just in case... avoids some netcdf nonsense involving the default file locking across mounts
-os.environ['HDF5_USE_FILE_LOCKING']='FALSE' # just in case
-os.environ['HDF5_MPI_OPT_TYPES']='TRUE'     # just in case
 
 version_msg = '\n\nPS-122 MOSAiC Flux team ASFS processing code v.'+code_version[0]\
               +', last updates: '+code_version[1]+' by '+code_version[2]+'\n\n'
@@ -143,9 +140,9 @@ def main(): # the main data crunching program
     emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Warren and so on
 
     global version  # names directory where data will be written
-    global lvlname # will appear in filename
-    version = 'test'
-    lvlname = 'level2v2' 
+    global lvlname  # will appear in filename
+    version = 'finalqc'
+    lvlname = 'level2.4' 
 
     # there are two command line options that effect processing, the start and end date...
     # ... if not specified it runs over all the data. format: '20191001' AKA '%Y%m%d'
@@ -171,8 +168,8 @@ def main(): # the main data crunching program
     arm_dir   = '/Projects/MOSAiC_internal/partner_data/'
     
     if args.station: flux_stations = args.station.split(',')
-    else: flux_stations = ['asfs50', 'asfs40', 'asfs30']
-
+    else: flux_stations = ['asfs30', 'asfs40', 'asfs50']
+ 
     if args.pickledir: pickle_dir=args.pickledir
     else: pickle_dir=False
         
@@ -198,7 +195,7 @@ def main(): # the main data crunching program
     end_time = end_time+timedelta(1)
 
     print('The first day of data we will process data is:     %s' % str(start_time+timedelta(1)))
-    print('The last day we will process data is:  %s' % str(end_time-timedelta(1)))
+    print('The last day we will process data is:              %s\n\n' % str(end_time-timedelta(1)))
     printline()
 
     # thresholds! limits that can warn you about bad data!
@@ -627,7 +624,7 @@ def main(): # the main data crunching program
     ########################################  # # Process the GPS # #  #############################################
     # I'm going to do all the gps qc up front mostly because I need to smooth the heading before we split individual days  
     print('\n---------------------------------------------------------------------------------------------\n')            
-    def process_gps(curr_station, sd):
+    def process_gps(curr_station, sd, ship_df):
   
         # Get the current station's initialzation dataframe. ...eval...sorry, it had to be
         init_data[curr_station] = init_data[curr_station].reindex(method='pad',index=sd.index)
@@ -686,9 +683,9 @@ def main(): # the main data crunching program
         sd['ice_alt'] = tmpa
                   
         # Get the bearing on the ship
-        ship_df_now=ship_df.reindex(sd.index)
-        sd['ship_distance'] = fl.distance(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])*1000
-        sd['ship_bearing']  = fl.calculate_initial_angle(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])
+        ship_df = ship_df.reindex(sd.index)
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])*1000
+        sd['ship_bearing']  = fl.calculate_initial_angle_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])
         sd['ship_distance'] = fl.despike(sd['ship_distance'],2,15,'yes')   # tiny spikes in lat/lon resulting in 
         sd['ship_bearing']  = fl.despike(sd['ship_bearing'],0.02,15,'yes') # spikes of ~5 m in distance, so despike
 
@@ -705,9 +702,9 @@ def main(): # the main data crunching program
     coef_b_up = {'asfs30': 2.62e-3    , 'asfs40' : 2.30e-3   , 'asfs50' : 2.49e-3}    
     coef_c_up = {'asfs30': 0.9541     , 'asfs40' : 0.9608    , 'asfs50' : 0.9568}     
 
-    # actually call the gps functions and recalibrate LW sensors
+    # actually call the gps functions and recalibrate LW sensors, minor adjustments to plates
     for curr_station in flux_stations:
-        slow_data[curr_station], return_status = process_gps (curr_station, slow_data[curr_station])
+        slow_data[curr_station], return_status = process_gps (curr_station, slow_data[curr_station], ship_df)
         station_data = slow_data[curr_station]
    
         c_Sd =coef_S_down[curr_station]
@@ -725,7 +722,28 @@ def main(): # the main data crunching program
         term = (c_au*station_data['ir20_lwu_DegC_Avg']**2 + c_bu*station_data['ir20_lwu_DegC_Avg'] + c_cu)
         station_data['up_long_hemisp'] = station_data['ir20_lwu_mV_Avg'] / (c_Su * term) + sb * (station_data['ir20_lwu_DegC_Avg']+273.15)**4
 
+        if 'asfs30' in curr_station:
+
+            # Fix the flux plates that were insalled upside down
+            station_data['subsurface_heat_flux_A'] = station_data['subsurface_heat_flux_A'] * -1
+            station_data['subsurface_heat_flux_B'].loc[datetime(2020,4,1,0,0):] = station_data['subsurface_heat_flux_B'].loc[datetime(2020,4,1,0,0):] * -1
+
+        elif 'asfs40' in curr_station:
+
+            # Fix the flux plates that were insalled upside down
+            station_data['subsurface_heat_flux_A'] = station_data['subsurface_heat_flux_A'] * -1
+            station_data['subsurface_heat_flux_B'] = station_data['subsurface_heat_flux_B'] * -1
+
+        elif 'asfs50' in curr_station:
+
+            # Fix the flux plates that were insalled upside down
+            station_data['subsurface_heat_flux_B'] = station_data['subsurface_heat_flux_B'] * -1
+            station_data['subsurface_heat_flux_A'].loc[datetime(2020,4,1,0,0):] = station_data['subsurface_heat_flux_A'].loc[datetime(2020,4,1,0,0):] * -1
+
+
         slow_data[curr_station] = station_data
+
+
 
     # ###############################################################################
     # OK we have all the slow data, now loop over each day and get fast data for that
@@ -750,10 +768,12 @@ def main(): # the main data crunching program
             print("Retreiving level1 fast data for {} on {}\n".format(curr_station,today))
 
             # get fast data from netcdf files for daily processing
-            fast_data_today, fd_version = get_flux_data(curr_station, today, today, 1, data_dir, 'fast', verbose=False)
+            fast_data_today, fd_version = get_flux_data(curr_station, today-timedelta(1), today+timedelta(1),
+                                                        1, data_dir, 'fast', verbose=False)
 
-            fdt = fast_data_today   # shorthand to save some space/make code more legible
-            sdt = slow_data_today
+            # shorthand to save some space/make code more legible
+            fdt = fast_data_today[today-timedelta(hours=1):tomorrow+timedelta(hours=1)]   
+            sdt = slow_data_today[today-timedelta(hours=1):tomorrow+timedelta(hours=1)]   
 
             idt = init_data[curr_station][today:tomorrow]
             if len(fdt.index)<=1: # data warnings and sanity checks
@@ -775,20 +795,19 @@ def main(): # the main data crunching program
             # First remove any data before official start of station in October (there may be some indoor or Fedorov hold test data)
             sdt[:].loc[:station_initial_start_time[curr_station]]=nan    
 
-
             # met sensor ppl
-            sdt['atmos_pressure']        .mask( (sdt['atmos_pressure']<p_thresh[0])        | (sdt['atmos_pressure']>p_thresh[1]) ,         inplace=True) # ppl
-            sdt['temp']         .mask( (sdt['temp']<T_thresh[0])         | (sdt['temp']>T_thresh[1]) ,          inplace=True) # ppl
-            sdt['dew_point']     .mask( (sdt['dew_point']<T_thresh[0])     | (sdt['dew_point']>T_thresh[1]) ,      inplace=True) # ppl
-            sdt['rh'] .mask( (sdt['rh']<rh_thresh[0])| (sdt['rh']>rh_thresh[1]) , inplace=True) # ppl
+            sdt['atmos_pressure'].mask((sdt['atmos_pressure']<p_thresh[0]) | (sdt['atmos_pressure']>p_thresh[1]) , inplace=True) 
+            sdt['temp']          .mask((          sdt['temp']<T_thresh[0]) | (sdt['temp']>T_thresh[1])           , inplace=True) 
+            sdt['dew_point']     .mask((     sdt['dew_point']<T_thresh[0]) | (sdt['dew_point']>T_thresh[1])      , inplace=True) 
+            sdt['rh']            .mask((           sdt['rh']<rh_thresh[0]) | (sdt['rh']>rh_thresh[1])            , inplace=True) 
 
             # Ephemeris, set it up
-            utime_in = np.array(sdt.index.astype(np.int64)/10**9) # unix time. sec since 1/1/70
-            lat_in   = sdt['lat']                         # latitude
-            lon_in   = sdt['lon']                         # latitude
-            elv_in   = np.zeros(sdt.index.size)+2                 # the elvation shall be 2 m...the details are negligible
+            utime_in = np.array(sdt.index.astype(np.int64)/10**9)                   # unix time. sec since 1/1/70
+            lat_in   = sdt['lat']                                                   # latitude
+            lon_in   = sdt['lon']                                                   # latitude
+            elv_in   = np.zeros(sdt.index.size)+2                                   # elevation shall be 2 m; deets are negligible
             pr_in    = sdt['atmos_pressure'].fillna(sdt['atmos_pressure'].median()) # mb 
-            t_in     = sdt['temp'].fillna(sdt['temp'].median())   # degC
+            t_in     = sdt['temp'].fillna(sdt['temp'].median())                     # degC
 
             # est of atm ref at sunrise/set following U. S. Naval Observatory's Vector Astrometry Software
             # @ wikipedia https://en.wikipedia.org/wiki/Atmospheric_refraction. This really just
@@ -797,33 +816,35 @@ def main(): # the main data crunching program
             delt_in  = spa.calculate_deltat(sdt.index.year, sdt.index.month) # seconds. delta_t between terrestrial and UT1 time
 
             # do the thing
-            app_zenith, zenith, app_elevation, elevation, azimuth, eot = spa.solar_position(utime_in,lat_in,lon_in,elv_in,pr_in,t_in,delt_in,atm_ref)
+            app_zenith, zenith, app_elevation, elevation, azimuth, eot = spa.solar_position(utime_in,lat_in,lon_in,
+                                                                                            elv_in,pr_in,t_in,delt_in,atm_ref)
+
             # write it out
-            sdt['zenith_true'] = zenith
-            sdt['zenith_apparent']  = app_zenith 
-            sdt['azimuth']  = azimuth 
+            sdt['zenith_true']     = zenith
+            sdt['zenith_apparent'] = app_zenith 
+            sdt['azimuth']         = azimuth 
 
             # in matlab, there were rare instabilities in the Reda and Andreas algorithm that resulted in spikes
             # (a few per year). no idea if this is a problem in the python version, but lets make sure
-            sdt['zenith_true'] = fl.despike(sdt['zenith_true'],2,5,'no')
-            sdt['zenith_apparent']  = fl.despike(sdt['zenith_apparent'],2,5,'no')
-            sdt['azimuth']  = fl.despike(sdt['azimuth'],2,5,'no')
+            sdt['zenith_true']     = fl.despike(sdt['zenith_true']     ,2,5,'no')
+            sdt['zenith_apparent'] = fl.despike(sdt['zenith_apparent'] ,2,5,'no')
+            sdt['azimuth']         = fl.despike(sdt['azimuth']         ,2,5,'no')
 
-            # IR20 ventilation bias. The IRT was heated with 1.5 W. If the ventilator fan was off, lab & field analysis suggests that
-            # the heat was improperly diffused causing a positive bias in the instrument calculated at 1.42 Wm2 in the field and 
-            # 1.28 Wm2 in the lab. We will use the latter here.
-            sdt['up_long_hemisp'].loc[sdt['ir20_lwu_fan_Avg'] < 400] = sdt['up_long_hemisp']-1.28
+            # IR20 ventilation bias. The IRT was heated with 1.5 W. If the ventilator fan was off, lab & field
+            # analysis suggests that the heat was improperly diffused causing a positive bias in the instrument
+            # calculated at 1.42 Wm2 in the field and 1.28 Wm2 in the lab. We will use the latter here.
+            sdt['up_long_hemisp'].loc[sdt['ir20_lwu_fan_Avg'] < 400]   = sdt['up_long_hemisp']-1.28
             sdt['down_long_hemisp'].loc[sdt['ir20_lwd_fan_Avg'] < 400] = sdt['down_long_hemisp']-1.28
 
             # IRT QC
-            sdt['body_T_IRT']    .mask( (sdt['body_T_IRT']<irt_targ[0])    | (sdt['body_T_IRT']>irt_targ[1]) ,    inplace=True) # ppl
+            sdt['body_T_IRT']              .mask( (sdt['body_T_IRT']<irt_targ[0])    | (sdt['body_T_IRT']>irt_targ[1]) ,    inplace=True) # ppl
             sdt['brightness_temp_surface'] .mask( (sdt['brightness_temp_surface']<irt_targ[0]) | (sdt['brightness_temp_surface']>irt_targ[1]) , inplace=True) # ppl
 
-            sdt['body_T_IRT']    .mask( (sdt['temp']<-1) & (abs(sdt['body_T_IRT'])==0) ,    inplace=True) # reports spurious 0s sometimes
+            sdt['body_T_IRT']              .mask( (sdt['temp']<-1) & (abs(sdt['body_T_IRT'])==0) ,    inplace=True) # reports spurious 0s sometimes
             sdt['brightness_temp_surface'] .mask( (sdt['temp']<-1) & (abs(sdt['brightness_temp_surface'])==0) , inplace=True) # reports spurious 0s sometimes
 
-            sdt['body_T_IRT']    = fl.despike(sdt['body_T_IRT'],2,60,'yes')    # replace spikes outside 2C over 60 sec with 60 s median
-            sdt['brightness_temp_surface'] = fl.despike(sdt['brightness_temp_surface'],2,60,'yes') # replace spikes outside 2C over 60 sec with 60 s median
+            sdt['body_T_IRT']              = fl.despike(sdt['body_T_IRT'],2,60,'yes')              # replace spikes outside 2C
+            sdt['brightness_temp_surface'] = fl.despike(sdt['brightness_temp_surface'],2,60,'yes') # over 60 sec with 60 s median
 
             # Flux plate QC
             sdt['subsurface_heat_flux_A'].mask( (sdt['subsurface_heat_flux_A']<flxp[0]) | (sdt['subsurface_heat_flux_A']>flxp[1]) , inplace=True) # ppl
@@ -869,7 +890,7 @@ def main(): # the main data crunching program
             if arm_data.empty or sdt.ship_distance.mean() > 2000:
                 diffuse_flux = -1 # we don't have an spn1 so we model the error. later we can use it if we have it
             else:
-                diffuse_flux = arm_data[today:tomorrow].PSPdif.reindex(index=sdt.index)
+                diffuse_flux = arm_data[today-timedelta(1):tomorrow-timedelta(1)].PSPdif.reindex(index=sdt.index)
 
             # now run the correcting function      
             fl.tilt_corr(sdt,diffuse_flux) # modified sdt is returned
@@ -1030,11 +1051,9 @@ def main(): # the main data crunching program
                     sdt['metek_InclX_Avg']   .loc[datetime(2020,8,21) : datetime(2020,10,1)] + 0.5  
                 sdt['metek_InclY_Avg']       .loc[datetime(2020,8,21) : datetime(2020,10,1)] = \
                     sdt['metek_InclY_Avg']   .loc[datetime(2020,8,21) : datetime(2020,10,1)] + -0.25 
-                
                     
                     
             # ###################################################################################################
-
             # all the 0.1 seconds today, for obs. we buffer by 1 hr for easy of po2 in turbulent fluxes below
             Hz10_today        = pd.date_range(today-pd.Timedelta(1,'hour'), tomorrow+pd.Timedelta(1,'hour'), freq='0.1S') 
             seconds_today     = pd.date_range(today, tomorrow, freq='S')    # all the seconds today, for obs
@@ -1098,12 +1117,12 @@ def main(): # the main data crunching program
             # Chris said he was lazy first, now I'm being lazy by not making it up, sorry Chris
 
             # begin with bounding the Metek data to the physically-possible limits
-            fdt ['metek_T']  [fdt['metek_T'] < T_thresh[0]]   = nan
-            fdt ['metek_T']  [fdt['metek_T'] > T_thresh[1]]   = nan
-            fdt ['metek_x']  [np.abs(fdt['metek_x'])  > ws_thresh[1]]  = nan
-            fdt ['metek_y']  [np.abs(fdt['metek_y'])  > ws_thresh[1]]  = nan
-            fdt ['metek_z']  [np.abs(fdt['metek_z'])  > ws_thresh[1]]  = nan
+            fdt ['metek_T']  [fdt['metek_T'] < T_thresh[0]] = nan
+            fdt ['metek_T']  [fdt['metek_T'] > T_thresh[1]] = nan
 
+            fdt ['metek_x']  [np.abs(fdt['metek_x'])  > ws_thresh[1]] = nan
+            fdt ['metek_y']  [np.abs(fdt['metek_y'])  > ws_thresh[1]] = nan
+            fdt ['metek_z']  [np.abs(fdt['metek_z'])  > ws_thresh[1]] = nan
 
             # Diagnostic: break up the diagnostic and search for bad paths. the diagnostic is as follows:
             # 1234567890123
@@ -1275,18 +1294,21 @@ def main(): # the main data crunching program
                 u_min_slow = ct_v # swapping u and v convention to met  
                 v_min_slow = ct_u # swapping u and v convention to met
                 w_min_slow = ct_w
+
                 u_sigmin_slow = ct_vsig
                 v_sigmin_slow = ct_usig
                 w_sigmin_slow = ct_wsig
                 
-                ws_slow    = np.sqrt(u_min_slow**2+v_min_slow**2)
-                wd_slow    = np.mod((np.arctan2(-u_min_slow,-v_min_slow)*180/np.pi),360)
+                ws_slow = np.sqrt(u_min_slow**2+v_min_slow**2)
+                wd_slow = np.mod((np.arctan2(-u_min_slow,-v_min_slow)*180/np.pi),360)
 
                 ws[np.isnan(ws)]       = ws_slow[np.isnan(ws)]
                 wd[np.isnan(wd)]       = wd_slow[np.isnan(wd)]
+
                 u_min[np.isnan(u_min)] = u_min_slow[np.isnan(u_min)]
                 v_min[np.isnan(v_min)] = v_min_slow[np.isnan(v_min)]
                 w_min[np.isnan(w_min)] = w_min_slow[np.isnan(w_min)]          
+
                 u_sigmin[np.isnan(u_sigmin)] = u_sigmin_slow[np.isnan(u_sigmin)]
                 v_sigmin[np.isnan(v_sigmin)] = v_sigmin_slow[np.isnan(v_sigmin)]
                 w_sigmin[np.isnan(w_sigmin)] = w_sigmin_slow[np.isnan(w_sigmin)]
@@ -1298,20 +1320,20 @@ def main(): # the main data crunching program
             # reading the stats data in the first place?
             print('... recalculating NOAA Services style stats with corrected, rotated, and QCed values.')
             
-            sdt['wspd_vec_mean'] = ws
-            sdt['wdir_vec_mean'] = wd
-            sdt['wspd_u_mean']   = u_min
-            sdt['wspd_v_mean']   = v_min
-            sdt['wspd_w_mean']   = w_min
-            sdt['wspd_u_std']   = u_sigmin
-            sdt['wspd_v_std']   = v_sigmin
-            sdt['wspd_w_std']   = w_sigmin            
-            sdt['temp_acoustic_std']   = fdt_10hz['metek_T'].resample('1T',label='left').std()
-            sdt['temp_acoustic']       = fdt_10hz['metek_T'].resample('1T',label='left').mean()
+            sdt['wspd_vec_mean']     = ws
+            sdt['wdir_vec_mean']     = wd
+            sdt['wspd_u_mean']       = u_min
+            sdt['wspd_v_mean']       = v_min
+            sdt['wspd_w_mean']       = w_min
+            sdt['wspd_u_std']        = u_sigmin
+            sdt['wspd_v_std']        = v_sigmin
+            sdt['wspd_w_std']        = w_sigmin            
+            sdt['temp_acoustic_std'] = fdt_10hz['metek_T'].resample('1T',label='left').std()
+            sdt['temp_acoustic']     = fdt_10hz['metek_T'].resample('1T',label='left').mean()
 
-            sdt['h2o_licor']            = fdt_10hz['licor_h2o'].resample('1T',label='left').mean()
-            sdt['co2_licor']            = fdt_10hz['licor_co2'].resample('1T',label='left').mean()
-            sdt['pr_licor']             = fdt_10hz['licor_pr'].resample('1T',label='left').mean()*10 # [to hPa]
+            sdt['h2o_licor']         = fdt_10hz['licor_h2o'].resample('1T',label='left').mean()
+            sdt['co2_licor']         = fdt_10hz['licor_co2'].resample('1T',label='left').mean()
+            sdt['pr_licor']          = fdt_10hz['licor_pr'].resample('1T',label='left').mean()*10 # [to hPa]
 
             # ~~~~~~~~~~~~~~~~~~~~ (6) Flux Capacitor  ~~~~~~~~~~~~~~~~~~~~~~~~~
     
@@ -1343,20 +1365,34 @@ def main(): # the main data crunching program
                                            'metek_T':'T'}, inplace=True)
                 licor_10hz = fdt_10hz[['licor_h2o', 'licor_co2']].copy()
 
+                turb_ec_data = {}
                 for win_len in range(0,len(integ_time_turb_flux)):
                     integration_window = integ_time_turb_flux[win_len]
-                    flux_freq_str = '{}T'.format(integration_window)
-                    flux_time_today   = pd.date_range(today, today+timedelta(1), freq=flux_freq_str) # flux calc intervals
+                    flux_freq_str = '{}T'.format(integration_window) # flux calc intervals
+                    flux_time_today   = pd.date_range(today-timedelta(hours=1), tomorrow+timedelta(hours=1), freq=flux_freq_str) 
+
+                    # recalculate wind vectors to be saved with turbulence data  later
+                    u_min  = metek_10hz['u'].resample(flux_freq_str, label='left').apply(fl.take_average)
+                    v_min  = metek_10hz['v'].resample(flux_freq_str, label='left').apply(fl.take_average)
+                    ws     = np.sqrt(u_min**2+v_min**2)
+                    wd     = np.mod((np.arctan2(-u_min,-v_min)*180/np.pi),360)
+
+                    turb_winds = pd.DataFrame()
+                    turb_winds['wspd_vec_mean'] = ws
+                    turb_winds['wdir_vec_mean'] = wd
+
                     for time_i in range(0,len(flux_time_today)-1): # flux_time_today = a DatetimeIndex defined earlier and based
                                                                    # on integ_time_turb_flux, the integration window for the
                                                                    # calculations that is defined at the top of the code
 
                         if time_i % 24 == 0:
-                            verboseprint(f'... turbulence integration across {flux_freq_str} for {flux_time_today[time_i]} {curr_station}')
+                            verboseprint(f'... turbulence integration across {flux_freq_str} for '+
+                                         f'{flux_time_today[time_i].strftime("%m-%d-%Y %H")}h {curr_station}')
 
-                        # Get the index, ind, of the metek frame that pertains to the present calculation 
-                        # A little tricky. We need to make sure we give it enough data to encompass the nearest power of 2:
-                        # for 30 min fluxes this is ~27 min so you are good, but for 10 min fluxes it is 13.6 min so you need to give it more. 
+                        # Get the index, ind, of the metek frame that pertains to the present calculation A
+                        # little tricky. We need to make sure we give it enough data to encompass the nearest
+                        # power of 2: for 30 min fluxes this is ~27 min so you are good, but for 10 min fluxes
+                        # it is 13.6 min so you need to give it more.
 
                         # We buffered the 10 Hz so that we can go outside the edge of "today" by up to an hour.
                         # It's a bit of a formality, but for general cleanliness we are going to
@@ -1379,8 +1415,12 @@ def main(): # the main data crunching program
                         v = False
                         if verbose: v = True;
                         sonic_z       = 3.3 # what is sonic_z for the flux stations
-                        data = fl.grachev_fluxcapacitor(sonic_z, metek_in, licor_data, 'g/m3', 'mg/m3', Pr_time_i, T_time_i, Q_time_i, verbose=v)
-                        #data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True) # Sanity check on Cd. Ditch the run if it fails
+
+                        data = fl.grachev_fluxcapacitor(sonic_z, metek_in, licor_data, 'g/m3', 'mg/m3',
+                                                            Pr_time_i, T_time_i, Q_time_i, verbose=v)
+                        
+                        # Sanity check on Cd. Ditch the run if it fails
+                        #data[:].mask( (data['Cd'] < cd_lim[0])  | (data['Cd'] > cd_lim[1]) , inplace=True) 
 
                         # doubtless there is a better way to initialize this
                         if time_i == 0: turbulencetom = data
@@ -1447,77 +1487,80 @@ def main(): # the main data crunching program
                             turbulencetom['cUcs'][missing_f_dim_ind[ii]] = fs*nan
                             turbulencetom['cVcs'][missing_f_dim_ind[ii]] = fs*nan
                             turbulencetom['cUVs'][missing_f_dim_ind[ii]] = fs*nan
+                    turb_ec_data[win_len] = turbulencetom.copy()
 
-                    # calculate the bulk 
-                    print('... calculating bulk fluxes for day: {}'.format(today))
-                 
-                    # Input dataframe
-                    empty_data = np.zeros(np.size(sdt['mixing_ratio'][minutes_today]))
-                    bulk_input = pd.DataFrame()
-                    bulk_input['u']  = sdt['wspd_vec_mean'][minutes_today] # wind speed                         (m/s)
-                    bulk_input['ts'] = sdt['skin_temp_surface'][minutes_today]   # bulk water/ice surface tempetature (degC) 
-                    bulk_input['t']  = sdt['temp'][minutes_today]     # air temperature                    (degC) 
-                    bulk_input['Q']  = sdt['mixing_ratio'][minutes_today]/1000  # air moisture mixing ratio          (kg/kg)
-                    bulk_input['zi'] = empty_data+600                         # inversion height                   (m) wild guess
-                    bulk_input['P']  = sdt['atmos_pressure'][minutes_today]    # surface pressure                   (mb)
-                    bulk_input['zu'] = empty_data+3.3                         # height of anemometer               (m)
-                    bulk_input['zt'] = empty_data+2                           # height of thermometer              (m)
-                    bulk_input['zq'] = empty_data+2                           # height of hygrometer               (m)      
-                    bulk_input = bulk_input.resample(str(integration_window)+'min',label='left').apply(fl.take_average)
+                # calculate the bulk 
+                print('... calculating bulk fluxes for day: {}'.format(today))
 
-                    # output dataframe
-                    empty_data = np.zeros(len(bulk_input))
-                    bulk = pd.DataFrame() 
-                    bulk['bulk_Hs']      = empty_data*nan # hsb: sensible heat flux (Wm-2)
-                    bulk['bulk_Hl']      = empty_data*nan # hlb: latent heat flux (Wm-2)
-                    bulk['bulk_tau']     = empty_data*nan # tau: stress                             (Pa)
-                    bulk['bulk_z0']      = empty_data*nan # zo: roughness length, veolicity              (m)
-                    bulk['bulk_z0t']     = empty_data*nan # zot:roughness length, temperature (m)
-                    bulk['bulk_z0q']     = empty_data*nan # zoq: roughness length, humidity (m)
-                    bulk['bulk_L']       = empty_data*nan # L: Obukhov length (m)       
-                    bulk['bulk_ustar']   = empty_data*nan # usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
-                    bulk['bulk_tstar']   = empty_data*nan # tsr: temperature scale, tstar (K)
-                    bulk['bulk_qstar']   = empty_data*nan # qsr: specific humidity scale, qstar (kg/kg?)
-                    bulk['bulk_dter']    = empty_data*nan # dter
-                    bulk['bulk_dqer']    = empty_data*nan # dqer
-                    bulk['bulk_Hl_Webb'] = empty_data*nan # hl_webb: Webb density-corrected Hl (Wm-2)
-                    bulk['bulk_Cd']      = empty_data*nan # Cd: transfer coefficient for stress
-                    bulk['bulk_Ch']      = empty_data*nan # Ch: transfer coefficient for Hs
-                    bulk['bulk_Ce']      = empty_data*nan # Ce: transfer coefficient for Hl
-                    bulk['bulk_Cdn_10m'] = empty_data*nan # Cdn_10: 10 m neutral transfer coefficient for stress
-                    bulk['bulk_Chn_10m'] = empty_data*nan # Chn_10: 10 m neutral transfer coefficient for Hs
-                    bulk['bulk_Cen_10m'] = empty_data*nan # Cen_10: 10 m neutral transfer coefficient for Hl
-                    bulk['bulk_Rr']      = empty_data*nan # Reynolds number
-                    bulk['bulk_Rt']      = empty_data*nan # 
-                    bulk['bulk_Rq']      = empty_data*nan # 
-                    bulk=bulk.reindex(index=bulk_input.index)
+                # Input dataframe
+                empty_data = np.zeros(np.size(sdt['mixing_ratio'][minutes_today]))
+                bulk_input = pd.DataFrame()
+                bulk_input['u']  = sdt['wspd_vec_mean'][minutes_today] # wind speed                         (m/s)
+                bulk_input['ts'] = sdt['skin_temp_surface'][minutes_today]   # bulk water/ice surface tempetature (degC) 
+                bulk_input['t']  = sdt['temp'][minutes_today]     # air temperature                    (degC) 
+                bulk_input['Q']  = sdt['mixing_ratio'][minutes_today]/1000  # air moisture mixing ratio          (kg/kg)
+                bulk_input['zi'] = empty_data+600                         # inversion height                   (m) wild guess
+                bulk_input['P']  = sdt['atmos_pressure'][minutes_today]    # surface pressure                   (mb)
+                bulk_input['zu'] = empty_data+3.3                         # height of anemometer               (m)
+                bulk_input['zt'] = empty_data+2                           # height of thermometer              (m)
+                bulk_input['zq'] = empty_data+2                           # height of hygrometer               (m)      
+                bulk_input = bulk_input.resample(str(integration_window)+'min',label='left').apply(fl.take_average)
 
-                    for ii in range(len(bulk)):
-                        tmp = [bulk_input['u'][ii], bulk_input['ts'][ii], bulk_input['t'][ii], \
-                               bulk_input['Q'][ii], bulk_input['zi'][ii], bulk_input['P'][ii], \
-                               bulk_input['zu'][ii],bulk_input['zt'][ii], bulk_input['zq'][ii]] 
+                # output dataframe
+                empty_data = np.zeros(len(bulk_input))
+                bulk = pd.DataFrame() 
+                bulk['bulk_Hs']      = empty_data*nan # hsb: sensible heat flux (Wm-2)
+                bulk['bulk_Hl']      = empty_data*nan # hlb: latent heat flux (Wm-2)
+                bulk['bulk_tau']     = empty_data*nan # tau: stress                             (Pa)
+                bulk['bulk_z0']      = empty_data*nan # zo: roughness length, veolicity              (m)
+                bulk['bulk_z0t']     = empty_data*nan # zot:roughness length, temperature (m)
+                bulk['bulk_z0q']     = empty_data*nan # zoq: roughness length, humidity (m)
+                bulk['bulk_L']       = empty_data*nan # L: Obukhov length (m)       
+                bulk['bulk_ustar']   = empty_data*nan # usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
+                bulk['bulk_tstar']   = empty_data*nan # tsr: temperature scale, tstar (K)
+                bulk['bulk_qstar']   = empty_data*nan # qsr: specific humidity scale, qstar (kg/kg?)
+                bulk['bulk_dter']    = empty_data*nan # dter
+                bulk['bulk_dqer']    = empty_data*nan # dqer
+                bulk['bulk_Hl_Webb'] = empty_data*nan # hl_webb: Webb density-corrected Hl (Wm-2)
+                bulk['bulk_Cd']      = empty_data*nan # Cd: transfer coefficient for stress
+                bulk['bulk_Ch']      = empty_data*nan # Ch: transfer coefficient for Hs
+                bulk['bulk_Ce']      = empty_data*nan # Ce: transfer coefficient for Hl
+                bulk['bulk_Cdn_10m'] = empty_data*nan # Cdn_10: 10 m neutral transfer coefficient for stress
+                bulk['bulk_Chn_10m'] = empty_data*nan # Chn_10: 10 m neutral transfer coefficient for Hs
+                bulk['bulk_Cen_10m'] = empty_data*nan # Cen_10: 10 m neutral transfer coefficient for Hl
+                bulk['bulk_Rr']      = empty_data*nan # Reynolds number
+                bulk['bulk_Rt']      = empty_data*nan # 
+                bulk['bulk_Rq']      = empty_data*nan # 
+                bulk=bulk.reindex(index=bulk_input.index)
 
-                        if not any(np.isnan(tmp)):
-                            bulkout = fl.cor_ice_A10(tmp)
-                            for hh in range(len(bulkout)):
-                                if bulkout[13] < cd_lim[0] or bulkout[13] > cd_lim[1]:  # Sanity check on Cd. Ditch the whole run if it fails
-                                    bulk[bulk.columns[hh]][ii]=nan                      # for some reason this needs to be in a loop
-                                else:
-                                    bulk[bulk.columns[hh]][ii]=bulkout[hh]
+                for ii in range(len(bulk)):
+                    tmp = [bulk_input['u'][ii], bulk_input['ts'][ii], bulk_input['t'][ii], \
+                           bulk_input['Q'][ii], bulk_input['zi'][ii], bulk_input['P'][ii], \
+                           bulk_input['zu'][ii],bulk_input['zt'][ii], bulk_input['zq'][ii]] 
 
-                    # add this to the EC data
-                    turbulencetom = pd.concat( [turbulencetom, bulk], axis=1) # concat columns alongside each other without adding indexes
-                    data_to_return.append(('turb', turbulencetom.copy(), win_len))
+                    if not any(np.isnan(tmp)):
+                        bulkout = fl.cor_ice_A10(tmp)
+                        for hh in range(len(bulkout)):
+                            if bulkout[13] < cd_lim[0] or bulkout[13] > cd_lim[1]:  # Sanity check on Cd. Ditch the whole run if it fails
+                                bulk[bulk.columns[hh]][ii]=nan                      # for some reason this needs to be in a loop
+                            else:
+                                bulk[bulk.columns[hh]][ii]=bulkout[hh]
+
+                for win_len in range(0,len(integ_time_turb_flux)):
+
+                    # add this to the EC data, concat columns alongside each other without adding indexes
+                    turbulencenew = pd.concat( [turb_ec_data[win_len], bulk, turb_winds], axis=1)  
+                    data_to_return.append(('turb', turbulencenew.copy()[today:tomorrow], win_len))
                     if win_len < len(integ_time_turb_flux)-1: print('\n')
 
-            out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+            out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/finalqc/' # where will level 2 data written?
     
             try: 
                 trash_var = write_level2_10hz(curr_station, metek_10hz[today:tomorrow], licor_10hz[today:tomorrow], today, out_dir)
             except UnboundLocalError as ule:
                 this_will_fail_if_no_fast_data = True
 
-            data_to_return.append(('slow', sdt.copy(), None)) 
+            data_to_return.append(('slow', sdt.copy()[today:tomorrow], None)) 
 
             try: day_q.put(data_to_return); return data_to_return
             except: return data_to_return
@@ -1525,10 +1568,14 @@ def main(): # the main data crunching program
 
         except Exception as e: # this day failed with some sort of exception, but we want to keep processing 
 
+            print(f"!!! processing of {curr_station} failed for {today}  !!!")
+            print("==========================================================================================")
+            print("Python traceback: \n\n")
             import traceback
-            ex_type, ex, tb = sys.exc_info()
-            tbs = traceback.extract_tb(tb)
-            print(f"{e} --!!! {today} failed with exception")
+            import sys
+            print(traceback.format_exc())
+            print("==========================================================================================")
+
             let_fail = True
             if let_fail: raise
             try: day_q.put([('trace', tbs)]); return [('trace', tbs)]
@@ -1558,13 +1605,21 @@ def main(): # the main data crunching program
 
                 today    = day_series[day_i]
                 tomorrow = today+day_delta
-                sd_today = slow_data[curr_station][today:tomorrow]
+                sd_today = slow_data[curr_station][today-timedelta(hours=1):tomorrow+timedelta(hours=1)]
+                if len(sd_today[today:tomorrow]) == 0: continue # weird corner case where data begins tomorrow/ended yesterday
+
                 q_today = Q()
                 P(target=process_station_day, args=(curr_station, today, tomorrow, sd_today, q_today)).start()
                 q_list.append((q_today, today))
                 
             for qq, day in q_list: 
-                df_tuple_list = qq.get()
+                try: df_tuple_list = qq.get(timeout=600)
+                except:
+                    import traceback
+                    import sys
+                    exc = traceback.format_exc()
+                    failed_days[curr_station].append((day,exc))
+
                 if type(df_tuple_list) != type([]): 
                     failed_days[curr_station].append((day,f"failed for undetermined reason, look at log {df_tuple_list}"))
                     continue
@@ -1575,10 +1630,10 @@ def main(): # the main data crunching program
                         failed_days[curr_station].append((day, dft[1]))
                         break
                     elif dft[0] == 'slow':
-                        slow_data_dict[curr_station].append(dft[1]) 
+                        slow_data_dict[curr_station].append(dft[1])
                     elif dft[0] == 'turb':
                         win_len = dft[2]
-                        turb_data_dict[curr_station][win_len].append(dft[1]) 
+                        turb_data_dict[curr_station][win_len].append(dft[1])
                     else:
                         failed_days[curr_station].append((day,"failed for undetermined reason, look at log {dft}"))
                         break
@@ -1592,22 +1647,94 @@ def main(): # the main data crunching program
         slow_all[curr_station] = slow_all[curr_station].sort_index() 
         turb_all[curr_station] = {}
         for win_len in range(0, len(integ_time_turb_flux)):
-            turb_all[curr_station][win_len] = pd.concat( turb_data_dict[curr_station][win_len] )
-        slow_all[curr_station] = qc_stations(curr_station, slow_all[curr_station])
+            turb_all[curr_station][win_len] = pd.concat( turb_data_dict[curr_station][win_len] ).sort_index()
 
-    print(" ... done with concatting and QC, now we write!\n")
+        slow_all[curr_station] = qc_stations(slow_all[curr_station], curr_station)
+
+
+    print(" ... done with concatting and QC, now we write! here's a sample of the output data:\n\n")
+    for curr_station in flux_stations:
+        print(slow_all[curr_station])
     
     def write_todays_data(curr_station, today, day_q):
         tomorrow = today+day_delta
 
-        out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+        station_data = slow_all[curr_station][today:tomorrow].copy()
+
+        out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/finalqc/' # where will level 2 data written?
+ 
+        #out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' 
         #out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
-        trash_var = write_level2_netcdf(slow_all[curr_station][today:tomorrow].copy(), curr_station, today, "1min", out_dir)
+
+        wr, sr, write_data = qc_asfs_winds(station_data)
+
+        # import pickle
+        # met_args = [write_data.copy(), curr_station, today, "1min", out_dir]
+        # pkl_file = open(f'./{today.strftime("%Y%m%d")}_met_data_write.pkl', 'wb')
+        # pickle.dump(met_args, pkl_file)
+        # pkl_file.close()
+
+
+        trash_var = write_level2_netcdf(write_data, curr_station, today, "1min", out_dir)
 
         for win_len in range(0, len(integ_time_turb_flux)):
             integration_window = integ_time_turb_flux[win_len]
-            trash_var = write_level2_netcdf(slow_all[curr_station][today:tomorrow].copy(), curr_station, today,
-                                            f"{integ_time_turb_flux[win_len]}min", out_dir, turb_all[curr_station][win_len][today:tomorrow])
+            fstr = f'{integ_time_turb_flux[win_len]}T' # pandas notation for timestep
+            turb_data = turb_all[curr_station][win_len][today:tomorrow]
+
+            # do averaging, a little weird, a little kludgy, a little annoying... whatever...
+            # should have built the qc pipeline into the original code as a module and this would be cleaner
+
+            data_list = []
+
+            l2_atts, l2_cols = define_level2_variables(); qc_atts, qc_cols = define_qc_variables(include_turb=True)
+            l2_cols = l2_cols+qc_cols
+
+            vector_vars = ['wspd_vec_mean', 'wdir_vec_mean']
+
+            for ivar, var_name in enumerate(l2_cols):
+                try: 
+                    if var_name.split('_')[-1] == 'qc':
+                        data_list.append(fl.average_mosaic_flags(station_data[var_name], fstr))
+                    elif any(substr in var_name for substr in vector_vars):
+                        data_list.append(turb_data[var_name]) # yank a few select variables out of turbulence, vestigial nonsense
+                    else:
+                        data_list.append(station_data[var_name].resample(fstr, label='left').apply(fl.take_average))
+                except Exception as e: 
+                    # this is a little silly, data didn't exist for var fill with nans
+                    print(f"... wait what/why/huh??? {var_name} — {e}")
+                    data_list.append(pd.Series([np.nan]*len(station_data), index=station_data.index, name=var_name)\
+                                     .resample(fstr, label='left').apply(fl.take_average))
+
+            avged_data = pd.concat(data_list, axis=1)
+            avged_data = avged_data[today:tomorrow]
+
+            try:
+
+                wr, sr, avged_data = qc_asfs_winds(avged_data)
+
+                avged_data, turb_data = qc_asfs_turb_data(avged_data.copy(), turb_data.copy())
+
+                # for debugging the write function.... ugh
+                # import pickle
+                # seb_args = [avged_data.copy(), curr_station, today,f"{integration_window}min", out_dir, turb_data]
+                # pkl_file = open(f'./{today.strftime("%Y%m%d")}_seb_data_write.pkl', 'wb')
+                # pickle.dump(seb_args, pkl_file)
+                # pkl_file.close()
+
+                trash_var = write_level2_netcdf(avged_data.copy(), curr_station, today,
+                                                f"{integration_window}min", out_dir, turb_data)
+
+
+            except: 
+                print(f"!!! failed to qc and write turbulence data for {win_len} on {today} !!!")
+                print("==========================================================================================")
+                print("Python traceback: \n\n")
+                import traceback
+                import sys
+                print(traceback.format_exc())
+                print("==========================================================================================")
+                #print(sys.exc_info()[2])
 
 
         day_q.put(True) 
@@ -1636,12 +1763,12 @@ def main(): # the main data crunching program
         for curr_station in flux_stations: 
             for fday in failed_days[curr_station]:
                 date, exception = fday
-                print(f"... {date} for {curr_station} -- with: {exception}")
+                print(f"... {date} for {curr_station} -- with:\n {exception}\n\n")
 
 
 # do the stuff to write out the level1 files, set timestep equal to anything from "1min" to "XXmin"
 # and we will average the native 1min data to that timestep. right now we are writing 1 and 10min files
-def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_vars=None):
+def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_data=None):
 
     day_delta = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
     tomorrow  = date+day_delta
@@ -1674,13 +1801,21 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
 
     print("... writing {} level2 for {} on {}, ~{}% of data is present".format(timestep, curr_station, date, 100-avg_missing))
 
-
     short_name = "met"
     if timestep != "1min":
         short_name = 'seb'
+        
+    #FIXME after debugging, uncomment this
     file_str = 'mos{}.{}.{}.{}.{}.nc'.format(short_name,curr_station,lvlname,timestep,date.strftime('%Y%m%d.%H%M%S'))
-    
     lev2_name  = '{}/{}'.format(out_dir, file_str)
+ 
+    # AND DELETE ALL THIS
+    # def_fill_int = -9999
+    # def_fill_flt = -9999.0
+    # epoch_time        = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
+    # file_str = 'mos{}.{}.{}.{}.{}.nc'.format(short_name,curr_station,'newtest',timestep,date.strftime('%Y%m%d.%H%M%S'))
+    # lev2_name  = '{}/{}'.format('./', file_str)
+    # nan = np.nan
 
     global_atts = define_global_atts(curr_station, "level2") # global atts for level 1 and level 2
     netcdf_lev2 = Dataset(lev2_name, 'w')# format='NETCDF4_CLASSIC')
@@ -1689,56 +1824,73 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
         netcdf_lev2.setncattr(att_name, att_val)
 
     # put turbulence and 'slow' data together
-    if isinstance(turb_vars, type(pd.DataFrame())):
+    if isinstance(turb_data, type(pd.DataFrame())):
         turb_atts, turb_cols = define_turb_variables()
-    else: turb_atts = {}
+        qc_atts, qc_cols = define_qc_variables(include_turb=True)
+    else:
+        qc_atts, qc_cols = define_qc_variables()
+        turb_atts = {}
+
+    l2_atts.update(qc_atts) # combine qc atts/vars now
+    l2_cols = l2_cols+qc_cols
 
     write_data_list = []
-    verboseprint(f"... resampling to {timestep} for write")
     fstr = '{}T'.format(timestep.rstrip("min"))
     
     if timestep != "1min":
 
-        # resample variables at specified timestep
-        for ivar, var_name in enumerate(l2_cols):
-            try: 
-                write_data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average))
-            except Exception as e: 
-                print(f"{e} !!! oops ugh")
-                write_data_list.append(pd.Series(np.nan, name=var_name))
-        write_data = pd.concat(write_data_list, axis=1)
-        write_data = write_data[date:tomorrow]
-
         # we also need freq. dim for some turbulence vars and fix some object-oriented confusion
-        if not turb_vars.empty:
-            for var_name, var_atts in turb_atts.items(): 
-                # seriously python, seriously????
-                if turb_vars[var_name].isnull().all():
-                    if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
-                        turb_vars[var_name] = np.float64(turb_vars[var_name])     
-                elif turb_vars[var_name][0].size > 1:
-                    if turb_vars[var_name][0].dtype == object: # happens when all fast data is missing...
-                        turb_vars[var_name] = np.float64(turb_vars[var_name])
-                else:         
-                    if turb_vars[var_name].dtype == object: # happens when all fast data is missing...
-                        turb_vars[var_name] = np.float64(turb_vars[var_name])
+        # this loop effectively exists to normalize data in a way that the netcdf4 library 
+        # can easily write them out, clean up weird dtypes==object, multi dimensional
+        # missing data (time, freq) for turbulence calcultations, etc etc etc   
+        first_exception = True
+        for var_name, var_atts in turb_atts.items(): 
+            try: turb_data[var_name]
+            except KeyError as ke: 
+                if var_name.split("_")[-1] == 'qc': continue; do_nothing = True # we don't fill in all qc variables yet
+                else: raise 
+                
+            chosen_index = 0 # pick first time point to find the number of frequency datapoints written
 
-                # create variable, # dtype inferred from data file via pandas
-                if 'fs' in var_name:
-                    netcdf_lev2.createDimension('freq', turb_vars[var_name][0].size)   
+            if turb_data[var_name].isna().all() or type(turb_data[var_name][chosen_index]) == type(float()):
+                turb_data[var_name] = np.float64(turb_data[var_name])
+
+            # this is weird and should only every happen if there was all nans in the fast data
+            elif turb_data[var_name][chosen_index].dtype != np.dtype('float64') and turb_data[var_name][chosen_index].len > 1:
+
+                if first_exception:
+                    print(f"... something was strange about the fast data on {date} {ae}"); first_exception = False
+
+                max_size = 0 
+                for i in turb_data.index: 
+                    try:
+                        this_size = turb_data[var_name][i].size
+                        if this_size > max_size:
+                            max_size = this_size
+                            chosen_index = i
+                    except: do_nothing = True
+
+                for i in turb_data.index: 
+                    try: this_size = turb_data[var_name][i].size
+                    except: 
+                        turb_data[var_name][i] = pd.Series([nan]*max_size)
+
+            # create variable, # dtype inferred from data file via pandas
+            if 'fs' in var_name:
+                netcdf_lev2.createDimension('freq', turb_data[var_name][chosen_index].size)   
  
-    else: write_data = l2_data #no turbulence data
+    write_data = l2_data # vestigial, like many things
 
     # unlimited dimension to show that time is split over multiple files (makes dealing with data easier)
     netcdf_lev2.createDimension('time', None)
 
-    dti = pd.DatetimeIndex(l2_data.index.values)
+    dti = pd.DatetimeIndex(write_data.index.values)
     fstr = '{}T'.format(timestep.rstrip("min"))
     if timestep != "1min":
         dti = pd.date_range(date, tomorrow, freq=fstr)
 
     try:
-        fms = l2_data.index[0]
+        fms = write_data.index[0]
     except Exception as e:
         print("... something went really wrong with the indexing")
         print("... the code doesn't handle that currently")
@@ -1800,38 +1952,49 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
 
     for var_name, var_atts in l2_atts.items():
 
-        var_dtype = l2_data[var_name].dtype
-        perc_miss = fl.perc_missing(l2_data[var_name])
+        try: var_dtype = write_data[var_name].dtype
+        except: 
+            print(f"NOT WRITING VARIABLE {var_name} for {date} —— it didn't exist")
+            continue
 
-        if fl.column_is_ints(l2_data[var_name]):
+        perc_miss = fl.perc_missing(write_data[var_name])
+
+        if fl.column_is_ints(write_data[var_name]):
             var_dtype = np.int32
             fill_val  = def_fill_int
-            var_tmp = l2_data[var_name].values.astype(np.int32)
+            var_tmp = write_data[var_name].values.astype(np.int32)
         else:
             fill_val  = def_fill_flt
-            var_tmp = l2_data[var_name].values.astype(np.int32)
+            var_tmp = write_data[var_name].values.astype(np.int32)
 
         # all qc flags set to -1 for when corresponding variables are missing data
         try:
             if var_name.split('_')[-1] == 'qc':
                 fill_val = np.int32(-1)
-                l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+                write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
         except Exception as e: print(f"!!! failed to fill in qc var: {var_name}!!!\n !!! {e}")
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+
+        # all qc flags set to -01 for when corresponding variables are missing data
+        if var_name.split('_')[-1] == 'qc':
+            fill_val = -1
+            if ('turbulence_qc' not in var_name) and ('Hl_qc' not in var_name): 
+                l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
 
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
         netcdf_lev2[var_name].setncattr('missing_value', fill_val)
 
-        if timestep != "1min":
-            vtmp = l2_data[var_name].resample(fstr, label='left').apply(fl.take_average)
-        else:
-            vtmp = l2_data[var_name]
+        vtmp = write_data[var_name]
 
-        # if timestep != '1min' and var_name =='lat':
-        #     print('single check')
-        #     dm(locals(),0)
+        max_val = np.nanmax(vtmp.values) # masked array max/min/etc
+        min_val = np.nanmin(vtmp.values)
+        avg_val = np.nanmean(vtmp.values)
+        
+        netcdf_lev2[var_name].setncattr('max_val', max_val)
+        netcdf_lev2[var_name].setncattr('min_val', min_val)
+        netcdf_lev2[var_name].setncattr('avg_val', avg_val)
 
         vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp.values
@@ -1840,15 +2003,17 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
         netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
 
     # loop over all the data_out variables and save them to the netcdf along with their atts, etc
+    ivar=0
     for var_name, var_atts in turb_atts.items():
-        if not turb_vars.empty: 
+        ivar+=1
+        if not turb_data.empty: 
             # create variable, # dtype inferred from data file via pandas
-            var_dtype = turb_vars[var_name][0].dtype
-            if turb_vars[var_name][0].size == 1:
+            var_dtype = turb_data[var_name][0].dtype
+            if turb_data[var_name][0].size == 1:
                 var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
 
                 # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
-                td = turb_vars[var_name].resample(fstr, label='left').apply(fl.take_average)
+                td = turb_data[var_name]
                 td.fillna(def_fill_flt, inplace=True)
                 var_turb[:] = td.values
 
@@ -1856,35 +2021,19 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
                 if 'fs' in var_name:  
                     var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('freq'))
                     # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
-                    td = turb_vars[var_name][0]
+                    td = turb_data[var_name][0]
                     td.fillna(def_fill_flt, inplace=True)
                     var_turb[:] = td.values
                 else:   
                     var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('time','freq'))
 
-                    tmp_df = pd.DataFrame(index=turb_vars.index)
+                    tmp_df = pd.DataFrame(index=turb_data.index)
 
+                    # replaced some sketchy code loops with functional OO calls and list comprehensions
                     # put the timeseries into a temporary DF that's a simple timeseries, not an array of 'freq'
-                    for irow, ind in enumerate(turb_vars.index):
-                        freq_arr = np.array(turb_vars[var_name][ind])
-                        for kk in range(0,len(freq_arr)):
-                            if irow == 0: tmp_df[f"{var_name}_{kk}"] = nan
-                            tmp_df[f"{var_name}_{kk}"][ind] = freq_arr[kk]
-
-                    # now actually resample it
-                    rs_list = []
-                    for col in tmp_df.columns:
-                        rs_list.append(tmp_df[col].resample(fstr, label='left').apply(fl.take_average))
-                    resamped_df = pd.concat(rs_list, axis=1)
-
-                    # this is the same as before, take the resampled data and put it in an array to be written out 
-
-                    # convert resamped DataFrame to np.ndarray and pass data into
-                    # netcdf (netcdf can't handle raw pandas data). this is even stupider in multiple dime nsions
-                    tmp = np.empty([resamped_df[col].size, len(freq_arr)])
-                    for kk in range(0,len(freq_arr)):
-                        resamped_df[f"{var_name}_{kk}"].fillna(def_fill_flt, inplace=True)
-                        tmp[:,kk]=np.array(resamped_df[f"{var_name}_{kk}"])
+                    tmp_list    = [col.values for col in turb_data[var_name].values]
+                    tmp_df      = pd.DataFrame(tmp_list, index=turb_data.index).fillna(def_fill_flt)
+                    tmp         = tmp_df.to_numpy()
                     var_turb[:] = tmp         
 
         else:
@@ -1900,6 +2049,7 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_var
         netcdf_lev2[var_name].setncattr('missing_value', def_fill_flt)
 
     netcdf_lev2.close() # close and write files for today
+
     return  True
 
 def write_level2_10hz(curr_station, sonic_data, licor_data, date, out_dir):
@@ -2053,6 +2203,7 @@ def write_level2_10hz(curr_station, sonic_data, licor_data, date, out_dir):
             netcdf_10hz[var_name].setncattr('missing_value'  , fill_val)
             used_vars.append(var_name)  # all done, move on to next variable
 
+    print(f"... finished writing 10hz data for {date}")
     netcdf_10hz.close()
     return True
 

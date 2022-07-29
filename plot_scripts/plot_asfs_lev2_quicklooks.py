@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 import colorsys
 
 if '.psd.' in socket.gethostname():
-    nthreads = 64 # the twins have 64 cores, it won't hurt if we use ~30
+    nthreads = 20 # the twins have 64 cores, it won't hurt if we use ~30
 else: nthreads = 8 # if nthreads < nplots then plotting will not be threaded
 
 # need to debug something? kills multithreading to step through function calls

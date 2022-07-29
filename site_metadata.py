@@ -41,7 +41,7 @@ def metcity_metadata():
     metcity_site      = station_info(site_name=site_name)
 
     date_twr_raised = date(2019, 10, 24, 5, 30)  # instrument heights after tower raised
-
+    date_twr_raised_leg4 = date(2020, 6, 27)  # instrument heights after tower raised
     metcity_site_info = {} # holder for information to be added to station_info
     metcity_site_info['site_description'] = pd.Series(name='site_description')
     metcity_site_info['site_description'][date(2019,10,15)] = 'MOSAiC "met city" on-ice atmosphere observation station'
@@ -73,7 +73,6 @@ def metcity_metadata():
 
     # these are events that are important/relevant to data processing
     instrument_info['sonic_2m'] ['events'][date(2019,10,22,5,0)]  = 'replace 2m sonic w spare (S/N 7255)'
-    instrument_info['GPS']      ['events'][date(2019,10,24,1,0)]  = 'rotate & calibrate GPS'
     instrument_info['sonic_2m'] ['events'][date(2019,10,29,0,47)] = 'adjusted orientation of 2-m sonic clockwise'
     instrument_info['licor']    ['events'][date(2019,11,1,5,20)]  = 'lowered Licor from 6 m to 2 m'
     instrument_info['FP_a']     ['events'][date(2019,10,24,5,48)] = 'first flux plate installed'
@@ -110,7 +109,6 @@ def metcity_metadata():
     instrument_info['sensor_Rh_6m']  ['height'][date(2019,10,15,0,0)] = sensor_Rh_height_on_ground[1]
     instrument_info['sensor_Rh_10m'] ['height'][date(2019,10,15,0,0)] = sensor_Rh_height_on_ground[2]
     instrument_info['sensor_P_2m']   ['height'][date(2019,10,15,0,0)] = 1.2
-    instrument_info['GPS']           ['height'][date(2019,10,15,0,0)] = 1.0
     instrument_info['SR50']          ['height'][date(2019,10,15,0,0)] = 1.0
 
 
@@ -130,7 +128,6 @@ def metcity_metadata():
     instrument_info['sensor_Rh_6m']  ['height'][date_twr_raised] = sensor_Rh_height_raised[1]
     instrument_info['sensor_Rh_10m'] ['height'][date_twr_raised] = sensor_Rh_height_raised[2]
     instrument_info['sensor_P_2m']   ['height'][date_twr_raised] = 1.65
-    instrument_info['GPS']           ['height'][date_twr_raised] = 1.985
     instrument_info['SR50']          ['height'][date_twr_raised] = 2.0
 
     wxt_insts = ['sensor_P_mast', 'sensor_T_mast', 'sensor_Rh_mast']
@@ -155,10 +152,43 @@ def metcity_metadata():
     instrument_info['licor']['height'][date(2019,10,19,6,0)]  = 1.5  # 1) on unraised tower at 6-m height
     instrument_info['licor']['height'][date(2019,10,24,5,30)] = 5.18 # 2) on raised tower at 6-m height
     instrument_info['licor']['height'][date(2019,11,1,5,0)]   = 2.35 # 3) moved to two meters... cause it doesn't stay clean
+
+
+    # ####################################################################################
+    # leg4 height changes
+    sonic_height_raised     = (2.63, 6.23, 10.33)
+    sensor_T_height_raised  = (1.35, 5.49, 9.29)
+    sensor_Rh_height_raised = (1.06, 5.2, 9)
  
+    instrument_info['sonic_2m']      ['height'][date_twr_raised_leg4] = sonic_height_raised[0]
+    instrument_info['sonic_6m']      ['height'][date_twr_raised_leg4] = sonic_height_raised[1]
+    instrument_info['sonic_10m']     ['height'][date_twr_raised_leg4] = sonic_height_raised[2]
+    instrument_info['sensor_T_2m']   ['height'][date_twr_raised_leg4] = sensor_T_height_raised[0]
+    instrument_info['sensor_T_6m']   ['height'][date_twr_raised_leg4] = sensor_T_height_raised[1]
+    instrument_info['sensor_T_10m']  ['height'][date_twr_raised_leg4] = sensor_T_height_raised[2]
+    instrument_info['sensor_Rh_2m']  ['height'][date_twr_raised_leg4] = sensor_Rh_height_raised[0]
+    instrument_info['sensor_Rh_6m']  ['height'][date_twr_raised_leg4] = sensor_Rh_height_raised[1]
+    instrument_info['sensor_Rh_10m'] ['height'][date_twr_raised_leg4] = sensor_Rh_height_raised[2]
+    instrument_info['sensor_P_2m']   ['height'][date_twr_raised_leg4] = 1.13
+    instrument_info['SR50']          ['height'][date_twr_raised_leg4] = 1.93
+    instrument_info['licor']         ['height'][date_twr_raised_leg4] = 5.83
+
+    # leg5 height changes
+    instrument_info['sensor_T_2m']   ['height'][date(2020, 8, 27, 10, 15)] = 2.06  
+    instrument_info['sensor_Rh_2m']  ['height'][date(2020, 8, 27, 10, 15)] = 1.77  
+    instrument_info['sensor_P_2m']   ['height'][date(2020, 8, 27, 10, 15)] = 1.85  
+    instrument_info['sonic_2m']      ['height'][date(2020, 8, 27, 10, 15)] = 3.01  
+    instrument_info['sensor_T_6m']   ['height'][date(2020, 8, 27, 10, 15)] = 5.50  
+    instrument_info['sensor_Rh_6m']  ['height'][date(2020, 8, 27, 10, 15)] = 5.21  
+    instrument_info['sonic_6m']      ['height'][date(2020, 8, 27, 10, 15)] = 6.26  
+    instrument_info['sensor_T_10m']  ['height'][date(2020, 8, 27, 10, 15)] = 9.41  
+    instrument_info['sensor_Rh_10m'] ['height'][date(2020, 8, 27, 10, 15)] = 9.12  
+    instrument_info['sonic_10m']     ['height'][date(2020, 8, 27, 10, 15)] = 10.07 
+    instrument_info['SR50']          ['height'][date(2020, 8, 27, 10, 58)] = 2.21  
+    instrument_info['licor']         ['height'][date(2020, 8, 27, 10, 15)] = 5.91  
+
     # some copy-pastable code for the instruments
     # ###########################################
-    # instrument_info['GPS']['height'][date()]
     # instrument_info['SR50']['height'][date()]
     # instrument_info['IRT']['height'][date()]
     # instrument_info['SPC_sfc']['height'][date()]
@@ -200,7 +230,6 @@ def  get_metcity_var_map():
     main program, only separated for clarity.
 
      List of sensor names defined below for met city:
-    'GPS'
     'SR50'
     'IRT'
     'SPC_sfc'
@@ -221,7 +250,6 @@ def  get_metcity_var_map():
     'sensor_P_6m'
     'sensor_P_10m'
     'sensor_P_mast'
-
     
     Returns
     -------
@@ -237,7 +265,7 @@ def  get_metcity_var_map():
     multilev_instr_list = ['sonic', 'sensor_T', 'sensor_Rh', 'sensor_P']
 
     # individual  instruments, not at all levels
-    instr_list      = ['GPS', 'SR50', 'IRT', 'SPC_sfc', 'SPC_10m', 'licor'] 
+    instr_list      = ['SR50', 'IRT', 'SPC_sfc', 'SPC_10m', 'licor'] 
 
     # now lets map instruments to the vars they measure, so each var gets a height as necessary
     # when the actual file writing is done in main() 
@@ -252,7 +280,6 @@ def  get_metcity_var_map():
         'sensor_T'  : ['temp'], 
         'sensor_Rh' : ['rh', 'rhi'],
         'sensor_P'  : ['atmos_pressure'], 
-        'GPS'       : ['lat_tower', 'lon_tower'], 
         'SR50'      : ['sr50_dist', 'snow_depth'], 
         'IRT'       : ['brightness_temp_surface', 'skin_temp_surface'] , 
         'FP_a'      : [''], 

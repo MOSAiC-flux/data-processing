@@ -168,7 +168,7 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks/tower/2_level/windsqc/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks/tower/2_level/finalqc/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 
@@ -189,10 +189,11 @@ def main(): # the main data crunching program
     df['radiation_LWnet'] = df['down_long_hemisp']-df['up_long_hemisp']
     df['radiation_SWnet'] = df['down_short_hemisp']-df['up_short_hemisp']
     df['net_radiation']   = df['radiation_LWnet'] + df['radiation_SWnet'] 
-
     l2_atts, l2_cols = define_level2_variables()
     turb_atts, turb_cols = define_turb_variables()
 
+    l2_atts['net_radiation'] = {}
+    l2_atts['net_radiation'] ['units'] = 'W/m2'
     l2_atts = {**l2_atts, **turb_atts}
     unit_dict = {}
     for plot_name, plot_dict in var_dict.items():
