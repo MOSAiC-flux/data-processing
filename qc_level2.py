@@ -288,7 +288,7 @@ def qc_flagging(data_frame, table_file, var_names):
                 for v in lookup_table[special_key]: 
                     data_frame[v].loc[row['start_date']:row['end_date']] = row['qc_val']
             else:
-                print(f"!!! problem with entry in manual QC table for var {var_to_qc} at row {irow}!!!")
+                print(f"!!! problem with entry in manual QC table for {table_file} for var {var_to_qc} at row {irow}!!!")
                 print(f"{row}")
                 print("==========================================================================================")
                 print("Python traceback: \n\n")
@@ -334,7 +334,7 @@ def get_qc_table(table_file):
     mqc['start_date'] = mqc['start_date'].apply(custom_date_parser)
     mqc['end_date']   = mqc['end_date'].apply(custom_date_parser)
 
-    drop_rows = (mqc['start_date'].isna() | mqc['end_date'].isna())
+    drop_rows = (mqc['start_date'].isna() | mqc['end_date'].isna() | mqc['qc_val'].isna())
     if len(mqc[drop_rows]) > 0:
         print(mqc[drop_rows])
         print(f"\n\n DROPPING THE FOLLOWING QC ROWS DUE TO BAD TIME FORMATTING:\n")

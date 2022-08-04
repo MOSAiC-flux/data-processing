@@ -29,8 +29,6 @@ import scipy  as sp
 from datetime import datetime, timedelta
 from scipy    import signal
 
-#global Geod
-
 global nan; nan = np.NaN
 
 # despiker
@@ -595,7 +593,8 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
         return turbulence_data
 
     # Reject the series of more than 50% of u- or v- or w-wind speed component are nan
-    if sum(U.isna()) > np.floor((npt/2)-2) or sum(V.isna()) > np.floor((npt/2)-2) or sum(W.isna()) > np.floor((npt/2)-2) or sum(T.isna()) > np.floor((npt/2)-2):
+
+    if sum(U.isna()) >= np.floor((npt/2)-2) or sum(V.isna()) >= np.floor((npt/2)-2) or sum(W.isna()) >= np.floor((npt/2)-2) or sum(T.isna()) >= np.floor((npt/2)-2):
         # give the cols unique names (for netcdf later), give it a row of nans, and kick it back to the main
         # !! what is the difference betwee dataframe keys and columns? baffled. just change them both.
         turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
@@ -603,7 +602,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
         turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])       
         return turbulence_data
         verboseprint('  No valid data for sonic at height (>50% missing)  '+np.str(z_level_n))
-        
+
     # Specical case for Licor. If the licor has inssufficient data, we still want to run the code for Hs so we will
     # set licor to -9999 so that nan-sensitive operations can complete then return it to nan at the end of the code
     licor_missing = 0 # assume licor data is suffcient

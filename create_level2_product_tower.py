@@ -63,7 +63,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 8  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 24  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8  # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -873,8 +873,9 @@ def main(): # the main data crunching program
         # Get the bearing on the ship... load the ship track and reindex to slow_data, calculate distance
         # [m] and bearing [deg from tower rel to true north, as wind direction]
         sdf = ship_df[today:tomorrow]
-        sd['ship_distance'] = fl.distance_wgs84(sd['lat_tower'],sd['lon_tower'], sdf['lat'],sdf['lon'])*1000
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat_tower'],sd['lon_tower'], sdf['lat'],sdf['lon'])/1000
         sd['ship_bearing']  = fl.calculate_initial_angle_wgs84(sd['lat_tower'], sd['lon_tower'], sdf['lat'], sdf['lon']) 
+        sd['ship_bearing'] = np.mod(sd['ship_bearing'], 360)
 
         sd['ship_distance'].mask( (sd['ship_distance']>700), inplace=True)
 
@@ -1286,7 +1287,7 @@ def main(): # the main data crunching program
                         logger_today['heading_tower'].fillna(value=291.3) # the tower frame of reference will be persisted back from when it was first raised
 
                     if (datetime(2020,6,27,9,20) < today < datetime(2020,7,29,8,30)) and inst == 'metek_6m': 
-                        th = th - 7.4 # adjust tower heading for only six meter metek on leg 4
+                        th = th + 7.4 # adjust tower heading for only six meter metek on leg 4
                         th = np.mod(th, 360) # ? necessary? or tilt_rotation() take care of this?
 
                     ct_u, ct_v, ct_w = fl.tilt_rotation(fast_data_10hz[inst] [inst+'_incy'],
@@ -1766,7 +1767,7 @@ def main(): # the main data crunching program
         try: l2_data = pd.concat([logger_1min, stats_data], axis=1)
         except UnboundLocalError: l2_data = logger_1min # there was no fast data, rare
 
-        # run qc on wind sector for 1 minute data 
+        # run qc on wind sector for 1 minute data
         onemin_data = qc_tower_winds(l2_data.copy(), ship_df[today:tomorrow]) # ship_df necessary for calculating ship->mast vector
 
         # write out all the hard work that we've done at native resolution

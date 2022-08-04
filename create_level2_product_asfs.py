@@ -79,7 +79,7 @@ import os, inspect, argparse, time, sys, socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 64  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 24  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 2 # laptops don't tend to have 64 cores
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
@@ -684,10 +684,12 @@ def main(): # the main data crunching program
                   
         # Get the bearing on the ship
         ship_df = ship_df.reindex(sd.index)
-        sd['ship_distance'] = fl.distance_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])*1000
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])/1000
         sd['ship_bearing']  = fl.calculate_initial_angle_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])
+        sd['ship_bearing']  = np.mod(sd['ship_bearing'], 360)
         sd['ship_distance'] = fl.despike(sd['ship_distance'],2,15,'yes')   # tiny spikes in lat/lon resulting in 
         sd['ship_bearing']  = fl.despike(sd['ship_bearing'],0.02,15,'yes') # spikes of ~5 m in distance, so despike
+
 
         return (sd, True)
 
@@ -1619,6 +1621,7 @@ def main(): # the main data crunching program
                     import sys
                     exc = traceback.format_exc()
                     failed_days[curr_station].append((day,exc))
+                    df_tuple_list= None
 
                 if type(df_tuple_list) != type([]): 
                     failed_days[curr_station].append((day,f"failed for undetermined reason, look at log {df_tuple_list}"))
