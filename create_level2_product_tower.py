@@ -873,10 +873,8 @@ def main(): # the main data crunching program
         # Get the bearing on the ship... load the ship track and reindex to slow_data, calculate distance
         # [m] and bearing [deg from tower rel to true north, as wind direction]
         sdf = ship_df[today:tomorrow]
-        sd['ship_distance'] = fl.distance_wgs84(sd['lat_tower'],sd['lon_tower'], sdf['lat'],sdf['lon'])/1000
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat_tower'],sd['lon_tower'], sdf['lat'],sdf['lon'])
         sd['ship_bearing']  = fl.calculate_initial_angle_wgs84(sd['lat_tower'], sd['lon_tower'], sdf['lat'], sdf['lon']) 
-        sd['ship_bearing'] = np.mod(sd['ship_bearing'], 360)
-
         sd['ship_distance'].mask( (sd['ship_distance']>700), inplace=True)
 
         # something breaks in the trig model briefly. its weird. i'll just screen it out

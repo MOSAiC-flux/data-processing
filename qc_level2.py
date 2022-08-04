@@ -164,13 +164,12 @@ def qc_tower_winds(tower_data, ship_data):
 
             if dt(2020,3,12) <= tower_data.index[0] <= dt(2020, 5, 10):
 
+                ship_distance = fl.distance_wgs84(tower_data['lat_mast'], tower_data['lon_mast'],
+                                                  ship_data['lat'], ship_data['lon'])
 
-                ship_distance = fl.distance(tower_data['lat_mast'], tower_data['lon_mast'],
-                                            ship_data['lat'], ship_data['lon'])*1000
-
-                ship_bearing = fl.calculate_initial_angle(tower_data['lat_mast'], tower_data['lon_mast'],
-                                                          ship_data['lat'],ship_data['lon']) 
-
+                ship_bearing = fl.calculate_initial_angle_wgs84(tower_data['lat_mast'], tower_data['lon_mast'],
+                                                                ship_data['lat'],ship_data['lon']) 
+ 
         ship_relative[h] = np.abs(tower_data[f'wdir_vec_mean_{h}'] - ship_bearing)
         values_caution_ship = (ship_relative[h]>360-qc_window) | (ship_relative[h]<qc_window)
         tower_data.loc[values_caution_ship, f'wind_sector_qc_info_{h}'] = 10

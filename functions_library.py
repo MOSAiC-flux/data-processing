@@ -4,27 +4,37 @@
 #
 # The following functions are defined here (in this order):
 #
-#       def despike(spikey_panda, thresh, filterlen):                                                        
-#       def calculate_metek_ws_wd(data_dates, u, v, hdg_data): # tower heading data is 1s, metek data is 1m  
-#       def calc_humidity_ptu300(RHw, temp, press, Td):                                                      
-#       def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):                                    
-#       def decode_licor_diag(raw_diag):                                                                     
-#       def get_ct(licor_db):                                                                                
-#       def get_dt(licor_db):                                                                                
-#       def get_pll(licor_db):                                                                               
-#       def take_average(array_like_thing, **kwargs):                                                        
-#       def num_missing(series):                                                                             
-#       def perc_missing(series):                                                                            
-#       def column_is_ints(ser):                                                                             
-#       def warn(string):                                                                                    
-#       def fatal(string):                                                                                   
-#       def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
+# def despike(spikey_panda, thresh, filterlen, medfill):
+# def calc_humidity_ptu300(RHw, temp, press, Td):
+# def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
+# def distance_wgs84(latA,lonA,latB,lonB):
+# def calculate_initial_angle(latA,lonA, latB, lonB):
+# def distance(lat1, lon1, lat2, lon2):
+# def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
+# def decode_licor_diag(raw_diag):
+# def get_ct(licor_db):
+# def get_dt(licor_db):
+# def get_pll(licor_db):
+# def take_average(array_like_thing, **kwargs):
+# def take_vector_average(array_like_thing, **kwargs):
+# def warn(string):
+# def fatal(string):
+# def num_missing(series):
+# def perc_missing(series):
+# def column_is_ints(ser): 
+# def despik(uraw):
+# def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, mr, verbose=False):
+# def dstr(date):
+# def cor_ice_A10(bulk_input):
+# def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
+# def tilt_corr(df,diff):
+# def interpolate_nans_vectorized(arr):
+# def average_mosaic_flags(qc_series, fstr):
 #
 # ############################################################################################
 import pandas as pd
 import numpy  as np
 import scipy  as sp
-
 
 from datetime import datetime, timedelta
 from scipy    import signal
@@ -112,7 +122,7 @@ def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
     g = Geod(ellps='WGS84')
     az12,az21,dist = g.inv(lonA,latA,lonB,latB)
     compass_bearing = az12
-    return compass_bearing
+    return np.mod(compass_bearing, 360)
   
 def distance_wgs84(latA,lonA,latB,lonB):
     
@@ -123,8 +133,6 @@ def distance_wgs84(latA,lonA,latB,lonB):
     az12,az21,dist = g.inv(lonA,latA,lonB,latB)
     d = dist
     return d
-      
-
 
 def calculate_initial_angle(latA,lonA, latB, lonB):
 

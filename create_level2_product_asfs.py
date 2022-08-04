@@ -684,12 +684,10 @@ def main(): # the main data crunching program
                   
         # Get the bearing on the ship
         ship_df = ship_df.reindex(sd.index)
-        sd['ship_distance'] = fl.distance_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])/1000
+        sd['ship_distance'] = fl.distance_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])
         sd['ship_bearing']  = fl.calculate_initial_angle_wgs84(sd['lat'],sd['lon'],ship_df['lat'],ship_df['lon'])
-        sd['ship_bearing']  = np.mod(sd['ship_bearing'], 360)
         sd['ship_distance'] = fl.despike(sd['ship_distance'],2,15,'yes')   # tiny spikes in lat/lon resulting in 
         sd['ship_bearing']  = fl.despike(sd['ship_bearing'],0.02,15,'yes') # spikes of ~5 m in distance, so despike
-
 
         return (sd, True)
 
