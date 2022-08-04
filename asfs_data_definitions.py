@@ -12,7 +12,7 @@
 #
 # ############################################################################################
 
-import time
+import time, os
 import numpy as np
 
 # some of the 'create' code assumes that the first entry in the
@@ -22,7 +22,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['3.0', '2/14/2022', 'mgallagher']
+    cv = ['4.0', '8/1/2022', 'mgallagher']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -33,46 +33,65 @@ def define_global_atts(station_name, file_type):
     if station_name == 'asfs40' : doi = 'https://doi.org/10.18739/A2CJ87M7G'
     if station_name == 'asfs50' : doi = 'https://doi.org/10.18739/A2445HD46'
 
-    # global attributes to be written into the netcdf output file
-    global_atts = {
+    global_atts = {                # attributes to be written into the netcdf output file
         'date_created'     :'{}'.format(time.ctime(time.time())),
-        'title'            :'MOSAiC flux group data product: ', # blank variables are specific to site characterization 
+        'title'            :'MOSAiC flux group data product', # blank variables are specific to site characterization 
         'contact'          :'Matthew Shupe, University of Colorado, matthew.shupe@colorado.edu',
         'institution'      :'CIRES, University of Colorado and NOAA Physical Sciences Laboratory',
-        'file_creator'     :'Christopher J. Cox; Michael R. Gallagher',
+        'file_creator'     :'Michael R. Gallagher; Christopher J. Cox',
         'creator_email'    :'michael.r.gallagher@noaa.gov; christopher.j.cox@noaa.gov', 
         'project'          :'Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
-        'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Arctic Research Program',
-        'source'           :'Observations made during the MOSAiC drifting campaign, 2019-2020', 
+        'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program',
+        'source'           :'Observations made during the Multidisciplinary drifting Observatory for the Study of Arctic Climate (MOSAiC 2019-2020) expedition PS-122',
         'system'           :'{}'.format(station_name),
-        'references'       :'', 
+        'references'       :'Cox, C. J., M. R. Gallagher, M. D. Shupe, P. O. G. Persson, A. Solomon, C. W. Fairall, T. Ayers, B. Blomquist I. M. Brooks, D. Costa, A. Grachev, D. Gottas, J. K. Hutchings, M. Kutchenreiter, J. Leach, S. M. Morris, V. Morris, J. Osborn, S. Pezoa, A. Preußer, L. D. Riihimaki, T. Uttal, 2022: Continuous observations of the surface energy budget and meteorology over the Arctic sea ice during MOSAiC. Scientific Data', 
+        'reference_doi'    : '', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
         'history'          :'based on raw instrument data files',
         'version'          : cv[0]+', '+cv[1], 
-        'doi'              : doi,
     }
-
+    # Some specifics for the tubulence file
     if file_type == "slow":
         global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
     elif file_type == "fast":
-        global_atts['quality_control']  = 'This "Level 1" product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
+        global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
     elif file_type == "level2":
-        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use it this data for any analyses.'
-        global_atts['qc_flags'] = "-1 = No Data: Instrument was not functional and no data exists.    0 = Good: High certainty that data is accurate to within the expected measurement uncertainty.    1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.    2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.    3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed."
+        global_atts['wind_sector_qc_info_flag']  = 'Quality control flags specifically for wind sectors as related to derived turbulence products. This flag indicates if the prevailing wind direction is under the influence of certain obstacles on the sea ice.  The flags are defined as follows:'+os.linesep+\
+            '- 10: In Polarstern sector (i.e. Caution)'+os.linesep+\
+            '- 11: In Polarstern sector and in footprint (i.e., Bad)'+os.linesep+\
+            '- 12: In Polarstern sector and above sig2/ustar threshold (i.e. Bad)'+os.linesep+\
+            '- 20: In Met Hut sector (i.e. Caution)'+os.linesep+\
+            '- 21: In Met Hut sector and in footprint (i.e., Bad)'+os.linesep+\
+            '- 22: In Met Hut sector and above sig2/ustar threshold (i.e. Bad)'+os.linesep+\
+            '- 30: In Tower sector (i.e. Caution)'+os.linesep+\
+            '- 31: In Tower sector and in footprint (i.e., Bad)'+os.linesep+\
+            '- 32: In Tower sector and above sig2/ustar threshold (i.e. Bad)'+os.linesep+\
+            '- 40: Other issue'
 
-    elif file_type == "10hz":
+        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please use Level 3 data unless you have a specific reason to use Level 2.'
+        global_atts['qc_flags'] = '-1 = No Data: Instrument was not functional and no data exists.'+os.linesep+\
+            '0 = Good: High certainty that data is accurate to within the expected measurement uncertainty.'+os.linesep+\
+            '1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.'+os.linesep+\
+            '2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.'+os.linesep+\
+            '3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed.'
+
+    elif file_type == "`10hz`":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
+        global_atts['Funding']          = 'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program'
 
     elif file_type == "turb":  # some specifics for the tubulence file
         global_atts['quality_control']  = 'The source data measured at 20 Hz was quality controlled. Variables relevant for quality control of the derived quantities supplied in this file are also supplied, but the derived quantities themselves are NOT quality-controlled.',
+        global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
         global_atts['methods']          = 'Code developed from routines used by NOAA ETL/PSD3. Original code read_sonic_hr was written by Chris Fairall and later adopted by Andrey Grachev as read_sonic_10Hz_1hr_Tiksi_2012_9m_v2.m, read_sonic_hr_10.m, read_Eureka_sonic_0_hr_2009_egu.m, read_sonic_20Hz_05hr_Materhorn2012_es2',
+        global_atts['file_creator']     = 'Michael R. Gallagher; Christopher J. Cox',
         global_atts['references']       = 'Grachev et al. (2013), BLM, 147(1), 51-82, doi 10.1007/s10546-012-9771-0; Grachev et al. (2008) Acta Geophysica. 56(1): 142-166; J.C. Kaimal & J.J. Finnigan "Atmospheric Boundary Layer Flows" (1994)',
         global_atts['acknowledgements'] = 'Dr. Andrey Grachev (CIRES), Dr. Chris Fairall (NOAA), Dr. Ludovic Bariteau (CIRES)'
 
-    return OrderedDict(global_atts)
+    return OrderedDict(global_atts) 
+
 
 # we are reading SD card data, which was usually saved without headers, but the headers occasionally change when logger programs are modified. it is what it is...
 # the good news is that there are only a dozen or so permutations, so we can just store them here
@@ -988,14 +1007,14 @@ def define_level2_variables():
                                                 'height'        : boom_height,
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['zenith_apparent']       .update({'long_name'     : 'estimated apprarent solar zenith angle due to atmospheric refraction',
+    lev2_atts['zenith_apparent']       .update({'long_name'     : 'estimated apparent solar zenith angle due to atmospheric refraction',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
                                                 'height'        : boom_height,
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['azimuth']               .update({'long_name'     : 'apprarent solar azimuth angle',
+    lev2_atts['azimuth']               .update({'long_name'     : 'apparent solar azimuth angle',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Hemisphere V102',
                                                 'methods'       : 'Reda and Andreas, Solar position algorithm for solar radiation applications. Solar Energy, vol. 76, no. 5, pp. 577-589, 2004.',
@@ -1039,7 +1058,7 @@ def define_level2_variables():
 
     lev2_atts['temp']                  .update({'long_name'     : 'air temperature',
                                                 'cf_name'       : 'air_temperature',
-                                                'instrument'    : 'Vaisala HMT330',
+                                                'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'digitally polled from instument',
                                                 'height'        : boom_height,
                                                 'location'      : inst_boom_location_string,})
@@ -1082,13 +1101,13 @@ def define_level2_variables():
     lev2_atts['brightness_temp_surface'] .update({'long_name'   : 'sensor target 8-14 micron brightness temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Apogee SI-4H1-SS IRT',
-                                                'methods'       : 'digitally polled from instument. No emmisivity correction. No correction for reflected incident.',
+                                                'methods'       : 'digitally polled from instument. No emisivity correction. No correction for reflected incident.',
                                                 'height'        : 'surface',
                                                 'location'      : inst_boom_location_string,})
 
-    lev2_atts['skin_temp_surface']      .update({'long_name'    : 'surface radiometric skin temperature assummed emissivity, corrected for IR reflection',
+    lev2_atts['skin_temp_surface']      .update({'long_name'    : 'surface radiometric skin temperature, assummed emissivity, corrected for IR reflection',
                                                 'cf_name'       : '',
-                                                'instrument'    : 'Apogee SI-4H1-SS IRT, IR20 LWu, LWd',
+                                                'instrument'    : 'IR20 LWu, LWd',
                                                 'methods'       : 'Eq.(2.2) Persson et al. (2002) https://www.doi.org/10.1029/2000JC000705; emis = 0.985',
                                                 'height'        : 'surface',
                                                 'location'      : inst_boom_location_string,})
@@ -1245,7 +1264,7 @@ def define_qc_variables(include_turb=False):
     qc_atts['up_long_hemisp_qc']          = {'long_name' :'QC flag integer indicating data quality'}
     qc_atts['up_short_hemisp_qc']         = {'long_name' :'QC flag integer indicating data quality'}
 
-    qc_atts['wind_sector_qc_info']     = {'long_name' : 'QC flag integer indicating wind sector specifics'}    
+    qc_atts['wind_sector_qc_info']     = {'long_name' : 'QC flag integer indicating wind sector interference conditions'}    
     qc_atts['wind_sector_qc_info'].update({'comment': 'See global attributes for wind qc specifics.'})
 
     qc_atts['lat_qc']                     .update({'comment': 'See global attributes for qc flag definitions.'})
@@ -1282,7 +1301,7 @@ def define_qc_variables(include_turb=False):
     qc_atts['up_short_hemisp_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
 
     if include_turb:
-        qc_atts['turbulence_qc'] = {'long_name' : 'QC flag integer indicating data quality'}    
+        qc_atts['turbulence_qc'] = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}    
         qc_atts['turbulence_qc'].update({'comment': 'See global attributes for qc flag definitions.'})
 
     return qc_atts, list(qc_atts.keys()).copy() 
@@ -1398,35 +1417,35 @@ def define_turb_variables():
     turb_atts['Hs']              .update({'long_name'  : 'sensible heat flux',
                                           'cf_name'    : 'upward_sensible_heat_flux_in_air',
                                           'instrument' : 'Metek uSonic-Cage MP sonic anemometer',
-                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
     turb_atts['Hl']              .update({'long_name'  : 'latent heat flux',
                                           'cf_name'    : 'upward_latent_heat_flux_in_air',
                                           'instrument' : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
     turb_atts['Hl_Webb']         .update({'long_name'  : 'Webb density correction for the latent heat flux',
                                           'cf_name'    : '',
                                           'instrument' : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
                                           'height'     : sonic_height,
                                           'location'   : inst_mast_location_string,})
 
     turb_atts['CO2_flux']        .update({'long_name'  : 'co2 mass flux',
                                           'cf_name'    : '',
                                           'instrument' : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 
     turb_atts['CO2_flux_Webb']    .update({'long_name'  : 'Webb density correction for the co2 mass flux',
                                           'cf_name'    : '',
                                           'instrument' : 'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                          'methods'    : 'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
                                           'height'     : licor_height,
                                           'location'   : inst_mast_location_string,})
 

@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['3.0', '2/14/2022', 'mgallagher']
+    cv = ['4.0', '8/1/2022', 'mgallagher']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -61,8 +61,12 @@ def define_global_atts(file_type):
             '- 32: In Tower sector and above sig2/ustar threshold (i.e. Bad)'+os.linesep+\
             '- 40: Other issue'
 
-        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please have discussions with the authors about what this means if you would like to use this data for any analyses.'
-        global_atts['qc_flags'] = "-1 = No Data: Instrument was not functional and no data exists.    0 = Good: High certainty that data is accurate to within the expected measurement uncertainty.    1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.    2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.    3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed."
+        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please use Level 3 data unless you have a specific reason to use Level 2.'
+        global_atts['qc_flags'] = '-1 = No Data: Instrument was not functional and no data exists.'+os.linesep+\
+            '0 = Good: High certainty that data is accurate to within the expected measurement uncertainty.'+os.linesep+\
+            '1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.'+os.linesep+\
+            '2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.'+os.linesep+\
+            '3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed.'
 
     elif file_type == "`10hz`":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
@@ -70,6 +74,8 @@ def define_global_atts(file_type):
 
     elif file_type == "turb":  # some specifics for the tubulence file
         global_atts['quality_control']  = 'The source data measured at 20 Hz was quality controlled. Variables relevant for quality control of the derived quantities supplied in this file are also supplied, but the derived quantities themselves are NOT quality-controlled.',
+        global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
+
         global_atts['methods']          = 'Code developed from routines used by NOAA ETL/PSD3. Original code read_sonic_hr was written by Chris Fairall and later adopted by Andrey Grachev as read_sonic_10Hz_1hr_Tiksi_2012_9m_v2.m, read_sonic_hr_10.m, read_Eureka_sonic_0_hr_2009_egu.m, read_sonic_20Hz_05hr_Materhorn2012_es2',
         global_atts['file_creator']     = 'Michael R. Gallagher; Christopher J. Cox',
         global_atts['references']       = 'Grachev et al. (2013), BLM, 147(1), 51-82, doi 10.1007/s10546-012-9771-0; Grachev et al. (2008) Acta Geophysica. 56(1): 142-166; J.C. Kaimal & J.J. Finnigan "Atmospheric Boundary Layer Flows" (1994)',
@@ -231,7 +237,7 @@ def define_level1_slow():
 
     lev1_slow_atts['apogee_targ_T']      .update({'long_name'  : 'sensor target 8-14 micron brightness temperature',
                                                   'instrument' : 'Apogee SI-4H1-SS IRT',
-                                                  'methods'    : 'digitally polled from instument. No emmisivity correction. No correction for reflected incident.',
+                                                  'methods'    : 'digitally polled from instument. No emisivity correction. No correction for reflected incident.',
                                                   'height'     : 'surface',
                                                   'location'   : bottom_location_string,})
 
@@ -982,7 +988,7 @@ def define_level2_variables():
                                                       'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : flux_funding,})
     
-    lev2_atts['zenith_apparent']         .update({    'long_name'                              :'estimated apprarent solar zenith angle due to atmospheric refraction',
+    lev2_atts['zenith_apparent']         .update({    'long_name'                              :'estimated apparent solar zenith angle due to atmospheric refraction',
                                                       'cf_name'                                :'',
                                                       'qc_varname'                             :'Corresponding quality control variable is "zenith_apparent_qc"',
                                                       'instrument'                             :'Hemisphere V102',
@@ -994,7 +1000,7 @@ def define_level2_variables():
                                                       'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : flux_funding,})
     
-    lev2_atts['azimuth']                 .update({    'long_name'                              :'apprarent solar azimuth angle',
+    lev2_atts['azimuth']                 .update({    'long_name'                              :'apparent solar azimuth angle',
                                                       'cf_name'                                :'',
                                                       'qc_varname'                             :'Corresponding quality control variable is "azimuth_qc"',
                                                       'instrument'                             :'Hemisphere V102',
@@ -1870,7 +1876,7 @@ def define_level2_variables():
                                                       'location'                               : mast_location_string,}) 
  
 
-    lev2_atts['skin_temp_surface']       .update({    'long_name'                              :'surface radiometric skin temperature assummed emissivity, corrected for IR reflection',
+    lev2_atts['skin_temp_surface']       .update({    'long_name'                              :'surface radiometric skin temperature, assummed emissivity, corrected for IR reflection',
                                                       'cf_name'                                :'',
                                                       'qc_varname'                             :'Corresponding quality control variable is "skin_temp_surface_qc"',
                                                       'instrument'                             :'PIR LWu, LWd',
@@ -1937,10 +1943,10 @@ def define_qc_variables(include_turb=False):
 
     qc_atts = OrderedDict()
 
-    qc_atts['wind_sector_qc_info_2m']     = {'long_name'                              :'QC flag integer indicating wind sector specifics'}    
-    qc_atts['wind_sector_qc_info_6m']     = {'long_name'                              :'QC flag integer indicating wind sector specifics'}    
-    qc_atts['wind_sector_qc_info_10m']    = {'long_name'                              :'QC flag integer indicating wind sector specifics'}    
-    qc_atts['wind_sector_qc_info_mast']    = {'long_name'                              :'QC flag integer indicating wind sector specifics'}    
+    qc_atts['wind_sector_qc_info_2m']     = {'long_name'                              :'QC flag integer indicating wind sector interference conditions'}    
+    qc_atts['wind_sector_qc_info_6m']     = {'long_name'                              :'QC flag integer indicating wind sector interference conditions'}    
+    qc_atts['wind_sector_qc_info_10m']    = {'long_name'                              :'QC flag integer indicating wind sector interference conditions'}    
+    qc_atts['wind_sector_qc_info_mast']    = {'long_name'                              :'QC flag integer indicating wind sector interference conditions'}    
 
 
     qc_atts['lat_tower_qc']               = {'long_name'                              :'QC flag integer indicating data quality'}    
@@ -2133,10 +2139,10 @@ def define_qc_variables(include_turb=False):
     qc_atts['up_short_hemisp_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
 
     if include_turb:
-        qc_atts['turbulence_qc_2m']   = {'long_name' : 'QC flag integer indicating data quality'}    
-        qc_atts['turbulence_qc_6m']   = {'long_name' : 'QC flag integer indicating data quality'}    
-        qc_atts['turbulence_qc_10m']  = {'long_name' : 'QC flag integer indicating data quality'}    
-        qc_atts['turbulence_qc_mast'] = {'long_name' : 'QC flag integer indicating data quality'}    
+        qc_atts['turbulence_qc_2m']   = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
+        qc_atts['turbulence_qc_6m']   = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
+        qc_atts['turbulence_qc_10m']  = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
+        qc_atts['turbulence_qc_mast'] = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
 
         qc_atts['turbulence_qc_2m']   .update({'comment': 'See global attributes for qc flag definitions.'})
         qc_atts['turbulence_qc_6m']   .update({'comment': 'See global attributes for qc flag definitions.'})
@@ -2166,8 +2172,8 @@ def define_turb_variables():
     mast_platform      = "met Mast"
     
     # data_provenance 
-    flux_slow_provenance = "Based on data from the mosflxtowerslow.level1 datastream with doi  :xxxxxxxx" 
-    flux_fast_provenance = "Based on data from the mosflxtowerfast.level1 datastream with doi  :xxxxxxxx" 
+    flux_slow_provenance = "Based on data from the mosflxtowerslow.level1 datastream with : https://doi.org/10.18739/A2VM42Z5F"
+    flux_fast_provenance = "Based on data from the mosflxtowerfast.level1 datastream with : https://doi.org/10.18739/A2VM42Z5F"
  
     # measurement_source
     flux_source      = "CIRES, University of Colorado / NOAA atmospheric surface flux team"
@@ -2409,7 +2415,7 @@ def define_turb_variables():
     turb_atts['Hs_2m']             .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2419,7 +2425,7 @@ def define_turb_variables():
     turb_atts['Hs_6m']             .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2429,7 +2435,7 @@ def define_turb_variables():
     turb_atts['Hs_10m']            .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2439,7 +2445,7 @@ def define_turb_variables():
     turb_atts['Hs_mast']           .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek USA-1 sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -2449,7 +2455,7 @@ def define_turb_variables():
     turb_atts['Hl']                .update({ 'long_name'          :'latent heat flux, defined positive upwards',
                                              'cf_name'            :'upward_latent_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2459,7 +2465,7 @@ def define_turb_variables():
     turb_atts['Hl_Webb']           .update({ 'long_name'          :'Latent heat flux with Webb density correction applied, defined positive upwards',
                                              'cf_name'            :'upward_latent_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2469,7 +2475,7 @@ def define_turb_variables():
     turb_atts['CO2_flux']          .update({ 'long_name'          :'co2 mass flux, defined positive upwards',
                                              'cf_name'            :'',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -2479,7 +2485,7 @@ def define_turb_variables():
     turb_atts['CO2_flux_Webb']     .update({ 'long_name'          :'co2 mass flux with Webb density correction applied, defined positive upwards',
                                              'cf_name'            :'',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4246,7 +4252,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})   
 
-    turb_atts['bulk_Rq']           .update({ 'long_name'          :'roughness Reylnolds numbe for humidityr',
+    turb_atts['bulk_Rq']           .update({ 'long_name'          :'roughness Reylnolds numbe for humidity',
                                              'cf_name'            :'',
                                              'instrument'         :'various',
                                              'methods'            :'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
@@ -4607,8 +4613,8 @@ def define_turb_variables():
     mast_platform      = "met Mast"
     
     # data_provenance 
-    flux_slow_provenance = "Based on data from the mosflxtowerslow.level1 datastream with doi  :xxxxxxxx" 
-    flux_fast_provenance = "Based on data from the mosflxtowerfast.level1 datastream with doi  :xxxxxxxx" 
+    flux_slow_provenance = "Based on data from the mosflxtowerslow.level1 datastream with : https://doi.org/10.18739/A2VM42Z5F"
+    flux_fast_provenance = "Based on data from the mosflxtowerfast.level1 datastream with : https://doi.org/10.18739/A2VM42Z5F"
  
     # measurement_source
     flux_source      = "CIRES, University of Colorado / NOAA atmospheric surface flux team"
@@ -4850,7 +4856,7 @@ def define_turb_variables():
     turb_atts['Hs_2m']             .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4860,7 +4866,7 @@ def define_turb_variables():
     turb_atts['Hs_6m']             .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4870,7 +4876,7 @@ def define_turb_variables():
     turb_atts['Hs_10m']            .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4880,7 +4886,7 @@ def define_turb_variables():
     turb_atts['Hs_mast']           .update({ 'long_name'          :'sensible heat flux, defined positive upwards',
                                              'cf_name'            :'upward_sensible_heat_flux_in_air',
                                              'instrument'         :'Metek USA-1 sonic anemometer',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum',
                                              'platform'           : mast_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : mast_source,
@@ -4890,7 +4896,7 @@ def define_turb_variables():
     turb_atts['Hl']                .update({ 'long_name'          :'latent heat flux, defined positive upwards',
                                              'cf_name'            :'upward_latent_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4900,7 +4906,7 @@ def define_turb_variables():
     turb_atts['Hl_Webb']           .update({ 'long_name'          :'Latent heat flux with Webb density correction applied, defined positive upwards',
                                              'cf_name'            :'upward_latent_heat_flux_in_air',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source h2o data was vapor density (g/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4910,7 +4916,7 @@ def define_turb_variables():
     turb_atts['CO2_flux']          .update({ 'long_name'          :'co2 mass flux, defined positive upwards',
                                              'cf_name'            :'',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -4920,7 +4926,7 @@ def define_turb_variables():
     turb_atts['CO2_flux_Webb']     .update({ 'long_name'          :'co2 mass flux with Webb density correction applied, defined positive upwards',
                                              'cf_name'            :'',
                                              'instrument'         :'Metek uSonic-Cage MP sonic anemometer, Licor 7500 DS',
-                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculatation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
+                                             'methods'            :'source data was 20 Hz samples averged to 10 Hz. Calculation by eddy covariance using sonic temperature based on integration of the wT-covariance spectrum. Source co2 data was co2 density (mmol/m3). No WPL correction applied.',
                                              'platform'           : tower_platform,
                                              'data_provenance'    : flux_fast_provenance,
                                              'measurement_source' : flux_source,
@@ -6687,7 +6693,7 @@ def define_turb_variables():
                                              'funding_sources'    : flux_funding,
                                              'location'           : top_location_string,})   
 
-    turb_atts['bulk_Rq']           .update({ 'long_name'          :'roughness Reylnolds numbe for humidityr',
+    turb_atts['bulk_Rq']           .update({ 'long_name'          :'roughness Reylnolds numbe for humidity',
                                              'cf_name'            :'',
                                              'instrument'         :'various',
                                              'methods'            :'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
