@@ -4,37 +4,27 @@
 #
 # The following functions are defined here (in this order):
 #
-# def despike(spikey_panda, thresh, filterlen, medfill):
-# def calc_humidity_ptu300(RHw, temp, press, Td):
-# def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
-# def distance_wgs84(latA,lonA,latB,lonB):
-# def calculate_initial_angle(latA,lonA, latB, lonB):
-# def distance(lat1, lon1, lat2, lon2):
-# def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
-# def decode_licor_diag(raw_diag):
-# def get_ct(licor_db):
-# def get_dt(licor_db):
-# def get_pll(licor_db):
-# def take_average(array_like_thing, **kwargs):
-# def take_vector_average(array_like_thing, **kwargs):
-# def warn(string):
-# def fatal(string):
-# def num_missing(series):
-# def perc_missing(series):
-# def column_is_ints(ser): 
-# def despik(uraw):
-# def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, mr, verbose=False):
-# def dstr(date):
-# def cor_ice_A10(bulk_input):
-# def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
-# def tilt_corr(df,diff):
-# def interpolate_nans_vectorized(arr):
-# def average_mosaic_flags(qc_series, fstr):
+#       1def despike(spikey_panda, thresh, filterlen):                                                        
+#       def calculate_metek_ws_wd(data_dates, u, v, hdg_data): # tower heading data is 1s, metek data is 1m  
+#       def calc_humidity_ptu300(RHw, temp, press, Td):                                                      
+#       def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):                                    
+#       def decode_licor_diag(raw_diag):                                                                     
+#       def get_ct(licor_db):                                                                                
+#       def get_dt(licor_db):                                                                                
+#       def get_pll(licor_db):                                                                               
+#       def take_average(array_like_thing, **kwargs):                                                        
+#       def num_missing(series):                                                                             
+#       def perc_missing(series):                                                                            
+#       def column_is_ints(ser):                                                                             
+#       def warn(string):                                                                                    
+#       def fatal(string):                                                                                   
+#       def grachev_fluxcapacitor(z_level_nominal, z_level_n, sonic_dir, metek, licor, clasp, verbose=False):
 #
 # ############################################################################################
 import pandas as pd
 import numpy  as np
 import scipy  as sp
+
 
 from datetime import datetime, timedelta
 from scipy    import signal
@@ -122,17 +112,23 @@ def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
     g = Geod(ellps='WGS84')
     az12,az21,dist = g.inv(lonA,latA,lonB,latB)
     compass_bearing = az12
-    return np.mod(compass_bearing, 360)
+    return compass_bearing
   
 def distance_wgs84(latA,lonA,latB,lonB):
     
     # a little more accurate than distance, which assumed a great circle. here we match gps datum wgs84
     from pyproj import Geod  
 
-    g = Geod(ellps='WGS84')
-    az12,az21,dist = g.inv(lonA,latA,lonB,latB)
-    d = dist
-    return d
+    try:
+        g = Geod(ellps='WGS84')
+        az12,az21,dist = g.inv(lonA,latA,lonB,latB)
+        d = dist
+        return d
+
+    except:
+        print(f"!!! failed at calculation for:\n {latA} {latB}")
+        raise
+
 
 def calculate_initial_angle(latA,lonA, latB, lonB):
 
@@ -587,6 +583,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     'fs'])      # Frequency vector
     
     # Sanity check: Reject series if it is too short, less than 2^13 = 8192 points = 13.6 min @ 10 Hz
+    min_pts = 2**13
     if npt < 8192:
         if npt!=7201: verboseprint(f'!!! no valid data on {metek.index[0]} for sonic at'+
                                    f'height (np=={npt}<8192) {np.str(z_level_n)}')
@@ -2083,7 +2080,6 @@ def average_mosaic_flags(qc_series, fstr):
     # >= 5 good then average good + flag good; If >= 5 caution or good then average those + flag caution; If
     # >= 5 engineering then average those + flag engineering; Otherwise, average all + flag bad
     # 0 = good, 1 = caution, 2 = bad, 3 = engineering
-
     def take_qc_average(data_series):
         tot_good             = (data_series == 0).sum()
         tot_caution_and_good = tot_good + (data_series == 1).sum()
@@ -2093,6 +2089,6 @@ def average_mosaic_flags(qc_series, fstr):
         if tot_good/len(data_series) >= 0.5:             return 0 # if more than half are good, we're good
         if tot_caution_and_good/len(data_series) >= 0.5: return 1 # if more than half are caution&&good, we're caution
         if tot_engineering/len(data_series) >= 0.5:      return 3 # if more than half are engineering, we're engineers
-        return 0                                                  # any other combination is bad bad not good
+        return 2                                                  # any other combination is bad bad not good
 
     return qc_series.resample(fstr, label='left').apply(take_qc_average)
