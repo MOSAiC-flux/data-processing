@@ -63,7 +63,7 @@ import socket
 
 global nthreads 
 if '.psd.' in socket.gethostname():
-    nthreads = 24  # the twins have 64 cores, it won't hurt if we use <20
+    nthreads = 16  # the twins have 64 cores, it won't hurt if we use <20
 else: nthreads = 8  # laptops don't tend to have 64 cores
 
 from multiprocessing import Process as P
@@ -525,6 +525,10 @@ def main(): # the main data crunching program
     verboseprint("... creating qc flags... takes a minute and some RAM")
     slow_data = qc_tower(slow_data)
 
+    # where arm data is missing, mark qc var as bad 
+    arm_vars = ['down_long_hemisp', 'down_short_hemisp', 'up_long_hemisp', 'up_short_hemisp']
+    for av in arm_vars: slow_data.loc[slow_data[av].isnull(), av+'_qc'] = 2
+
     ship_df = get_ship_df(leica_dir).reindex(slow_data.index).interpolate() # ship location used in daily calcs
 
     print('... done with the slow stuff, moving into parallelized daily processing') 
@@ -911,8 +915,10 @@ def main(): # the main data crunching program
     #    slow_data['azimuth']         = fl.despike(slow_data['azimuth'],2,5,'no')
 
         # Laura's product currently has NaNs in shortwave for winter, we want zeros until we get the "real" measurements
-        slow_data['up_short_hemisp'] .where( sd['zenith_true']<95, 0, inplace=True)
-        slow_data['down_short_hemisp'] .where( sd['zenith_true']<95, 0, inplace=True)
+        slow_data['up_short_hemisp']   .where( sd['zenith_true']<93, 0, inplace=True)
+        slow_data['down_short_hemisp'] .where( sd['zenith_true']<93, 0, inplace=True)
+        slow_data['up_short_hemisp']   .where( sd['down_long_hemisp'].isna(), nan, inplace=True)
+        slow_data['down_short_hemisp'] .where( sd['down_long_hemisp'].isna(), nan, inplace=True)
 
         # calculate budget
         slow_data['radiation_LWnet'] = slow_data['down_long_hemisp']-slow_data['up_long_hemisp']
@@ -1870,7 +1876,7 @@ def compare_indexes(inds_sparse, inds_lush, guess_jump = 50):
     #for lush_i in range_inds:
     for sparse_i in range_inds:
         
-        if sparse_i % 1000 == 0: print(f"... aligned {round((sparse_i/sl)*100,4)}% of ARM/flux data", end='\r')
+        if sparse_i % 1000 == 0: print(f"... aligning {round((sparse_i/sl)*100,4)}% of ARM/flux data", end='\r')
 
         sparse_date = inds_sparse[sparse_i] # get the actual timestamp to compare
         try: 
@@ -1880,7 +1886,7 @@ def compare_indexes(inds_sparse, inds_lush, guess_jump = 50):
         except Exception:
             inds_not_present.append(sparse_date)
 
-    print(f"... aligned 100.000% of ARM/flux \n", end='\r')
+    print(f"...  aligned 100.000% of ARM/flux \n", end='\r')
 
     #print(f"!!!!!! there were these indexes weirdly skipped {n_missed_but_not_really} !!!!!!!!!")
     return inds_not_present, map_between
@@ -2195,7 +2201,9 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
         # all qc flags set to -01 for when corresponding variables are missing data
         if var_name.split('_')[-1] == 'qc':
             fill_val = -1
-            if ('turbulence_qc' not in var_name) and ('Hl_qc' not in var_name): 
+            exception_cols = ['turbulence_qc', 'Hl_qc', 'down_long_hemisp', 'down_short_hemisp',
+                              'up_long_hemisp', 'up_short_hemisp']
+            if not any(var_name in c for c in exception_cols): 
                 l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
 
         vtmp = l2_data[var_name]
