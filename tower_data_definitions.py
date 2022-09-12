@@ -4593,10 +4593,6 @@ def define_10hz_variables():
 
 
  
-
-    return qc_atts, list(qc_atts.keys()).copy() 
-
-
 def define_turb_variables(): 
 
     # these are the installation heights recorded.
