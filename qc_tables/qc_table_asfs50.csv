@@ -5,56 +5,65 @@ THIS IS FOR ASFS50,,,,,
 Instrument / measurement,"date, time start","date, time end",Flag,Reason,Who
 "[i.e., temp_2m]",[YYYYMMDD hhmmss],[YYYYMMDD hhmmss],"[1,2,3,4]",[details for determination],[last name]
  subsurface_heat_flux_B,20200415 000000,20201001 000000,1,"we have concerns about uncertainties in the second half of mosaic - solar heating, contact issues, frequent melt out, level, etc",ccox
+subsurface_heat_flux_A,20200507 113000,20201002 235900,1,caution for flux plates after uninstall from Leg 3,shupe
+CO2_flux,20201015 000000,20200919 000000,1,caution. h2o crosstalk,ccox
 co2_licor,20191017 000000,20200918 050200,1,caution. h2o crosstalk,ccox
 dew_point,20200130 132100,20200130 133700,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 dew_point,20200205 030200,20200205 030600,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+rh,20200925 123800,20200925 130300,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+rh,20200924 083400,20200924 101900,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+rh,20200414 122800,20200214 140000,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox/shupe
 dew_point,20200414 124300,20200214 124900,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 dew_point,20200924 083400,20200924 101900,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+subsurface_heat_flux_B,20200507 113000,20201002 235900,1,caution for flux plates after uninstall from Leg 3,shupe
 dew_point,20200925 123800,20200925 130300,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-dew_point,20191015 000000,20191010 011400,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-subsurface_heat_flux_A,20200507 113000,20201002 235900,1,caution for flux plates after uninstall from Leg 3,shupe
-rh,20191015 000000,20191010 011400,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-rh,20200925 123800,20200925 130300,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-temp,20200130 130000,20200131 020000,1,start up,shupe
-rh,20200924 083400,20200924 101900,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 rh,20200205 030200,20200205 030600,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 rh,20200130 130000,20200131 120000,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox/shupe
-wspd_w_mean,20200930 141300,20201001 231000,1,suspicious,ccox
-wspd_w_mean,20200831 060000,20200831 060900,1,no idea. was the sled being moved?,ccox
-wspd_v_mean,20200930 141300,20201001 231000,1,suspicious,ccox
-wspd_v_mean,20200831 060000,20200831 060900,1,no idea. was the sled being moved?,ccox
-wspd_u_mean,20200930 141300,20201001 231000,1,suspicious,ccox
-wspd_u_mean,20200831 060000,20200831 060900,1,no idea. was the sled being moved?,ccox
+metek_z,20200930 141300,20201001 231000,1,suspicious,ccox
+metek_z,20200831 060000,20200831 060900,1,no idea. was the sled being moved?,ccox
+metek_y,20200930 141300,20201001 231000,1,suspicious,ccox
+metek_y,20200831 060000,20200831 060900,1,no idea. was the sled being moved?,ccox
+metek_x,20200930 141300,20201001 231000,1,suspicious,ccox
+metek_x,20200831 060000,20200831 060900,1,no idea. was the sled being moved?,ccox
 down_short_hemisp,20200910 133000,20200911 070000,1,suggestion of icing on dome,shupe
  subsurface_heat_flux_A,20200415 000000,20201001 000000,1,"we have concerns about uncertainties in the second half of mosaic - solar heating, contact issues, frequent melt out, level, etc",ccox
-rh,20200414 122800,20200214 140000,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox/shupe
-CO2_flux,20201015 000000,20200919 000000,1,caution. h2o crosstalk,ccox
-subsurface_heat_flux_B,20200507 113000,20201002 235900,1,caution for flux plates after uninstall from Leg 3,shupe
+dew_point,20191015 000000,20191010 011400,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+temp,20200130 130000,20200131 020000,1,start up,shupe
+rh,20191015 000000,20191010 011400,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+ALL_FIELDS,20200201 010500,20200203 235959,1,appears that sled is starting to be impacted by ridging,shupe
 up_short_hemisp,20200910 133000,20200911 070000,1,suggestion of icing on dome,shupe
-up_long_hemisp,20200903 051600,20200903 053000,2,cleaning,shupe
+up_long_hemisp,20200904 051200,20200904 051900,2,cleaning,shupe
+metek_x,20200419 174600,20200420 110000,2,I think the ship power to camp was intermittent,ccox
+metek_x,20200604 130100,20200704 130400,2,spikes,ccox
+metek_x,20200704 102000,20200704 102100,2,spike,ccox
+metek_x,20200704 184500,20200704 184600,2,spike,ccox
 up_short_hemisp,20200622 142400,20200622 153600,2,shadow,ccox
 up_short_hemisp,20200622 134300,20200622 141700,2,shadow,ccox
-wspd_v_mean,20200122 020100,20200122 020100,2,spike,ccox
-wspd_v_mean,20200122 215700,20200122 215700,2,spike,ccox
-wspd_v_mean,20200419 174600,20200420 110000,2,I think the ship power to camp was intermittent,ccox
-wspd_v_mean,20200604 130100,20200704 130400,2,spikes,ccox
-wspd_v_mean,20200704 102000,20200704 102000,2,spike,ccox
-wspd_v_mean,20200704 184500,20200704 184500,2,spike,ccox
+metek_y,20200122 020100,20200122 020200,2,spike,ccox
+metek_y,20200122 215700,20200122 215800,2,spike,ccox
+metek_y,20200419 174600,20200420 110000,2,I think the ship power to camp was intermittent,ccox
+metek_y,20200604 130100,20200704 130400,2,spikes,ccox
+metek_y,20200704 102000,20200704 102100,2,spike,ccox
+metek_y,20200704 184500,20200704 184600,2,spike,ccox
 up_short_hemisp,20200622 130700,20200622 130800,2,shadow,ccox
 up_short_hemisp,20200622 125800,20200622 130400,2,shadow,ccox
-wspd_w_mean,20200122 020100,20200122 020100,2,spike,ccox
-wspd_w_mean,20200122 215700,20200122 215700,2,spike,ccox
-wspd_w_mean,20200419 174600,20200420 110000,2,I think the ship power to camp was intermittent,ccox
-wspd_w_mean,20200604 130100,20200704 130400,2,spikes,ccox
-wspd_w_mean,20200704 102000,20200704 102000,2,spike,ccox
-wspd_w_mean,20200704 184500,20200704 184500,2,spike,ccox
-up_short_hemisp,20200622 125200,20200622 125600,2,shadow,ccox
-up_short_hemisp,20200621 144800,20200621 153500,2,shadow,ccox
-wspd_u_mean,20200704 184500,20200704 184500,2,spike,ccox
-wspd_u_mean,20200704 102000,20200704 102000,2,spike,ccox
-wspd_u_mean,20200604 130100,20200704 130400,2,spikes,ccox
-wspd_u_mean,20200419 174600,20200420 110000,2,I think the ship power to camp was intermittent,ccox
+metek_z,20200122 020100,20200122 020200,2,spike,ccox
+metek_z,20200122 215700,20200122 215800,2,spike,ccox
+metek_z,20200419 174600,20200420 110000,2,I think the ship power to camp was intermittent,ccox
+metek_z,20200604 130100,20200704 130400,2,spikes,ccox
+metek_z,20200704 102000,20200704 102100,2,spike,ccox
+metek_x,20200122 215700,20200122 215800,2,spike,ccox
+metek_x,20200122 020100,20200122 020200,2,spike,ccox
+lon,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lat,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
 up_short_hemisp,20200915 055500,20200915 060100,2,cleaning,shupe
+down_short_hemisp,20200502 221900,20200502 222400,2,shadow,ccox
+down_short_hemisp,20200621 085700,20200621 090200,2,shadow,ccox
+down_short_hemisp,20200621 140300,20200621 144500,2,shadow,ccox
+down_short_hemisp,20200621 144800,20200621 153500,2,shadow,ccox
+down_short_hemisp,20200622 084700,20200622 085200,2,shadow,ccox
+down_short_hemisp,20200622 125200,20200622 125600,2,shadow,ccox
+down_short_hemisp,20200622 125800,20200622 130400,2,shadow,ccox
 down_short_hemisp,20200622 130700,20200622 130800,2,shadow,ccox
 down_short_hemisp,20200622 134300,20200622 141700,2,shadow,ccox
 down_short_hemisp,20200622 142400,20200622 153600,2,shadow,ccox
@@ -62,30 +71,27 @@ down_short_hemisp,20200701 025500,20200701 030300,2,shadow,ccox
 down_short_hemisp,20200701 034600,20200701 040500,2,shadow,shupe
 down_short_hemisp,20200717 233800,20200717 234800,2,shadow,shupe
 down_short_hemisp,20200806 011200,20200806 020300,2,shadow,ccox
-rh,20191203 010000,20191206 150000,2,RH sensor was not operating properly because the cap had fallen off. System was replaced,shupe
 down_short_hemisp,20200915 055500,20200915 060100,2,cleaning,shupe
+h2o_licor,20200715 142000,20200715 142500,2,wonkiness during setup,ccox
 h2o_licor,20200715 175500,20200715 175600,2,spike,ccox
 h2o_licor,20191010 013000,20191010 013800,2,wonkiness during setup,ccox
 heading,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
 ice_alt,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lat,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lon,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-wspd_u_mean,20200122 020100,20200122 020100,2,spike,ccox
-wspd_u_mean,20200122 215700,20200122 215700,2,spike,ccox
-h2o_licor,20200715 142000,20200715 142500,2,wonkiness during setup,ccox
-up_long_hemisp,20200903 115600,20200903 120000,2,cleaning,shupe
-up_short_hemisp,20200621 140300,20200621 144500,2,shadow,ccox
-up_short_hemisp,20200425 231900,20200425 232300,2,shadow,ccox
+metek_z,20200704 184500,20200704 184600,2,spike,ccox
+up_short_hemisp,20200622 125200,20200622 125600,2,shadow,ccox
+up_short_hemisp,20200622 084700,20200622 085200,2,shadow,ccox
+rh,20191203 010000,20191206 150000,2,RH sensor was not operating properly because the cap had fallen off. System was replaced,shupe
+temp,20191206 122300,20191206 131200,2,maybe a station visit? weirdness,ccox
+temp,20200122 212800,20200123 001500,2,Spikes/constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 up_long_hemisp,20200912 052100,20200912 052400,2,cleaning,shupe
-up_long_hemisp,20200911 053100,20200911 054600,2,cleaning,shupe
 temp,20200205 052400,20200205 060000,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-up_long_hemisp,20200904 051200,20200904 051900,2,cleaning,shupe
 temp,20200404 104800,20200404 180000,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 temp,20200404 164500,20200405 120000,2,Spikes/constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+up_long_hemisp,20200203 132000,20200203 235959,2,Strange data with abrupt increase in LWU not seen at other stations. Must have been the start of the ridge formation that ultimately flipped the system on 20200204,shupe
 up_long_hemisp,20200204 000000,20200407 130000,2,System flipped by ridge with some continued measurements while in flipped position and then offline until put back in operation in the CO in April,shupe
 up_long_hemisp,20200710 112200,20200710 121700,2,work under system,shupe
-temp,20200122 212800,20200123 001500,2,Spikes/constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 up_long_hemisp,20200716 124100,20200716 125200,2,work under system,shupe
+up_long_hemisp,20200720 081600,20200720 082400,2,work under system,shupe
 up_long_hemisp,20200722 085700,20200722 091400,2,work under system,shupe
 up_long_hemisp,20200727 083500,20200727 084500,2,spike,shupe
 up_long_hemisp,20200727 093500,20200727 095000,2,spike,shupe
@@ -94,37 +100,52 @@ up_long_hemisp,20200831 060700,20200831 061500,2,cleaning,shupe
 up_long_hemisp,20200901 045000,20200901 050700,2,cleaning,shupe
 up_long_hemisp,20200901 111800,20200901 112300,2,cleaning,shupe
 up_long_hemisp,20200902 052500,20200902 053400,2,cleaning,shupe
-up_long_hemisp,20200720 081600,20200720 082400,2,work under system,shupe
-temp,20191206 122300,20191206 131200,2,maybe a station visit? weirdness,ccox
+up_long_hemisp,20200903 051600,20200903 053000,2,cleaning,shupe
+up_long_hemisp,20200903 115600,20200903 120000,2,cleaning,shupe
 subsurface_heat_flux_B,20191015 000000,20191010 015100,2,flux plate exposed or equillibrating,ccox
-up_long_hemisp,20200915 055400,20200915 060100,2,cleaning,shupe
+up_long_hemisp,20200911 053100,20200911 054600,2,cleaning,shupe
+subsurface_heat_flux_B,20200405 000000,20200502 235900,2,there shouldn't be any data here.,ccox
+subsurface_heat_flux_B,20200201 012400,20200204 011700,2,flux plate was probably ripped out. looks like an open channel,ccox
+up_short_hemisp,20200621 144800,20200621 153500,2,shadow,ccox
+up_short_hemisp,20200621 140300,20200621 144500,2,shadow,ccox
+up_short_hemisp,20200621 085700,20200621 090200,2,shadow,ccox
+up_short_hemisp,20200425 231900,20200425 232300,2,shadow,ccox
 up_short_hemisp,20200425 230200,20200425 231400,2,shadow,ccox
 up_short_hemisp,20200424 232100,20200424 233000,2,shadow,ccox
 up_short_hemisp,20200424 225900,20200424 230900,2,shadow,ccox
-ship_bearing,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_distance,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-subsurface_heat_flux_A,20191114 063000,20191114 070000,2,site visit. I'm concerned this plate might have been disturbed,ccox
-subsurface_heat_flux_A,20200201 011000,20200203 162600,2,flux plate exposed or equillibrating,ccox
-subsurface_heat_flux_A,20200203 120000,20200205 120000,2,flux plate was probably ripped out by the ridge,ccox
-subsurface_heat_flux_A,20200415 135400,20200415 142100,2,flux plate exposed or equillibrating,ccox
 up_short_hemisp,20200423 232100,20200423 232800,2,shadow,ccox
-down_short_hemisp,20200622 125200,20200622 125600,2,shadow,ccox
 up_short_hemisp,20200423 224700,20200423 230800,2,shadow,ccox
 up_short_hemisp,20200422 225500,20200422 232900,2,shadow,ccox
+down_short_hemisp,20200502 115500,20200502 115700,2,shadow,ccox
+ship_bearing,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_distance,20200205 030700,20200205 032400,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
 up_short_hemisp,20200421 232500,20200421 233500,2,shadow,ccox
+subsurface_heat_flux_A,20191114 063000,20191114 070000,2,site visit. I'm concerned this plate might have been disturbed,ccox
+subsurface_heat_flux_A,20200201 011000,20200203 162600,2,flux plate exposed or equillibrating,ccox
 up_short_hemisp,20200421 230100,20200421 231600,2,shadow,ccox
-subsurface_heat_flux_B,20200201 012400,20200204 011700,2,flux plate was probably ripped out. looks like an open channel,ccox
-subsurface_heat_flux_B,20200203 120000,20200205 120000,2,flux plate was probably ripped out by the ridge,ccox
-subsurface_heat_flux_B,20200405 000000,20200502 235900,2,there shouldn't be any data here.,ccox
+subsurface_heat_flux_A,20200203 120000,20200205 120000,2,flux plate was probably ripped out by the ridge,ccox
+subsurface_heat_flux_A,20200415 135400,20200415 142100,2,flux plate exposed or equillibrating,ccox
 up_short_hemisp,20200404 093600,20200405 142400,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-up_short_hemisp,20200621 085700,20200621 090200,2,shadow,ccox
-down_short_hemisp,20200621 144800,20200621 153500,2,shadow,ccox
-down_short_hemisp,20200622 125800,20200622 130400,2,shadow,ccox
-down_short_hemisp,20200621 085700,20200621 090200,2,shadow,ccox
+up_long_hemisp,20200915 055400,20200915 060100,2,cleaning,shupe
+subsurface_heat_flux_B,20200203 120000,20200205 120000,2,flux plate was probably ripped out by the ridge,ccox
+down_short_hemisp,20200502 103300,20200502 103900,2,shadow,ccox
+acoustic_temp,20191008 235500,20191009 000000,2,0,ccox
+down_short_hemisp,20200502 084000,20200502 084100,2,shadow,ccox
+brightness_temp_surface,20200727 084700,20200727 084900,2,maintenance,shupe
+brightness_temp_surface,20200730 140000,20200730 142000,2,take down of instruments,shupe
+brightness_temp_surface,20200830 160900,20200830 161100,2,spike,shupe
+brightness_temp_surface,20200831 060900,20200831 061200,2,spike,shupe
+brightness_temp_surface,20200901 045100,20200901 050600,2,spike,shupe
+brightness_temp_surface,20200901 111900,20200901 112200,2,spike,shupe
+brightness_temp_surface,20200902 052600,20200902 053300,2,spike,shupe
+brightness_temp_surface,20200903 051700,20200903 052900,2,spike,shupe
+brightness_temp_surface,20200903 115700,20200903 120000,2,spike,shupe
+brightness_temp_surface,20200904 051200,20200904 051900,2,spike,shupe
+brightness_temp_surface,20200911 053100,20200911 054600,2,spike,shupe
 brightness_temp_surface,20200912 052100,20200912 052400,2,spike,shupe
 brightness_temp_surface,20200915 055600,20200915 060000,2,spike,shupe
 co2_licor,20191010 013000,20191010 013800,2,wonkiness during setup,ccox
-dew_point,20191206 122300,20191206 131200,2,maybe a station visit? weirdness,ccox
+down_short_hemisp,20200502 091800,20200502 092100,2,shadow,ccox
 dew_point,20200122 212800,20200123 001500,2,Spikes/constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 dew_point,20200205 052400,20200205 060000,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 dew_point,20200404 104800,20200404 180000,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
@@ -133,22 +154,26 @@ down_long_hemisp,20191219 120000,20191220 190000,2,LWD tracks LWU closely while 
 down_long_hemisp,20200823 190000,20200824 103000,2,"deployed near ASFS30 but the LWD increased for this period to values near and above LWU, suggesting frozen drizzle or some other icing.",shupe
 down_long_hemisp,20200831 060700,20200831 061500,2,cleaning,shupe
 down_long_hemisp,20200912 113000,20200912 180000,2,clear signs of icing on the dome compared to ASFS30 and Met City,shupe
+brightness_temp_surface,20200726 120600,20200726 121000,2,maintenance,shupe
+brightness_temp_surface,20200726 113700,20200726 115100,2,maintenance,shupe
+brightness_temp_surface,20200722 085900,20200722 091300,2,maintenance,shupe
+brightness_temp_surface,20200722 085700,20200722 091400,2,work under system,shupe
+acoustic_temp,20191009 235900,20191010 000000,2,0,ccox
+acoustic_temp,20200122 215600,20200122 225000,2,,ccox
+acoustic_temp,20200122 235900,20200123 000000,2,0,ccox
+acoustic_temp,20200205 055900,20200205 060000,2,0,ccox
+acoustic_temp,20200404 235800,20200404 235900,2,0,ccox
+acoustic_temp,20200405 085000,20200405 085100,2,0,ccox
+acoustic_temp,20200405 090400,20200405 090500,2,0,ccox
+acoustic_temp,20200405 092800,20200405 092900,2,0,ccox
+acoustic_temp,20200405 095500,20200405 095600,2,bad point,ccox
+acoustic_temp,20200407 235900,20200408 000000,2,0,ccox
+acoustic_temp,20200408 235900,20200409 000000,2,0,ccox
 down_long_hemisp,20200915 055500,20200915 060100,2,cleaning,shupe
-down_short_hemisp,20200404 093600,20200405 142400,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-down_short_hemisp,20200621 140300,20200621 144500,2,shadow,ccox
-down_short_hemisp,20200417 104100,20200417 105000,2,shadow,ccox
-down_short_hemisp,20200417 122600,20200417 122800,2,shadow,ccox
-down_short_hemisp,20200417 130000,20200417 130300,2,shadow,ccox
-down_short_hemisp,20200421 221500,20200421 222000,2,shadow,ccox
-down_short_hemisp,20200421 230100,20200421 231600,2,shadow,ccox
-down_short_hemisp,20200421 232500,20200421 233500,2,shadow,ccox
-brightness_temp_surface,20200911 053100,20200911 054600,2,spike,shupe
-brightness_temp_surface,20200904 051200,20200904 051900,2,spike,shupe
-brightness_temp_surface,20200903 115700,20200903 120000,2,spike,shupe
-brightness_temp_surface,20200903 051700,20200903 052900,2,spike,shupe
+acoustic_temp,20200805 095400,20200805 095500,2,,ccox
 body_T_IRT,20200404 093600,20200405 142400,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 brightness_temp_surface,20191110 070200,20191110 072300,2,Not sure what happened here ,shupe
-brightness_temp_surface,20191114 060700,20191114 060700,2,spike,ccox
+brightness_temp_surface,20191114 060700,20191114 060800,2,spike,ccox
 brightness_temp_surface,20200404 093600,20200405 142400,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 brightness_temp_surface,20200415 131800,20200415 131900,2,spike,shupe
 brightness_temp_surface,20200704 123200,20200704 123300,2,spike,shupe
@@ -156,26 +181,24 @@ brightness_temp_surface,20200710 112700,20200710 121600,2,work under system,shup
 brightness_temp_surface,20200716 124000,20200716 125200,2,work under system,shupe
 brightness_temp_surface,20200716 124100,20200716 125200,2,maintenance,shupe
 brightness_temp_surface,20200720 081600,20200720 082400,2,work under system,shupe
-down_short_hemisp,20200422 082400,20200422 082600,2,shadow,ccox
 brightness_temp_surface,20200720 081900,20200720 082000,2,maintenance,shupe
-brightness_temp_surface,20200722 085900,20200722 091300,2,maintenance,shupe
-brightness_temp_surface,20200726 113700,20200726 115100,2,maintenance,shupe
-brightness_temp_surface,20200726 120600,20200726 121000,2,maintenance,shupe
-brightness_temp_surface,20200727 084700,20200727 084900,2,maintenance,shupe
-brightness_temp_surface,20200730 140000,20200730 142000,2,take down of instruments,shupe
-brightness_temp_surface,20200830 160900,20200830 161100,2,spike,shupe
-brightness_temp_surface,20200831 060900,20200831 061200,2,spike,shupe
-brightness_temp_surface,20200901 045100,20200901 050600,2,spike,shupe
-brightness_temp_surface,20200901 111900,20200901 112200,2,spike,shupe
-brightness_temp_surface,20200902 052600,20200902 053300,2,spike,shupe
-brightness_temp_surface,20200722 085700,20200722 091400,2,work under system,shupe
-down_short_hemisp,20200422 101300,20200422 101600,2,shadow,ccox
-down_short_hemisp,20200422 085700,20200422 090000,2,shadow,ccox
-down_short_hemisp,20200422 103800,20200422 104000,2,shadow,ccox
-down_short_hemisp,20200422 102500,20200422 103100,2,shadow,ccox
+ALL_FIELDS,20200204 000000,20200205 060000,2,clearly affected by the ridging,shupe
+down_short_hemisp,20200404 093600,20200405 142400,2,0s. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+dew_point,20191206 122300,20191206 131200,2,maybe a station visit? weirdness,ccox
+down_short_hemisp,20200417 122600,20200417 122800,2,shadow,ccox
+down_short_hemisp,20200423 221200,20200423 221700,2,shadow,ccox
+down_short_hemisp,20200423 232100,20200423 232800,2,shadow,ccox
+down_short_hemisp,20200424 082400,20200424 082600,2,shadow,ccox
+down_short_hemisp,20200424 085800,20200424 090100,2,shadow,ccox
+down_short_hemisp,20200424 101500,20200424 101800,2,shadow,ccox
+down_short_hemisp,20200424 102400,20200424 103700,2,shadow,ccox
+down_short_hemisp,20200417 104100,20200417 105000,2,shadow,ccox
+down_short_hemisp,20200424 115700,20200424 115900,2,shadow,ccox
+down_short_hemisp,20200424 221300,20200424 221700,2,shadow,ccox
+down_short_hemisp,20200424 225900,20200424 230900,2,shadow,ccox
 down_short_hemisp,20200424 232200,20200424 232500,2,shadow,ccox
+down_short_hemisp,20200423 123300,20200423 123500,2,shadow,ccox
 down_short_hemisp,20200425 221100,20200425 221400,2,shadow,ccox
-down_short_hemisp,20200425 230200,20200425 231400,2,shadow,ccox
 down_short_hemisp,20200425 231900,20200425 232300,2,shadow,ccox
 down_short_hemisp,20200426 082900,20200426 083100,2,shadow,ccox
 down_short_hemisp,20200426 090400,20200426 090700,2,shadow,ccox
@@ -187,58 +210,53 @@ down_short_hemisp,20200427 091200,20200427 091500,2,shadow,ccox
 down_short_hemisp,20200427 102900,20200427 104100,2,shadow,ccox
 down_short_hemisp,20200427 120200,20200427 120500,2,shadow,ccox
 down_short_hemisp,20200430 103100,20200430 103900,2,shadow,ccox
-down_short_hemisp,20200502 084000,20200502 084100,2,shadow,ccox
-down_short_hemisp,20200502 091800,20200502 092100,2,shadow,ccox
-down_short_hemisp,20200502 103300,20200502 103900,2,shadow,ccox
-down_short_hemisp,20200502 115500,20200502 115700,2,shadow,ccox
+down_short_hemisp,20200425 230200,20200425 231400,2,shadow,ccox
+down_short_hemisp,20200423 115700,20200423 120100,2,shadow,ccox
 down_short_hemisp,20200502 123300,20200502 123500,2,shadow,ccox
-down_short_hemisp,20200502 221900,20200502 222400,2,shadow,ccox
-down_short_hemisp,20200424 221300,20200424 221700,2,shadow,ccox
-down_short_hemisp,20200424 115700,20200424 115900,2,shadow,ccox
-down_short_hemisp,20200424 225900,20200424 230900,2,shadow,ccox
-down_short_hemisp,20200423 221200,20200423 221700,2,shadow,ccox
+down_short_hemisp,20200422 103800,20200422 104000,2,shadow,ccox
+down_short_hemisp,20200417 130000,20200417 130300,2,shadow,ccox
+down_short_hemisp,20200421 232500,20200421 233500,2,shadow,ccox
+down_short_hemisp,20200422 082400,20200422 082600,2,shadow,ccox
+down_short_hemisp,20200422 085700,20200422 090000,2,shadow,ccox
+down_short_hemisp,20200423 103500,20200423 103700,2,shadow,ccox
+down_short_hemisp,20200422 115900,20200422 120200,2,shadow,ccox
+down_short_hemisp,20200422 123300,20200422 123500,2,shadow,ccox
+down_short_hemisp,20200422 101300,20200422 101600,2,shadow,ccox
+down_short_hemisp,20200422 221000,20200422 221500,2,shadow,ccox
+down_short_hemisp,20200422 230300,20200422 232900,2,shadow,ccox
+down_short_hemisp,20200423 082200,20200423 082400,2,shadow,ccox
 down_short_hemisp,20200423 085600,20200423 085800,2,shadow,ccox
 down_short_hemisp,20200423 101300,20200423 101500,2,shadow,ccox
 down_short_hemisp,20200423 102300,20200423 103100,2,shadow,ccox
-down_short_hemisp,20200422 221000,20200422 221500,2,shadow,ccox
-down_short_hemisp,20200424 102400,20200424 103700,2,shadow,ccox
-down_short_hemisp,20200423 103500,20200423 103700,2,shadow,ccox
-down_short_hemisp,20200423 115700,20200423 120100,2,shadow,ccox
-down_short_hemisp,20200423 123300,20200423 123500,2,shadow,ccox
-down_short_hemisp,20200423 082200,20200423 082400,2,shadow,ccox
-down_short_hemisp,20200422 230300,20200422 232900,2,shadow,ccox
-down_short_hemisp,20200422 123300,20200422 123500,2,shadow,ccox
-down_short_hemisp,20200423 232100,20200423 232800,2,shadow,ccox
-down_short_hemisp,20200424 082400,20200424 082600,2,shadow,ccox
-down_short_hemisp,20200424 085800,20200424 090100,2,shadow,ccox
-down_short_hemisp,20200422 115900,20200422 120200,2,shadow,ccox
-down_short_hemisp,20200424 101500,20200424 101800,2,shadow,ccox
-ALL_FIELDS,20200204 000000,20200205 060000,2,clearly affected by the ridging,shupe
+down_short_hemisp,20200422 102500,20200422 103100,2,shadow,ccox
+down_short_hemisp,20200421 230100,20200421 231600,2,shadow,ccox
+down_short_hemisp,20200421 221500,20200421 222000,2,shadow,ccox
+metek_x,20200204 010200,20200204 011800,3,this is what you get for wind speed when asfs falls over,ccox
+metek_z,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+wdir_vec_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+sr50_dist,20200201 013100,20200205 060000,3,station is being flipped over by ridge. sr50 is not reliable. ...but it is interesting,ccox
+wspd_u_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+wspd_v_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+wspd_vec_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+wspd_w_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+metek_z,20200204 010200,20200204 011800,3,this is what you get for wind speed when asfs falls over,ccox
+acoustic_temp,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+ALL_FIELDS,20200531 230300,20200531 230400,3,on PS,ccox
+ALL_EC_FIELDS,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+metek_x,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+h2o_licor,20200405 083700,20200404 095600,3,"lab testing, I think",ccox
+metek_y,20200204 010200,20200204 011800,3,this is what you get for wind speed when asfs falls over,ccox
+metek_y,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
+ALL_FIELDS,20200930 140936,20201002 000000,3,"moved on ship, on ship during transit, end of deployment",persson
+ALL_FIELDS,20200926 110516,20200930 082946,3,"moved on ship, on ship during transit, slung off at Ice Station 3",persson
+ALL_FIELDS,20200920 043921,20200926 060000,3,"moved on ship, on ship during transit, slung off at Ice Station 2",persson
+ALL_FIELDS,20200919 093014,20200919 095024,3,ASFS being moved from Leg5 site to RS for intercomparison,persson
+ALL_FIELDS,20200730 142000,20200821 150000,3,on PS until it was deployed on ice,shupe
 ALL_FIELDS,20200625 072000,20200629 130000,3,on ice but not fully installed. Data is actually quite useful but the system was not leveled,shupe
 ALL_FIELDS,20200615 115300,20200624 103100,3,on PS,ccox
 ALL_FIELDS,20200608 065300,20200608 070900,3,on PS,ccox
-wspd_vec_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
-ALL_FIELDS,20200407 131200,20200414 124600,3,LOG Cross Comparison ASFS30/50,ccox
-wspd_w_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
-wdir_vec_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
-wspd_v_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
-wspd_u_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
 ALL_FIELDS,20200605 101800,20200605 112000,3,on PS,ccox
-ALL_FIELDS,20200531 230300,20200531 230300,3,on PS,ccox
-ALL_FIELDS,20200730 142000,20200821 150000,3,on PS until it was deployed on ice,shupe
-sr50_dist,20200201 013100,20200205 060000,3,station is being flipped over by ridge. sr50 is not reliable. ...but it is interesting,ccox
-ALL_FIELDS,20200920 043921,20200926 060000,3,"moved on ship, on ship during transit, slung off at Ice Station 2",persson
-ALL_FIELDS,20200926 110516,20200930 082946,3,"moved on ship, on ship during transit, slung off at Ice Station 3",persson
-ALL_FIELDS,20200930 140936,20201002 000000,3,"moved on ship, on ship during transit, end of deployment",persson
+ALL_FIELDS,20200407 131200,20200414 124600,3,LOG Cross Comparison ASFS30/50,ccox
 co2_licor,20200404 111500,20200404 120200,3,"lab testing, I think",ccox
 co2_licor,20200405 083700,20200404 095600,3,"lab testing, I think",ccox
-wspd_w_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
-wspd_w_mean,20200204 010200,20200204 011800,3,this is what you get for wind speed when asfs falls over,ccox
-wspd_v_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
-wspd_v_mean,20200204 010200,20200204 011800,3,this is what you get for wind speed when asfs falls over,ccox
-wspd_u_mean,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox
-wspd_u_mean,20200204 010200,20200204 011800,3,this is what you get for wind speed when asfs falls over,ccox
-h2o_licor,20200405 083700,20200404 095600,3,"lab testing, I think",ccox
 h2o_licor,20200404 111500,20200404 120200,3,"lab testing, I think",ccox
-ALL_FIELDS,20200919 093014,20200919 095024,3,ASFS being moved from Leg5 site to RS for intercomparison,persson
-ALL_EC_FIELDS,20200414 124700,20200507 112400,3,this was the repaired sonic from L3; proceed with caution!,ccox

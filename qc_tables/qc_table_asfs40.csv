@@ -4,11 +4,11 @@ THIS IS FOR ASFS40,,,,,
 ,,,,,
 Instrument / measurement,"date, time start","date, time end",Flag,Reason,Who
 "[i.e., temp_2m]",[YYYYMMDD hhmmss],[YYYYMMDD hhmmss],"[1,2,3,4]",[details for determination],[last name]
-wspd_w_mean,20191207 092100,20191207 092500,1,some dd values on day of site visit,ccox
-up_long_hemisp,20200224 002000,20200224 120000,1,abrupt jump in LWU and skin temp relative to others including the IRT.  Appears to slowly go away over the following hours.  End time is assumed.,shupe
-up_long_hemisp,20200201 035000,20200201 041400,1,ice?,ccox
-up_long_hemisp,20191116 235100,20191117 000000,1,ice?,ccox
-sr50_dist,20191225 101300,20191225 101300,1,spike,ccox
+metek_z,20191207 092100,20191207 092500,1,some dd values on day of site visit,ccox
+up_long_hemisph,20200224 002000,20200224 120000,1,abrupt jump in LWU and skin temp relative to others including the IRT.  Appears to slowly go away over the following hours.  End time is assumed.,shupe
+up_long_hemisph,20200201 035000,20200201 041400,1,ice?,ccox
+up_long_hemisph,20191116 235100,20191117 000000,1,ice?,ccox
+sr50_dist,20191225 101300,20191225 101400,1,spike,ccox
 sr50_dist,20191102 090000,20191102 130000,1,caution about possible poor representation of T in SoS correction,ccox
 sr50_dist,20191115 063000,20191115 092500,1,caution about possible poor representation of T in SoS correction,ccox
 sr50_dist,20191122 113000,20191123 100000,1,caution about possible poor representation of T in SoS correction,ccox
@@ -16,28 +16,28 @@ sr50_dist,20191206 224500,20191207 193000,1,caution about possible poor represen
 rh,20200227 020100,20200919 000000,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 rh,20191108 075200,20191108 092800,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 co2_licor,20191017 000000,20200918 050200,1,caution. h2o crosstalk,ccox
-wspd_w_mean,20191015 034100,20191015 053900,1,site visit where we messed with the mast,ccox
-wspd_v_mean,20191207 092100,20191207 092500,1,some dd values on day of site visit,ccox
-wspd_v_mean,20191015 034100,20191015 053900,1,site visit where we messed with the mast,ccox
-wspd_u_mean,20191207 092100,20191207 092500,1,some dd values on day of site visit,ccox
+metek_z,20191015 034100,20191015 053900,1,site visit where we messed with the mast,ccox
+metek_y,20191207 092100,20191207 092500,1,some dd values on day of site visit,ccox
+metek_y,20191015 034100,20191015 053900,1,site visit where we messed with the mast,ccox
+metek_x,20191207 092100,20191207 092500,1,some dd values on day of site visit,ccox
 CO2_flux,20201015 000000,20200919 000000,1,caution. h2o crosstalk,ccox
 dew_point,20200227 020100,20200919 000000,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 dew_point,20191108 075200,20191108 092800,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-wspd_u_mean,20191015 034100,20191015 053900,1,site visit where we messed with the mast,ccox
-wspd_u_mean,20200227 034900,20200227 042800,2,vals stuck in buffer,ccox
+metek_x,20191015 034100,20191015 053900,1,site visit where we messed with the mast,ccox
+metek_x,20200227 034900,20200227 042800,2,vals stuck in buffer,ccox
 sr50_dist,20191021 225000,20191021 232100,2,"based on Std, qc, and met, best guess is that a small number of low quality data were averaged into the 1 min value",ccox
 sr50_dist,20191205 014900,20191205 023400,2,"based on Std, qc, and met, best guess is that a small number of low quality data were averaged into the 1 min value",ccox
-dew_point,20200204 065000,20200204 065000,2,,ccox
-dew_point,20191225 101400,20191225 101400,2,,ccox
-sr50_dist,20191225 114200,20191225 114200,2,"technically this is a blip in the temperature, but easiest just to clear it this way",ccox
+dew_point,20200204 065000,20200204 065100,2,,ccox
+dew_point,20191225 101400,20191225 101500,2,,ccox
+sr50_dist,20191225 114200,20191225 114300,2,"technically this is a blip in the temperature, but easiest just to clear it this way",ccox
 brightness_temp_surface,20200120 123500,20200120 123600,2,spikes,shupe
 subsurface_heat_flux_A,20191015 052300,20191015 060000,2,some nonsense at installation. Maybe it was equillibrating or exposed.,ccox
-temp,20191225 101400,20191225 101400,2,,ccox
-temp,20200204 065000,20200204 065000,2,,ccox
+temp,20191225 101400,20191225 101500,2,,ccox
+temp,20200204 065000,20200204 065100,2,,ccox
 temp,20191015 035700,20191015 041300,2,most likely influence from a site visit at that time,ccox
 temp,20191015 053100,20191015 060700,2,most likely influence from a site visit at that time,ccox
 brightness_temp_surface,20191228 114100,20191228 114300,2,spikes,shupe
-up_long_hemisp,20200120 123500,20200120 123600,2,spike,shupe
+up_long_hemisph,20200120 123500,20200120 123600,2,spike,shupe
 brightness_temp_surface,20191222 083300,20191222 084200,2,spikes,shupe
 brightness_temp_surface,20191015 053100,20191015 062000,2,maintenance,shupe
 brightness_temp_surface,20191015 035700,20191015 043000,2,influence from site maintenance,shupe
@@ -47,25 +47,25 @@ sr50_dist,20191021 195900,20191021 202400,2,"based on Std, qc, and met, best gue
 sr50_dist,20191021 185900,20191021 191400,2,"based on Std, qc, and met, best guess is that a small number of low quality data were averaged into the 1 min value",ccox
 sr50_dist,20191021 171800,20191021 173900,2,"based on Std, qc, and met, best guess is that a small number of low quality data were averaged into the 1 min value",ccox
 sr50_dist,20191020 162300,20191020 163000,2,"based on Std, qc, and met, best guess is that a small number of low quality data were averaged into the 1 min value",ccox
-wspd_v_mean,20191006 000000,20191006 022600,2,vals stuck in buffer,ccox
-wspd_v_mean,20191006 235800,20191006 235800,2,zero spike,ccox
-wspd_v_mean,20191007 095200,20191007 100400,2,vals stuck in buffer,ccox
-wspd_u_mean,20191108 075200,20191108 092900,2,vals stuck in buffer,ccox
-wspd_v_mean,20191108 075200,20191108 092900,2,vals stuck in buffer,ccox
-wspd_v_mean,20200205 121500,20200205 121500,2,zero spike,ccox
-wspd_v_mean,20200227 034900,20200227 042800,2,vals stuck in buffer,ccox
-wspd_w_mean,20191006 000000,20191006 022600,2,vals stuck in buffer,ccox
-wspd_w_mean,20191006 235800,20191006 235800,2,zero spike,ccox
-wspd_u_mean,20200205 121500,20200205 121500,2,zero spike,ccox
-wspd_w_mean,20191007 095200,20191007 100400,2,vals stuck in buffer,ccox
-wspd_w_mean,20191108 075200,20191108 092900,2,vals stuck in buffer,ccox
-wspd_w_mean,20200205 121500,20200205 121500,2,zero spike,ccox
-wspd_u_mean,20191006 235800,20191006 235800,2,zero spike,ccox
-wspd_w_mean,20200227 034900,20200227 042800,2,vals stuck in buffer,ccox
-wspd_u_mean,20191006 000000,20191006 022600,2,vals stuck in buffer,ccox
+metek_y,20191006 000000,20191006 022600,2,vals stuck in buffer,ccox
+metek_y,20191006 235800,20191006 235900,2,zero spike,ccox
+metek_y,20191007 095200,20191007 100400,2,vals stuck in buffer,ccox
+metek_x,20191108 075200,20191108 092900,2,vals stuck in buffer,ccox
+metek_y,20191108 075200,20191108 092900,2,vals stuck in buffer,ccox
+metek_y,20200205 121500,20200205 121600,2,zero spike,ccox
+metek_y,20200227 034900,20200227 042800,2,vals stuck in buffer,ccox
+metek_z,20191006 000000,20191006 022600,2,vals stuck in buffer,ccox
+metek_z,20191006 235800,20191006 235900,2,zero spike,ccox
+metek_x,20200205 121500,20200205 121600,2,zero spike,ccox
+metek_z,20191007 095200,20191007 100400,2,vals stuck in buffer,ccox
+metek_z,20191108 075200,20191108 092900,2,vals stuck in buffer,ccox
+metek_z,20200205 121500,20200205 121600,2,zero spike,ccox
+metek_x,20191006 235800,20191006 235900,2,zero spike,ccox
+metek_z,20200227 034900,20200227 042800,2,vals stuck in buffer,ccox
+metek_x,20191006 000000,20191006 022600,2,vals stuck in buffer,ccox
 ice_alt,20191107 203000,20191110 154600,2,,ccox
 rh,20191015 020200,20191015 070300,2,most likely influence from a site visit at that time,ccox
 sr50_dist,20191015 035700,20191015 041300,2,most likely influence from a site visit at that time,ccox
 sr50_dist,20191015 053100,20191015 060700,2,most likely influence from a site visit at that time,ccox
-wspd_u_mean,20191007 095200,20191007 100400,2,vals stuck in buffer,ccox
+metek_x,20191007 095200,20191007 100400,2,vals stuck in buffer,ccox
 brightness_temp_surface,20191015 035700,20191015 043000,2,maintenance,shupe

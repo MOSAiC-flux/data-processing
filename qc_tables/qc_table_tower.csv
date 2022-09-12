@@ -490,14 +490,14 @@ up_short_hemisp,20200323 125500,20200323 235900,2,apparently missing data,shupe
 up_short_hemisp,20200916 090600,20200916 100600,2,,shupe
 vapor_pressure_2m,20200717 064900,20200717 072200,2,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 temp_2m,20200117 172132,20200119 115500,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-sr50_dist,20200306 130300,20200306 130300,2,spike,ccox
+sr50_dist,20200306 130300,20200306 130400,2,spike,ccox
 sr50_dist,20200207 123900,20200207 124000,2,spike,ccox
-sr50_dist,20200109 111600,20200109 111600,2,spike,ccox
+sr50_dist,20200109 111600,20200109 111700,2,spike,ccox
 vapor_pressure_6m,20200719 174000,20200719 180100,2,big spike with some hysteresis in the response. ,ccox/shupe
 sr50_dist,20200102 104900,20200102 105000,2,spike,ccox
 vapor_pressure_6m,20200718 100100,20200718 101500,2,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 vapor_pressure_6m,20200717 064900,20200717 072200,2,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-sr50_dist,20191212 073900,20191212 073900,2,spike,ccox
+sr50_dist,20191212 073900,20191212 074100,2,spike,ccox
 vapor_pressure_6m,20200716 111200,20200716 114300,2,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 sr50_dist,20200627 091900,20200627 093800,2,setup,ccox
 sr50_dist,20200702 080500,20200702 135000,2,instrument being rest on boom,ccox
@@ -554,7 +554,7 @@ up_long_hemisp,20200717 021100,20200717 065300,2,,shupe
 up_short_hemisp,20200717 231900,20200718 235900,2,,shupe
 up_short_hemisp,20200717 021100,20200717 065300,2,,shupe
 up_short_hemisp,20200716 152400,20200716 152900,2,spikes in SWD and SWU,shupe
-sr50_dist,20200719 174300,20200719 174300,2,spike,ccox
+sr50_dist,20200719 174300,20200719 174400,2,spike,ccox
 up_short_hemisp,20200331 120000,20200402 074200,2,missing data,shupe
 vapor_pressure_2m,20200718 100100,20200718 101500,2,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 temp_6m,20200619 175600,20200619 180000,2,spike,ccox
@@ -778,7 +778,7 @@ subsurface_heat_flux_B,20200607 113000,20200607 123500,3,on PS. I think Chris tu
 ALL_MAST,20191126 120000,20191208 140500,3,mast operational but not installed at height,shupe
 heading_mast,20191019 054500,20191024 040700,3,setup,ccox
 heading_mast,20200413 000000,20200415 000000,3,setup,ccox
-heading_tower,20200627 130900,20200627 130900,3,setup,ccox
+heading_tower,20200627 130900,20200627 131000,3,setup,ccox
 brightness_temp_surface,20200725 002000,20200725 060000,3,strange dip in the signal,shupe
 subsurface_heat_flux_A,20200607 113000,20200607 123500,3,on PS. I think Chris turned on the box to show people something and analog data was recorded in the container,ccox
 ALL_MAST,20191010 000000,20191026 085000,3,mast installation period and operation in down position,shupe
