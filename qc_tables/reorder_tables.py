@@ -14,6 +14,9 @@ def main(): # the main data crunching program
     tables = ['qc_table_asfs30.csv','qc_table_asfs40.csv', 'qc_table_asfs50.csv','qc_table_tower.csv']
 
     for table in tables: 
+        print("-------------------------------------------------------------------------------------")
+        print(f"... sorting entries in {table}\n")
+        
         with open(table) as table_file:
             table_header = [table_file.readline() for iline in range(0,6)]
         t = get_qc_table(table).sort_values('qc_val')

@@ -158,17 +158,24 @@ def qc_tower_winds(tower_data, ship_data):
         ship_bearing  = tower_data['ship_bearing']
 
         if h=='mast': 
-            if dt(2019,12,7) < tower_data.index[0] < dt(2020,3,12):
+            if dt(2019,12,7) < tower_data.index[0] < dt(2020,4,13):
                 ship_distance = tower_data['ship_distance']-63.3
                 ship_bearing  = tower_data['ship_bearing']+8.83
 
-            if dt(2020,3,12) <= tower_data.index[0] <= dt(2020, 5, 10):
+            if dt(2020,4,13) <= tower_data.index[0] <= dt(2020, 5, 10):
 
-                ship_distance = fl.distance_wgs84(tower_data['lat_mast'], tower_data['lon_mast'],
-                                                  ship_data['lat'], ship_data['lon'])
+                try:
 
-                ship_bearing = fl.calculate_initial_angle_wgs84(tower_data['lat_mast'], tower_data['lon_mast'],
-                                                                ship_data['lat'],ship_data['lon']) 
+                    ship_distance = fl.distance_wgs84(tower_data['lat_mast'], tower_data['lon_mast'],
+                                                      ship_data['lat'], ship_data['lon'])
+
+                    ship_bearing = fl.calculate_initial_angle_wgs84(tower_data['lat_mast'], tower_data['lon_mast'],
+                                                                    ship_data['lat'],ship_data['lon']) 
+                except:
+
+                    ship_distance = tower_data['ship_distance']-63.3
+                    ship_bearing  = tower_data['ship_bearing']+8.83
+
  
         ship_relative[h] = np.abs(tower_data[f'wdir_vec_mean_{h}'] - ship_bearing)
         values_caution_ship = (ship_relative[h]>360-qc_window) | (ship_relative[h]<qc_window)
@@ -271,32 +278,56 @@ def qc_flagging(data_frame, table_file, var_names):
             qc_var_list.append(v)
 
     # lookup table for "group" names, these need to include the "_qc", as the code below
-    # puts the value into that field, i.e. temp_qc, not just temp
+    # puts the value into that field, i.e. temp_qc, not just temp, aka 'inheritance'/hierarchy
     lookup_table = {
-        'ALL_FIELDS' : [v for v in var_names if v.split('_')[-1] == 'qc'], # if the variable has an "_qc", it deserves a flag
-        'ALL_MAST'   : [v for v in var_names if v.split('_')[-1] == 'qc' and v.rstrip('_qc').split('_')[-1] == 'mast'], # if mast variable, flag
+        'ALL_FIELDS' : [v.rstrip('_qc') for v in var_names if v.split('_')[-1] == 'qc'], 
+        'ALL_MAST'   : [v.rstrip('_qc') for v in var_names if v.split('_')[-1] == 'qc' and v.rstrip('_qc').split('_')[-1] == 'mast'],  
+        'up_long_hemisp' : ['up_long_hemisp', 'skin_temp_surface'],
+        'down_long_hemisp' : ['down_long_hemisp', 'skin_temp_surface'],
+        'sr50_dist' : ['sr50_dist', 'snow_depth'], 
+        'rh' : ['rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],
+        'temp' : ['temp','rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure', 'bulk_Hs'],
     } 
-
-    problem_rows = {}
+    
+    problem_rows = {} # dictionary to keep rows that don't match any of the conditionals, i.e. bad/nonsense rows
     for irow, row in flag_df.iterrows():
-        var_to_qc = row['var_name']+'_qc'
-        try: data_frame[var_to_qc].loc[row['start_date']:row['end_date']] = row['qc_val']
-        except KeyError as ke: 
-            special_key = row['var_name'] # things like "ALL_FIELDS", grouped vars
-            if special_key in lookup_table.keys():
-                for v in lookup_table[special_key]: 
-                    data_frame[v].loc[row['start_date']:row['end_date']] = row['qc_val']
-            else:
-                print(f"!!! problem with entry in manual QC table for {table_file} for var {var_to_qc} at row {irow}!!!")
-                print(f"{row}")
-                print("==========================================================================================")
-                print("Python traceback: \n\n")
-                import traceback
-                import sys
-                print(traceback.format_exc())
-                print("==========================================================================================")
 
-                problem_rows[irow] = row
+        # some hackery to account for heights that might exist avoiding duplicating stuff up there ^
+        height_strs = ['2m', '6m', '10m', 'mast'] 
+        if any(h in row['var_name'] for h in height_strs):
+            hstr = '_'+row['var_name'].split('_')[-1]
+            special_key = row['var_name'].rstrip('_'+hstr)
+
+        else:
+            hstr = ''
+            special_key = row['var_name']
+
+        if any(special_key in c for c in lookup_table.keys()):
+
+            if 'temp' in special_key: print(f"-------- YES WE GOT THE SPECIAL KEY {special_key+hstr}")
+
+            for v in lookup_table[special_key]: 
+                try: 
+                    special_var = v+hstr+'_qc'
+                    data_frame[special_var].loc[row['start_date']:row['end_date']] = row['qc_val']
+                except:
+                    print(f"... failed for {special_key=} and val {v+hstr}")
+        else:
+            try:
+                var_to_qc = row['var_name']+'_qc' # get var_name column from file
+                data_frame[var_to_qc].loc[row['start_date']:row['end_date']] = row['qc_val']
+
+            except KeyError as ke: 
+                    # print(f"!!! problem with entry in manual QC table for {table_file} for var {var_to_qc} at row {irow}!!!")
+                    # print(f"{row}")
+                    # print("==========================================================================================")
+                    # print("Python traceback: \n\n")
+                    # import traceback
+                    # import sys
+                    # print(traceback.format_exc())
+                    # print("==========================================================================================")
+
+                    problem_rows[irow] = row
 
     if len(problem_rows)>1:
         print(f"\n\n There were some prolems with the QC file {table_file}, specifically,  {len(problem_rows)} of them...\n\n")
@@ -337,6 +368,7 @@ def get_qc_table(table_file):
     if len(mqc[drop_rows]) > 0:
         print(mqc[drop_rows])
         print(f"\n\n DROPPING THE FOLLOWING QC ROWS DUE TO BAD TIME FORMATTING:\n")
+        mqc[drop_rows].index = mqc[drop_rows].index+6 #header adjustment to realign with spreadsheet
         for irow in mqc[drop_rows].index:
             for ir in mqc.loc[irow].index:
                 print(f"{mqc.loc[irow].loc[ir]} ", end='')
@@ -399,7 +431,7 @@ def qc_asfs_turb_data(asfs_df, turb_df):
     tdf = turb_df.copy()[var_list]
 
     asfs_df[f'turbulence_qc'] = qc_turb_data(tdf)
-
+ 
     sector_qc_info = asfs_df[f'wind_sector_qc_info']   
 
     # asfs specific stuff        
