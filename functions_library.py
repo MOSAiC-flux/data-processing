@@ -40,7 +40,6 @@ import pandas as pd
 import numpy  as np
 import scipy  as sp
 
-
 from datetime import datetime, timedelta
 from scipy    import signal
 

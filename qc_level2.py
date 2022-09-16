@@ -287,6 +287,8 @@ def qc_flagging(data_frame, table_file, var_names):
         'sr50_dist' : ['sr50_dist', 'snow_depth'], 
         'rh' : ['rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],
         'temp' : ['temp','rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure', 'bulk_Hs'],
+        'lon'  : ['lon', 'lat'] , 
+        'lat'  : ['lon', 'lat'] , 
     } 
     
     problem_rows = {} # dictionary to keep rows that don't match any of the conditionals, i.e. bad/nonsense rows
