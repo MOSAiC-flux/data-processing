@@ -1511,7 +1511,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
 
     # Flagged if the values of different variables exceed user-defined (user-selected) thresholds
     # Angle of attack:
-    #Phix = phi*180/np.pi
+    Phix = phi*180/np.pi
 
     # If angle of attack is large (say > 15 deg) data should be filtered out or a correction to
     # compensate for the angle of attack error should be applied, e.g. see:
