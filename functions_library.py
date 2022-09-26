@@ -643,7 +643,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
 
     U = U.fillna(U.mean())
     V = V.fillna(V.mean())
-    W = W.fillna(W.mean()) - 0.3  # temporary bias correction for debugging of vertical wind speed bias, DO NOT LEAVE 
+    W = W.fillna(W.mean())
     T = T.fillna(T.mean())
     Q = Q.fillna(Q.mean())
     C = C.fillna(C.mean())
