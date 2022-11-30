@@ -1673,9 +1673,9 @@ def main(): # the main data crunching program
                 bulk_input['Q']  = slow_data['mixing_ratio_10m'][seconds_today]/1000  # air moisture mixing ratio (kg/kg)
                 bulk_input['zi'] = empty_data+600                                     # inversion height          (m) guess!
                 bulk_input['P']  = slow_data['atmos_pressure_2m'][seconds_today]      # surface pressure          (mb)
-                bulk_input['zu'] = empty_data+10                                      # height of anemometer      (m)
-                bulk_input['zt'] = empty_data+10                                      # height of thermometer     (m)
-                bulk_input['zq'] = empty_data+10                                      # height of hygrometer      (m)      
+                bulk_input['zu'] = 10.54-slow_data['snow_depth'][seconds_today]       # height of anemometer      (m)
+                bulk_input['zt'] = 9.34-slow_data['snow_depth'][seconds_today]        # height of thermometer     (m)
+                bulk_input['zq'] = 9.14-slow_data['snow_depth'][seconds_today]        # height of hygrometer      (m)      
                 bulk_input['ts'] = slow_data['skin_temp_surface'][seconds_today]      # bulk water/ice surface tempetature (degC) 
 
                 bulk_input = bulk_input.resample(str(integ_time_step[win_len])+'min',label='left').apply(fl.take_average)

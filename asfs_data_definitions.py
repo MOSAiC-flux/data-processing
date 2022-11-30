@@ -936,8 +936,10 @@ def define_level2_variables():
     inst_mast_location_string = 'ASFS mast'
     sonic_height = '3.86 m'
     licor_height = '3.8 m'
-    boom_height = '~2 m'
-    
+    boomTe_height = '2.13 m'
+    boomPr_height = '1.92 m'
+    boomRh_height = '1.84 m'   
+    boom_height = '~2 m'  
 
     lev2_atts = OrderedDict()
 
@@ -1053,21 +1055,21 @@ def define_level2_variables():
                                                 'cf_name'       : 'air_pressure',
                                                 'instrument'    : 'Vaisala PTU 300',
                                                 'methods'       : 'digitally polled from instument',
-                                                'height'        : boom_height,
+                                                'height'        : boomPr_height,
                                                 'location'      : inst_boom_location_string,})
 
     lev2_atts['temp']                  .update({'long_name'     : 'air temperature',
                                                 'cf_name'       : 'air_temperature',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'digitally polled from instument',
-                                                'height'        : boom_height,
+                                                'height'        : boomTe_height,
                                                 'location'      : inst_boom_location_string,})
 
     lev2_atts['rh']                    .update({'long_name'     : 'relative humidity',
                                                 'cf_name'       : 'relative_humidity',
                                                 'instrument'    : 'Vaisala PTU300',
                                                 'methods'       : 'digitally polled from instument',
-                                                'height'        : boom_height,
+                                                'height'        : boomRh_height,
                                                 'location'      : inst_boom_location_string,})
 
     lev2_atts['dew_point']               .update({'long_name'   : 'dewpoint temperature',
@@ -1312,7 +1314,10 @@ def define_turb_variables():
     inst_mast_location_string = 'ASFS mast'
     sonic_height = '3.86 m'
     licor_height = '3.8 m'
-    boom_height = '~2 m'
+    boomTe_height = '2.13 m'
+    boomPr_height = '1.92 m'
+    boomRh_height = '1.84 m'   
+    boom_height = '~2 m'  
 
     turb_atts = OrderedDict()
 
@@ -1770,49 +1775,49 @@ def define_turb_variables():
                                           'cf_name'    : 'upward_latent_heat_flux_in_air',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : boomTe_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_Hl_Webb']     .update({'long_name' : 'Webb density correction for the latent heat flux',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm, Webb et al. (1980) https://doi.org/10.1002/qj.49710644707',
-                                          'height'     : boom_height,
+                                          'height'     : boomRh_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_tau']        .update({'long_name'  : 'wind stress',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_z0']          .update({'long_name' : 'roughness length',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_z0t']         .update({'long_name' : 'roughness length, temperature',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_z0q']         .update({'long_name' : 'roughness length, humidity',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : boomRh_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_L']           .update({'long_name' : 'Obukhov length',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_ustar']       .update({'long_name' : 'friction velocity (sqrt(momentum flux)), ustar',
@@ -1840,35 +1845,35 @@ def define_turb_variables():
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : boomTe_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_dqer']        .update({'long_name' : 'diagnostic',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : boomRh_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_Cd']          .update({'long_name' : 'transfer coefficient for stress',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_Ch']          .update({'long_name' : 'transfer coefficient for Hs',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_Ce']          .update({'long_name' : 'transfer coefficient for Hl',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : boomRh_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_Cdn_10m']     .update({'long_name' : '10 m neutral transfer coefficient for stress',
@@ -1896,21 +1901,21 @@ def define_turb_variables():
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_Rt']          .update({'long_name' : 'roughness Reynolds number for temperature',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     turb_atts['bulk_Rq']          .update({'long_name' : 'roughness Reynolds number for humidity',
                                           'cf_name'    : '',
                                           'instrument' : 'various',
                                           'methods'    : 'Bulk calc. Fairall et al. (1996) https://doi.org/10.1029/95JC03205, Andreas et al. (2004) https://ams.confex.com/ams/7POLAR/techprogram/paper_60666.htm',
-                                          'height'     : boom_height,
+                                          'height'     : sonic_height,
                                           'location'   : inst_boom_location_string,})
 
     return turb_atts, list(turb_atts.keys()).copy()
@@ -1918,7 +1923,7 @@ def define_turb_variables():
 
 def define_10hz_variables():
 
-    metek_location = "sonic mast at 3.8 m"
+    metek_location = "sonic mast at 3.86 m"
     licor_location = "sonic mast at 3.8 m"
 
     atts_10hz = OrderedDict()
