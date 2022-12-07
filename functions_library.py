@@ -5,43 +5,44 @@
 # The following functions are defined here (in this order):
 #
 
-    # def despike(spikey_panda, thresh, filterlen, medfill):
-    # def calc_humidity_ptu300(RHw, temp, press, Td):
-    # def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
-    # def distance_wgs84(latA,lonA,latB,lonB):
-    # def calculate_initial_angle(latA,lonA, latB, lonB):
-    # def distance(lat1, lon1, lat2, lon2):
-    # def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
-    # def decode_licor_diag(raw_diag):
-    # def get_ct(licor_db):
-    # def get_dt(licor_db):
-    # def get_pll(licor_db):
-    # def take_average(array_like_thing, **kwargs):
-    # def take_vector_average(array_like_thing, **kwargs):
-    # def warn(string):
-    # def fatal(string):
-    # def num_missing(series):
-    # def perc_missing(series):
-    # def column_is_ints(ser): 
-    # def despik(uraw):
-    # def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, mr, verbose=False):
-    # def dstr(date):
-    # def cor_ice_A10(bulk_input):
-    #     def psih_sheba(zet):
-    #     def psim_sheba(zet):
-    # def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
-    # def tilt_corr(df,diff):
-    # def interpolate_nans_vectorized(arr):
-    # def average_mosaic_flags(qc_series, fstr):
-    #     def take_qc_average(data_series):
-
+# def despike(spikey_panda, thresh, filterlen, medfill):
+# def calc_humidity_ptu300(RHw, temp, press, Td):
+# def calculate_initial_angle_wgs84(latA,lonA,latB,lonB):
+# def distance_wgs84(latA,lonA,latB,lonB):
+# def calculate_initial_angle(latA,lonA, latB, lonB):
+# def distance(lat1, lon1, lat2, lon2):
+# def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
+# def fix_high_frequency(fast_data, inst_prefix=''):
+# def decode_licor_diag(raw_diag):
+# def get_ct(licor_db):
+# def get_dt(licor_db):
+# def get_pll(licor_db):
+# def take_average(array_like_thing, **kwargs):
+# def take_vector_average(array_like_thing, **kwargs):
+# def warn(string):
+# def fatal(string):
+# def num_missing(series):
+# def perc_missing(series):
+# def column_is_ints(ser): 
+# def despik(uraw):
+# def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, mr, verbose=False):
+# def dstr(date):
+# def cor_ice_A10(bulk_input):
+#     def psih_sheba(zet):
+#     def psim_sheba(zet):
+# def qcrad(df,sw_range,lw_range,D1,D5,D11,D12,D13,D14,D15,D16,A0):
+# def tilt_corr(df,diff):
+# def interpolate_nans_vectorized(arr):
+# def average_mosaic_flags(qc_series, fstr):
+#     def take_qc_average(data_series):
+#
 # ############################################################################################
 import pandas as pd
 import numpy  as np
 import scipy  as sp
 
 from datetime import datetime, timedelta
-from scipy    import signal
+from scipy    import signal, stats
 
 global nan; nan = np.NaN
 
@@ -244,6 +245,46 @@ def tilt_rotation(ct_phi, ct_theta, ct_psi, ct_up, ct_vp, ct_wp):
 
     return ct_u, ct_v, ct_w
 
+# inst_prefix is just a name that you prepended to the standard fast vars. can be an empty string
+def fix_high_frequency(fast_data, inst_prefix=''):
+
+    inst = inst_prefix # shorthand
+
+    # corrections to the high frequency component of the turbulence spectrum... the metek
+    # sonics used seem to have correlated cross talk between T and w that results in biased
+    # flux values with a dependency on frequency...
+    #
+    # this correction fixes that and is documented in the data paper
+
+    # these are copies of turb_data['fs'+suffix_list[i_inst]], from the fluxcapicitor, 
+    # but that hasn't been created yet because we aren't there
+    fs = np.array([0,0.0012,0.0024,0.0037,0.0049,0.0061,0.0079,0.0104,0.0128,0.0153,0.0183,0.0220,0.0256,
+                   0.0299,0.0348,0.0397,0.0452,0.0519,0.0592,0.0671,0.0763,0.0867,0.0977,0.1099,0.1239,
+                   0.1392,0.1556,0.1740,0.1947,0.2179,0.2435,0.2716,0.3027,0.3369,0.3748,0.4169,0.4633,
+                   0.5145,0.5713,0.6342,0.7037,0.7806,0.8655,0.9595,1.0638,1.1792,1.3062,1.4465,1.6022,
+                   1.7743,1.9647,2.1753,2.4078,2.6648,2.9486,3.2623,3.6090,3.9923,4.4165,4.8193])
+
+    # sf = scale factors; ie, af(x)) from Eq.(5).
+    sf = np.concatenate([np.tile(0,47),
+                         np.array([0.0001,0.0030,0.0069,0.0115,0.0174,0.0246,0.0338,
+                                   0.0455,0.0597,0.0767,0.0958,0.1134,0.1229])])
+
+    # Eq. (5) from data paper?
+    Num   = np.int(np.ceil(np.log2(np.size(fast_data[inst+'w']))))
+    freqw = np.fft.fft(fast_data[inst+'w'].fillna(fast_data[inst+'w'].median()),2**Num)
+    freqf = (10/2**Num)*np.arange(0,2**(Num-1)) # frequencies of the fft. 10 is 10 Hz sampling freq. can this be softcoded?
+
+    # sf curve is coarsely sampled, so interpolate to freqf
+    sfinterp = np.interp(freqf,np.transpose(fs),sf)  
+    goback   = np.real(np.fft.ifft(freqw*np.concatenate([sfinterp,np.flipud(sfinterp)]),2**Num))  # ifft of a(f(x))*yw
+
+
+    # subtract off the noise
+    fast_data[inst+'T'] = fast_data[inst+'T']-goback[:np.size(fast_data[inst+'w'])]  
+
+    return fast_data
+
+
 def decode_licor_diag(raw_diag):
 
     # speed things up so we dont wait forever
@@ -316,15 +357,27 @@ def take_average(array_like_thing, **kwargs):
     
     if array_like_thing.size == 0:
         return np.nan
+
     perc_miss = np.round((np.count_nonzero(np.isnan(array_like_thing))/float(array_like_thing.size))*100.0, decimals=4)
     if perc_miss > perc_allowed_missing:
         return np.nan
     else:
-        try: mean_val = np.nanmean(array_like_thing)
-        except UFuncTypeError as e: 
-            mean_val = np.nan #  this exception should only happen when this function is used on a pandas array
-                              #  that contains dates or other things where averages are hard to define
-        return mean_val
+        is_angle = kwargs.get('is_angle')
+        if is_angle != None: 
+
+            try: mean_val = stats.circmean(array_like_thing, high=360, nan_policy='omit')
+            except UFuncTypeError as e: 
+                mean_val = np.nan #  this exception should only happen when this function is used on a pandas array
+                #  that contains dates or other things where averages are hard to define
+            return mean_val
+
+
+        else:
+            try: mean_val = np.nanmean(array_like_thing)
+            except UFuncTypeError as e: 
+                mean_val = np.nan #  this exception should only happen when this function is used on a pandas array
+                #  that contains dates or other things where averages are hard to define
+            return mean_val
 
 def take_vector_average(array_like_thing, **kwargs):
 
@@ -1658,60 +1711,57 @@ def cor_ice_A10(bulk_input):
 #   - removed cool skin and hardcoded iceconcentration to be 1
 # 
 # Outputs:
-#   hsb: sensible heat flux (Wm-2)
-#   hlb: latent heat flux (Wm-2)
-#   tau: stress                             (Pa)
-#   zo: roughness length, veolicity              (m)
-#   zot:roughness length, temperature (m)
-#   zoq: roughness length, humidity (m)
-#   L: Obukhov length (m)
-#   usr: friction velocity (sqrt(momentum flux)), ustar (m/s)
-#   tsr: temperature scale, tstar (K)
-#   qsr: specific humidity scale, qstar (kg/kg?)
-#   dter:
-#   dqer: 
-#   hl_webb: Webb density-corrected Hl (Wm-2)
-#   Cd: transfer coefficient for stress
-#   Ch: transfer coefficient for Hs
-#   Ce: transfer coefficient for Hl
-#   Cdn_10: 10 m neutral transfer coefficient for stress
-#   Chn_10: 10 m neutral transfer coefficient for Hs
-#   Cen_10: 10 m neutral transfer coefficient for Hl
-#   rr: Reynolds number
-#   rt: 
-#   rq:
-    
+#   hsb     : sensible heat flux             (Wm-2)
+#   hlb     : latent heat flux               (Wm-2)
+#   tau     : stress                         (Pa)
+#   zo      : roughness length, veolicity    (m)
+#   zot     :roughness length, temperature   (m)
+#   zoq     : roughness length, humidity     (m)
+#   L       : Obukhov length                 (m)
+#   usr     : friction velocity              (sqrt(momentum flux)), ustar (m/s)
+#   tsr     : temperature scale, tstar       (K)
+#   qsr     : specific humidity scale, qstar (kg/kg?)
+#   dter    :
+#   dqer    : 
+#   hl_webb : Webb density-corrected Hl      (Wm-2)
+#   Cd      : transfer coefficient for stress
+#   Ch      : transfer coefficient for Hs
+#   Ce      : transfer coefficient for Hl
+#   Cdn_10  : 10 m neutral transfer coefficient for stress
+#   Chn_10  : 10 m neutral transfer coefficient for Hs
+#   Cen_10  : 10 m neutral transfer coefficient for Hl
+#   rr      : Reynolds number
+#   rt      : 
+#   rq      :
 
     import math
      
-    u=bulk_input[0]         # wind speed                         (m/s)
-    ts=bulk_input[1]        # bulk water/ice surface tempetature (degC)
-    t=bulk_input[2]         # air temperature                    (degC) 
-    Q=bulk_input[3]         # air moisture mixing ratio          (kg/kg)
-    zi=bulk_input[4]        # inversion height                   (m)
-    P=bulk_input[5]         # surface pressure                   (mb)
-    zu=bulk_input[6]        # height of anemometer               (m)
-    zt=bulk_input[7]        # height of thermometer              (m)
-    zq=bulk_input[8]        # height of hygrometer               (m)
-    
+    u  = bulk_input[0] # wind speed                         (m/s)
+    ts = bulk_input[1] # bulk water/ice surface tempetature (degC)
+    t  = bulk_input[2] # air temperature                    (degC) 
+    Q  = bulk_input[3] # air moisture mixing ratio          (kg/kg)
+    zi = bulk_input[4] # inversion height                   (m)
+    P  = bulk_input[5] # surface pressure                   (mb)
+    zu = bulk_input[6] # height of anemometer               (m)
+    zt = bulk_input[7] # height of thermometer              (m)
+    zq = bulk_input[8] # height of hygrometer               (m)
     
     
     ################################# Constants ################################## 
     # Set
-    Beta=1.25 # gustiness coeff
-    von=0.4 # von Karman constant
-    fdg=1.00 # ratio of thermal to wind von Karman
-    tdk=273.15 
-    grav=9.82 # gravity
-    CDn10=1.5e-3 # guestimated 10-m neutral drag coefficient
+    Beta  = 1.25   # gustiness coeff
+    von   = 0.4    # von Karman constant
+    fdg   = 1.00   # ratio of thermal to wind von Karman
+    tdk   = 273.15 # duh
+    grav  = 9.82   # gravity
+    CDn10 = 1.5e-3 # guestimated 10-m neutral drag coefficient
 
     # Air
-    Rgas=287.1
-    Le=(2.501-.00237*ts)*1e6
-    cpa=1004.67 
-    rhoa=P*100/(Rgas*(t+tdk)*(1+1.61*Q)) # density of air
-    visa=1.325e-5*(1+6.542e-3*t+8.301e-6*t*t-4.8e-9*t*t*t) # kinematic viscosity
-    
+    Rgas  = 287.1
+    Le    = (2.501-.00237*ts)*1e6
+    cpa   = 1004.67 
+    rhoa  = P*100/(Rgas*(t+tdk)*(1+1.61*Q)) # density of air
+    visa  = 1.325e-5*(1+6.542e-3*t+8.301e-6*t*t-4.8e-9*t*t*t) # kinematic viscosity
     
     ##############################################################################
     
