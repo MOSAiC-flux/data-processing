@@ -1336,9 +1336,9 @@ def define_turb_variables():
     turb_atts['WT_csp']          = {'units' : 'degC*m/s'}
     turb_atts['UT_csp']          = {'units' : 'degC*m/s'}
     turb_atts['VT_csp']          = {'units' : 'degC*m/s'}
-    turb_atts['Wq_csp']          = {'units' : 'm/s*kg/m3'}
-    turb_atts['Uq_csp']          = {'units' : 'm/s*kg/m3'}
-    turb_atts['Vq_csp']          = {'units' : 'm/s*kg/m3'}
+    turb_atts['Wq_csp']          = {'units' : 'm/s*kg/kg'}
+    turb_atts['Uq_csp']          = {'units' : 'm/s*kg/kg'}
+    turb_atts['Vq_csp']          = {'units' : 'm/s*kg/kg'}
     turb_atts['Wc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
     turb_atts['Uc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
     turb_atts['Vc_csp']          = {'units' : 'm*s^-1*mg*m^-2*s^-1'}
@@ -1382,9 +1382,9 @@ def define_turb_variables():
     turb_atts['cWTs']            = {'units' : '(m/s*degC)/Hz'}
     turb_atts['cUTs']            = {'units' : '(m/s*degC)/Hz'}
     turb_atts['cVTs']            = {'units' : '(m/s*degC)/Hz'}
-    turb_atts['cWqs']            = {'units' : '(m/s*kg/m3)/Hz'}
-    turb_atts['cUqs']            = {'units' : '(m/s*kg/m3)/Hz'}
-    turb_atts['cVqs']            = {'units' : '(m/s*kg/m3)/Hz'}
+    turb_atts['cWqs']            = {'units' : '(m/s*kg/kg)/Hz'}
+    turb_atts['cUqs']            = {'units' : '(m/s*kg/kg)/Hz'}
+    turb_atts['cVqs']            = {'units' : '(m/s*kg/kg)/Hz'}
     turb_atts['cWcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
     turb_atts['cUcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
     turb_atts['cVcs']            = {'units' : '(m/s*mg*m^-2*s^-1)/Hz'}
