@@ -141,7 +141,6 @@ def main(): # the main data crunching program
 
     global version  # names directory where data will be written
     global lvlname  # will appear in filename
-    version = 'finalqc'
     lvlname = 'level2.4' 
 
     # there are two command line options that effect processing, the start and end date...
@@ -560,7 +559,7 @@ def main(): # the main data crunching program
     
         in_dir = data_dir+'/'+curr_station+'/1_level_ingest_'+curr_station+'/'      # where does level 1 data live?
         df_station, code_version = get_flux_data(curr_station, start_time, end_time, 1,
-                                                 data_dir, 'slow', verbose, nthreads, pickle_dir)
+                                                 data_dir, 'slow', verbose, nthreads, False, pickle_dir)
         slow_data[curr_station] = df_station
 
         printline()
@@ -1365,6 +1364,15 @@ def main(): # the main data crunching program
                                            'metek_T':'T'}, inplace=True)
                 licor_10hz = fdt_10hz[['licor_h2o', 'licor_co2']].copy()
 
+                # ######################################################################################
+                # corrections to the high frequency component of the turbulence spectrum... the metek
+                # sonics used seem to have correlated cross talk between T and w that results in biased
+                # flux values with a dependency on frequency...
+                #
+                # this correction fixes that and is documented in the data paper, see comments in
+                # functions_library
+                metek_10hz = fl.fix_high_frequency(metek_10hz)
+
                 turb_ec_data = {}
                 for win_len in range(0,len(integ_time_turb_flux)):
                     integration_window = integ_time_turb_flux[win_len]
@@ -1553,7 +1561,7 @@ def main(): # the main data crunching program
                     data_to_return.append(('turb', turbulencenew.copy()[today:tomorrow], win_len))
                     if win_len < len(integ_time_turb_flux)-1: print('\n')
 
-            out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/finalqc/' # where will level 2 data written?
+            out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
     
             try: 
                 trash_var = write_level2_10hz(curr_station, metek_10hz[today:tomorrow], licor_10hz[today:tomorrow], today, out_dir)
@@ -1662,7 +1670,7 @@ def main(): # the main data crunching program
 
         station_data = slow_all[curr_station][today:tomorrow].copy()
 
-        out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/finalqc/' # where will level 2 data written?
+        out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
  
         #out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' 
         #out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
@@ -1692,6 +1700,7 @@ def main(): # the main data crunching program
             l2_cols = l2_cols+qc_cols
 
             vector_vars = ['wspd_vec_mean', 'wdir_vec_mean']
+            angle_vars  = ['heading', 'ship_bearing']
 
             for ivar, var_name in enumerate(l2_cols):
                 try: 
@@ -1699,6 +1708,8 @@ def main(): # the main data crunching program
                         data_list.append(fl.average_mosaic_flags(station_data[var_name], fstr))
                     elif any(substr in var_name for substr in vector_vars):
                         data_list.append(turb_data[var_name]) # yank a few select variables out of turbulence, vestigial nonsense
+                    elif any(substr in var_name for substr in angle_vars):
+                        data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average, is_angle=True))
                     else:
                         data_list.append(station_data[var_name].resample(fstr, label='left').apply(fl.take_average))
                 except Exception as e: 
@@ -1818,7 +1829,11 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_dat
     # lev2_name  = '{}/{}'.format('./', file_str)
     # nan = np.nan
 
-    global_atts = define_global_atts(curr_station, "level2") # global atts for level 1 and level 2
+    if short_name=="seb": 
+        global_atts = define_global_atts(curr_station,"seb") # global atts for level 1 and level 2
+    else:
+        global_atts = define_global_atts(curr_station,"level2") # global atts for level 1 and level 2
+
     netcdf_lev2 = Dataset(lev2_name, 'w')# format='NETCDF4_CLASSIC')
 
     for att_name, att_val in global_atts.items(): # write global attributes 
@@ -1972,7 +1987,10 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_dat
         try:
             if var_name.split('_')[-1] == 'qc':
                 fill_val = np.int32(-1)
-                write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+                exception_cols = ['bulk_qc', 'turbulence_qc', 'Hl_qc']
+                if not any(var_name in c for c in exception_cols): 
+                    write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+
         except Exception as e: print(f"!!! failed to fill in qc var: {var_name}!!!\n !!! {e}")
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
@@ -1993,9 +2011,10 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_dat
         min_val = np.nanmin(vtmp.values)
         avg_val = np.nanmean(vtmp.values)
         
-        netcdf_lev2[var_name].setncattr('max_val', max_val)
-        netcdf_lev2[var_name].setncattr('min_val', min_val)
-        netcdf_lev2[var_name].setncattr('avg_val', avg_val)
+        if var_name.split('_')[-1] != 'qc':
+            netcdf_lev2[var_name].setncattr('max_val', max_val)
+            netcdf_lev2[var_name].setncattr('min_val', min_val)
+            netcdf_lev2[var_name].setncattr('avg_val', avg_val)
 
         vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp.values

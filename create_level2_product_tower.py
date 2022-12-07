@@ -37,9 +37,11 @@ code_version = code_version()
 #
 # ######################################################################################################
 
-# import our code modules
-from tower_data_definitions import define_global_atts, define_level2_variables, define_turb_variables, define_qc_variables
+# import our code modules.... lots of definitions
+from tower_data_definitions import define_global_atts, define_level2_variables
+from tower_data_definitions import define_turb_variables, define_qc_variables
 from tower_data_definitions import define_10hz_variables, define_level1_slow, define_level1_fast
+
 from get_data_functions     import get_flux_data, get_arm_radiation_data, get_ship_df
 from site_metadata          import metcity_metadata
 from qc_level2              import qc_tower, qc_tower_winds, qc_tower_turb_data
@@ -47,7 +49,7 @@ from qc_level2              import qc_tower, qc_tower_winds, qc_tower_turb_data
 import functions_library as fl # includes a bunch of helper functions that we wrote
 
 # Ephemeris
-# SPA is NREL's (Ibrahim Reda's) emphemeris calculator that all those BSRN/ARM radiometer geeks use ;) 
+# SPA is NREL's (Ibrahim Reda's) emphemeris calculator that all those BSRN/ARM radiometer geeks use ;
 # pvlib is NREL's photovoltaic library
 from pvlib import spa 
     # .. [1] I. Reda and A. Andreas, Solar position algorithm for solar radiation
@@ -62,9 +64,14 @@ import os, inspect, argparse, time, gc
 import socket 
 
 global nthreads 
-if '.psd.' in socket.gethostname():
-    nthreads = 16  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 8  # laptops don't tend to have 64 cores
+
+hostname = socket.gethostname()
+if '.psd.' in hostname:
+    if hostname.split('.')[0] in ['linux1024', 'linux512']:
+        nthreads = 40  # the twins have 32 cores/64 threads, won't hurt if we use <30 threads
+    else:
+        nthreads = 12  # the trio only has 12 cores
+else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
@@ -75,7 +82,8 @@ if we_want_to_debug:
     from multiprocessing.dummy import Process as P
     from multiprocessing.dummy import Queue   as Q
     nthreads = 1
-    from debug_functions import drop_me as dm
+    try: from debug_functions import drop_me as dm
+    except: you_dont_care=True
  
 import numpy  as np
 import pandas as pd
@@ -154,10 +162,10 @@ def main(): # the main data crunching program
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
     level2_dir = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
-    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/newnewqc/' # where does level2 data go
+    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
     turb_dir   = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
     #turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
-    arm_dir    = '/Projects/MOSAiC_internal/partner_data/'
+    arm_dir    = '/Projects/MOSAiC_internal/partner_data/' 
     leica_dir  = '/Projects/MOSAiC_internal/partner_data/AWI/polarstern/WXstation/'
 
     def printline(startline='',endline=''):
@@ -370,14 +378,14 @@ def main(): # the main data crunching program
                                         # date  hdg 
                                         [datetime(2019,10,15,0,0), nan], # sonic not mounted
                                         [datetime(2019,10,24,5,3), nan],
-                                        ]),columns=['date', 'heading_tower'])
+                                        ]),columns=['date', 'tower_heading'])
     twr_hdg_dates_10m.set_index(twr_hdg_dates_10m['date'],inplace=True)
     
     twr_hdg_dates_6m = pd.DataFrame(np.array([                  
                                         # date  hdg 
                                         [datetime(2019,10,15,0,0), 27], # tower lying down, sonic upright
                                         [datetime(2019,10,24,1,13), nan], # sonic/tower lying down
-                                        ]),columns=['date', 'heading_tower'])
+                                        ]),columns=['date', 'tower_heading'])
     twr_hdg_dates_6m.set_index(twr_hdg_dates_6m['date'],inplace=True)
     
     twr_hdg_dates_2m = pd.DataFrame(np.array([                  
@@ -385,7 +393,7 @@ def main(): # the main data crunching program
                                         [datetime(2019,10,15,0,0), 27], # tower lying down, sonic upright
                                         [datetime(2019,10,22,3,37), 293.1], # spare sonic switched on, sonic north aligned
                                         [datetime(2019,10,24,1,13), nan], # sonic/tower lying down
-                                        ]),columns=['date', 'heading_tower'])
+                                        ]),columns=['date', 'tower_heading'])
     twr_hdg_dates_2m.set_index(twr_hdg_dates_2m['date'],inplace=True)
     
     global twr_manual_hdg_data
@@ -401,8 +409,10 @@ def main(): # the main data crunching program
 
     # read *all* of the tower logger data...? this could be too much. but why have so much RAM if you don't use it?
     curr_station = "tower" # be compatible with asfs notation 
-    slow_data, code_version = get_flux_data(curr_station, start_time, end_time,
-                                            1, data_dir, 'slow', verbose, nthreads, pickle_dir)
+    slow_data, code_version = get_flux_data(curr_station, start_time, end_time, 1,
+                                            data_dir, 'slow', verbose, nthreads, False, pickle_dir)
+
+    slow_data = slow_data[start_time:end_time] # in case we pickled the larger dataset
 
     arm_data, arm_version = get_arm_radiation_data(start_time, end_time, arm_dir, verbose, nthreads, pickle_dir)
 
@@ -442,22 +452,22 @@ def main(): # the main data crunching program
                                               # cm; it was in a transiton into a drifted ridge
 
     # The heading is in degree x 100 so convert. also we will do something simlar for the altitude
-    slow_data['heading_tower'] = slow_data['gps_hdg']/100.0  # convert to degrees
+    slow_data['tower_heading'] = slow_data['gps_hdg']/100.0  # convert to degrees
     slow_data['tower_ice_alt'] = slow_data['gps_alt'] - twr_GPS_height_raised_precise     
 
     # The filter needs to be carried out in vector space. the filter is 6 hrs = 21600 sec
-    unitv1 = np.cos(np.radians(slow_data['heading_tower'])) # degrees -> unit vector
-    unitv2 = np.sin(np.radians(slow_data['heading_tower'])) # degrees -> unit vector
+    unitv1 = np.cos(np.radians(slow_data['tower_heading'])) # degrees -> unit vector
+    unitv2 = np.sin(np.radians(slow_data['tower_heading'])) # degrees -> unit vector
     unitv1 = unitv1.interpolate(method='pad').rolling(21600,min_periods=1,center=True).median() # filter the unit vector
     unitv2 = unitv2.interpolate(method='pad').rolling(21600,min_periods=1,center=True).median() # filter the unit vector
     tmph = np.degrees(np.arctan2(-unitv2,-unitv1))+180 # back to degrees
 
     tmpa = slow_data['tower_ice_alt'].interpolate(method='pad').rolling(21600,min_periods=1,center=True).median()
 
-    tmph.mask(slow_data['heading_tower'].isna(),inplace=True)
+    tmph.mask(slow_data['tower_heading'].isna(),inplace=True)
     tmpa.mask(slow_data['tower_ice_alt'].isna(),inplace=True)
 
-    slow_data['heading_tower'] = tmph
+    slow_data['tower_heading'] = tmph
     slow_data['tower_ice_alt'] = tmpa
 
     # naive merge was *extremely***** slow and innefecient.
@@ -507,22 +517,27 @@ def main(): # the main data crunching program
 
     if 'mast_RECORD' in slow_data: # same thing for the mast if it was up
         slow_data['mast_gps_alt'] = slow_data['gps_alt']/1000.0 # convert to meters
-        slow_data['heading_mast'] = slow_data['mast_gps_hdg_Avg']/100.0  # convert to degrees
+        slow_data['mast_heading'] = slow_data['mast_gps_hdg_Avg']/100.0  # convert to degrees
         slow_data['mast_ice_alt'] = slow_data['mast_gps_alt'] - mst_GPS_height_raised_precise 
 
 
 
-        tmph = slow_data['heading_mast'].rolling(86400,min_periods=1,center=True).median()
+        tmph = slow_data['mast_heading'].rolling(86400,min_periods=1,center=True).median()
         tmpa = slow_data['mast_ice_alt'].interpolate(method='pad').rolling(86400,min_periods=1,center=True).median()
-        tmph.mask(slow_data['heading_mast'].isna(), inplace=True)
+        tmph.mask(slow_data['mast_heading'].isna(), inplace=True)
         tmpa.mask(slow_data['mast_ice_alt'].isna(), inplace=True)
 
-        slow_data['heading_mast'] = tmph
-        slow_data['heading_mast'] = np.mod(slow_data['heading_mast'], 360)
+        slow_data['mast_heading'] = tmph
+        slow_data['mast_heading'] = np.mod(slow_data['mast_heading'], 360)
         slow_data['mast_ice_alt'] = tmpa
 
 
     verboseprint("... creating qc flags... takes a minute and some RAM")
+
+    with open(f'./{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug.pkl', 'wb') as pkl_file:
+        import pickle
+        pickle.dump(slow_data, pkl_file)
+    g
     slow_data = qc_tower(slow_data)
 
     # where arm data is missing, mark qc var as bad 
@@ -731,7 +746,7 @@ def main(): # the main data crunching program
 
         # #####################################################################################
         # air temperature offsets from Ola Persson's "Met_Tower_Intercomparison_Results.docx"
-        # further augmented to be time dependent in an email discussion titled: "temperature
+        # further augmented to be time dependent in an email discussion titled: "temperaturex 
         # offsets" from Oct 6th 2021
         
         # R218 (2m): no offset
@@ -858,7 +873,7 @@ def main(): # the main data crunching program
         sd['lat_tower']     .mask( (sd['gps_qc']==0) | (sd['gps_hdop']>4), inplace=True) 
         sd['lon_tower']     .mask( (sd['gps_qc']==0) | (sd['gps_hdop']>4), inplace=True) 
         sd['gps_alt']       .mask( (sd['gps_qc']==0) | (sd['gps_hdop']>4), inplace=True) 
-        sd['heading_tower'] .mask( (sd['gps_qc']==0) | (sd['gps_hdop']>4), inplace=True) 
+        sd['tower_heading'] .mask( (sd['gps_qc']==0) | (sd['gps_hdop']>4), inplace=True) 
 
         if 'mast_RECORD' in sd:
             sd['lat_mast']     = sd['mast_gps_lat_deg_Avg']+sd['mast_gps_lat_min_Avg']/60.0 # add decimal values
@@ -871,7 +886,7 @@ def main(): # the main data crunching program
             sd['lat_mast']     .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
             sd['lon_mast']     .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
             sd['mast_gps_alt'] .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
-            sd['heading_mast'] .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
+            sd['mast_heading'] .mask( (sd['mast_gps_qc']==0) | (sd['mast_gps_hdop_Avg']>4), inplace=True) 
 
 
         # Get the bearing on the ship... load the ship track and reindex to slow_data, calculate distance
@@ -915,10 +930,12 @@ def main(): # the main data crunching program
     #    slow_data['azimuth']         = fl.despike(slow_data['azimuth'],2,5,'no')
 
         # Laura's product currently has NaNs in shortwave for winter, we want zeros until we get the "real" measurements
+        sd_copy = slow_data.copy()
+
         slow_data['up_short_hemisp']   .where( sd['zenith_true']<93, 0, inplace=True)
         slow_data['down_short_hemisp'] .where( sd['zenith_true']<93, 0, inplace=True)
-        slow_data['up_short_hemisp']   .where( sd['down_long_hemisp'].isna(), nan, inplace=True)
-        slow_data['down_short_hemisp'] .where( sd['down_long_hemisp'].isna(), nan, inplace=True)
+        slow_data['up_short_hemisp']   .where( ~sd['down_long_hemisp'].isna(), nan, inplace=True)
+        slow_data['down_short_hemisp'] .where( ~sd['down_long_hemisp'].isna(), nan, inplace=True)
 
         # calculate budget
         slow_data['radiation_LWnet'] = slow_data['down_long_hemisp']-slow_data['up_long_hemisp']
@@ -1007,7 +1024,7 @@ def main(): # the main data crunching program
         
         # #######################################################################################################
 
-        # Add empiraclly-calculated offsets to the Metek inclinometer to make it plumb 
+        # Add empiraclly-calculated offsets to the Metek inclinometer/tilt to make it plumb 
         fast_data['metek_2m']['metek_2m_incx']       .loc[datetime(2019,10,15) : datetime(2019,12,19)] = \
             fast_data['metek_2m']['metek_2m_incx']   .loc[datetime(2019,10,15) : datetime(2019,12,19)] + 1.75   
 
@@ -1281,14 +1298,14 @@ def main(): # the main data crunching program
                 # Inclinomters and heading used to rotate from body to earth coordinates
                 # Heading uses a filtered value to reduce noise, which was calculated earlier in this code
                 if 'mast' not in inst:
-                    th = logger_today['heading_tower'].reindex(index=fast_data_10hz[inst].index).interpolate()  
+                    th = logger_today['tower_heading'].reindex(index=fast_data_10hz[inst].index).interpolate()  
                     
                     # if prior to raise day, we need to use some manual offsets from the tower heading
                     date_twr_raised = datetime(2019, 10, 24, 5, 30)  # instrument heights after tower raised
                     if today < ( date_twr_raised - timedelta(hours=date_twr_raised.hour, minutes=date_twr_raised.minute, seconds=date_twr_raised.second) ) + timedelta(days=1):
-                        th2 = twr_manual_hdg_data[inst]['heading_tower'].reindex(index=th.index,method='pad').interpolate()
+                        th2 = twr_manual_hdg_data[inst]['tower_heading'].reindex(index=th.index,method='pad').interpolate()
                         th = th.fillna(value=th2)
-                        logger_today['heading_tower'].fillna(value=291.3) # the tower frame of reference will be persisted back from when it was first raised
+                        logger_today['tower_heading'].fillna(value=291.3) # the tower frame of reference will be persisted back from when it was first raised
 
                     if (datetime(2020,6,27,9,20) < today < datetime(2020,7,29,8,30)) and inst == 'metek_6m': 
                         th = th + 7.4 # adjust tower heading for only six meter metek on leg 4
@@ -1315,14 +1332,14 @@ def main(): # the main data crunching program
                         else:
                             meth = 'pad' 
 
-                        mast_hdg_series = np.mod(logger_today['heading_tower'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360).astype('float')                    
+                        mast_hdg_series = np.mod(logger_today['tower_heading'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360).astype('float')                    
 
                         # if we are working on the mast but we don't have a v102 we have to set to missing
                         # values, although we can report our estiamte of the heading
                         logger_today['lat_mast']=np.zeros(len(logger_today['lat_tower']))+def_fill_flt 
                         logger_today['lon_mast']=np.zeros(len(logger_today['lon_tower']))+def_fill_flt 
                         logger_today['mast_ice_alt']=np.zeros(len(logger_today['tower_ice_alt']))+def_fill_flt 
-                        logger_today['heading_mast']=mast_hdg_series.reindex(index=seconds_today)
+                        logger_today['mast_heading']=mast_hdg_series.reindex(index=seconds_today)
 
                     # This is the Newdle in Leg 3. 
                     #   A "spare" v102 was used so the heading is tracked directly. 
@@ -1331,9 +1348,9 @@ def main(): # the main data crunching program
                     elif today > datetime(2020,4,14,0,0) and today < datetime(2020,5,12,0,0):             
                         # set to 68.5 from calcs416.py 
                         mast_align = 68.5
-                        mast_hdg_series = np.mod(logger_today['heading_mast'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360) 
+                        mast_hdg_series = np.mod(logger_today['mast_heading'].reindex(index=fast_data_10hz[inst].index).interpolate()-mast_align,360) 
                         # also, set the heading for the file
-                        logger_today['heading_mast'] = np.mod(logger_today['heading_mast']-mast_align,360)
+                        logger_today['mast_heading'] = np.mod(logger_today['mast_heading']-mast_align,360)
 
                     # part of leg 3, leg 4 and 5 the mast stays packed away safely in cold storage
                     else:
@@ -1359,9 +1376,17 @@ def main(): # the main data crunching program
                                                      inst+'_z' : inst+'_w',
                                                      }, errors="raise", inplace=True) 
     
-                
+                # ######################################################################################
+                # corrections to the high frequency component of the turbulence spectrum... the metek
+                # sonics used seem to have correlated cross talk between T and w that results in biased
+                # flux values with a dependency on frequency...
+                #
+                # this correction fixes that and is documented in the data paper, see comments in
+                # functions_library
+                fast_data_10hz[inst] = fl.fix_high_frequency(fast_data_10hz[inst], inst+'_')
 
-            # Now we recalculate the 1 min average wind direction and speed from the u and v velocities in meteorological  convention
+            # now we recalculate the 1 min average wind direction and speed from the
+            # u and v velocities in meteorological  convention
             print("... calculating a corrected set of slow wind speed and direction.")
             metek_ws = {}
             metek_wd = {}
@@ -1787,6 +1812,7 @@ def main(): # the main data crunching program
             l2_cols = l2_cols+qc_cols
 
             vector_vars = ['wspd_vec_mean', 'wdir_vec_mean']
+            angle_vars  = ['tower_heading', 'ship_bearing', 'mast_heading']
 
             for ivar, var_name in enumerate(l2_cols):
                 fstr = f'{integ_time_step[win_len]}T' # pandas notation for timestep
@@ -1795,7 +1821,9 @@ def main(): # the main data crunching program
                     if var_name.split('_')[-1] == 'qc':
                         data_list.append(fl.average_mosaic_flags(l2_data[var_name], fstr))
                     elif any(substr in var_name for substr in vector_vars):
-                         data_list.append(turb_data[var_name]) #
+                         data_list.append(turb_data[var_name]) 
+                    elif any(substr in var_name for substr in angle_vars):
+                        data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average, is_angle=True))
                     else:
                         data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average))
                 except Exception as e: 
@@ -1819,6 +1847,7 @@ def main(): # the main data crunching program
                 # pickle.dump(seb_args, pkl_file)
                 # pkl_file.close()
                 
+
                 write_level2_netcdf(avged_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data[today:tomorrow])
 
             except: 
@@ -1993,11 +2022,21 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
     # nan = np.NaN
    
     out_dir  =  level2_dir
+    if not os.path.exists(out_dir):
+        print("!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!")
+        print("!!! making directory: {out_dir}, did you mean to do this or... !!!")
+        print("!!! did you accidentally specify the wrong path??              !!!")
+        print("!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!")
+        os.makedirs(out_dir)
+
     file_str = 'mos{}.metcity.level2.4.{}.{}.nc'.format(short_name, timestep,date.strftime('%Y%m%d.%H%M%S'))
 
     lev2_name  = '{}{}'.format(out_dir, file_str)
 
-    global_atts = define_global_atts("level2") # global atts for level 1 and level 2
+    if type(turb_data) == type(pd.DataFrame()):
+        global_atts = define_global_atts("seb") # global atts for level 1 and level 2
+    else:
+        global_atts = define_global_atts("level2") # global atts for level 1 and level 2
     netcdf_lev2 = Dataset(lev2_name, 'w', zlib=True, clobber=True)
 
     if isinstance(turb_data, type(pd.DataFrame())):
@@ -2201,8 +2240,10 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
         # all qc flags set to -01 for when corresponding variables are missing data
         if var_name.split('_')[-1] == 'qc':
             fill_val = -1
-            exception_cols = ['turbulence_qc', 'Hl_qc', 'down_long_hemisp', 'down_short_hemisp',
+            exception_cols = ['bulk_qc', 'turbulence_2m_qc', 'turbulence_6m_qc', 'turbulence_10m_qc', 
+                              'turbulence_mast_qc', 'Hl_qc', 'down_long_hemisp', 'down_short_hemisp',
                               'up_long_hemisp', 'up_short_hemisp']
+
             if not any(var_name in c for c in exception_cols): 
                 l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
 
@@ -2215,10 +2256,12 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
         max_val = np.nanmax(vtmp.values) # masked array max/min/etc
         min_val = np.nanmin(vtmp.values)
         avg_val = np.nanmean(vtmp.values)
+
+        if var_name.split('_')[-1] != 'qc':
         
-        netcdf_lev2[var_name].setncattr('max_val', max_val)
-        netcdf_lev2[var_name].setncattr('min_val', min_val)
-        netcdf_lev2[var_name].setncattr('avg_val', avg_val)
+            netcdf_lev2[var_name].setncattr('max_val', max_val)
+            netcdf_lev2[var_name].setncattr('min_val', min_val)
+            netcdf_lev2[var_name].setncattr('avg_val', avg_val)
 
         vtmp.fillna(fill_val, inplace=True)
         var[:] = vtmp
@@ -2258,7 +2301,6 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
             try: turb_data[var_name]
             except keyerror as ke: 
                 if var_name.split("_")[-1] == 'qc':
-                    #print(f"... {var_name} won't be written to file")
                     continue; do_nothing = true # we don't fill in all qc variables yet
                 else: raise 
 
@@ -2274,11 +2316,20 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
                 var_turb[:] = td.values
 
             else:
+
                 if 'fs' in var_name:  
                     var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('freq'))
                     # convert dataframe to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
-                    td = turb_data[var_name][0]
-                    td.fillna(def_fill_flt, inplace=True)
+                    td = turb_data[var_name][0].copy()
+
+                    # this fixes the rare case that *one* column is filled entirely with nans
+                    # and therefore "col" is a numpy array and not a DataFrame
+                    try: 
+                        td.fillna(def_fill_flt, inplace=True)
+                    except AttributeError: 
+                        td = pd.DataFrame(td)
+                        td.fillna(def_fill_flt, inplace=True)
+
                     var_turb[:] = td.values
                 else:   
 
@@ -2286,13 +2337,47 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
 
                     # replaced some sketchy code loops with functional OO calls and list comprehensions
                     # put the timeseries into a temporary DF that's a simple timeseries, not an array of 'freq'
-                    tmp_list    = [col.values for col in turb_data[var_name].values]
+                    try:
+                        tmp_list = [col.values for col in turb_data[var_name].values]
+
+                    # this *also* fixes the rare case that *one* column is filled entirely with
+                    # nans and therefor "col" is a numpy array and not a DataFrame
+                    except AttributeError:
+                        tmp_list = [col for col in turb_data[var_name].values]
+
                     tmp_df      = pd.DataFrame(tmp_list, index=turb_data.index).fillna(def_fill_flt)
                     tmp         = tmp_df.to_numpy()
                     var_turb[:] = tmp         
 
             # add variable descriptions from above to each file
             for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name] .setncattr(att_name, att_desc)
+
+            try:
+                height_today, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date)
+
+                if height_today is None: 
+                    curr_height, height_change_time = mc_site_metadata.get_var_metadata(var_name, 'height', date, True)
+                    height_start = curr_height
+                    height_end   = curr_height
+                else:
+                    prev_height, prev_time = mc_site_metadata.get_var_metadata(var_name, 'height', date, True)
+                    height_start = prev_height
+                    height_end   = height_today
+
+                netcdf_lev2[var_name].setncattr('height_start', height_start)
+                netcdf_lev2[var_name].setncattr('height_end', height_end)
+                netcdf_lev2[var_name].setncattr('height_change_time', height_change_time.strftime('%Y-%m-%d %H:%M:%S'))
+
+                event_today, event_time = mc_site_metadata.get_var_metadata(var_name, 'events', date)
+                if event_today is not None:
+                    netcdf_lev2[var_name].setncattr('event', f'{event_time.strftime("%Y-%m-%d %H:%M:%S")} -- {event_today}')
+
+            except Exception as e:
+                do_nothing = True # no height values found in mc_site_metadata for variable
+
+            # add a percent_missing attribute to give a first look at "data quality"
+            netcdf_lev2[var_name].setncattr('percent_missing', perc_miss)
+
 
             # add a percent_missing attribute to give a first look at "data quality"
             perc_miss = fl.perc_missing(var_turb)
@@ -2339,14 +2424,21 @@ def write_level2_10hz(sonic_data, licor_data, date):
         print("!!! no data on day {}, returning from fast write without writing".format(date))
         return False
 
-    out_dir       = level2_dir
+    out_dir = level2_dir
+    if not os.path.exists(out_dir):
+        print("!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!")
+        print("!!! making directory: {out_dir}, did you mean to do this or... !!!")
+        print("!!! did you accidentally specify the wrong path??              !!!")
+        print("!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!")
+        os.makedirs(out_dir)
+
     file_str_fast = 'moswind10hz.metcity.level2.4.{}.nc'.format(date.strftime('%Y%m%d.%H%M%S'))
     
     lev1_fast_name  = '{}/{}'.format(out_dir, file_str_fast)
 
     global_atts_fast = define_global_atts("10hz") # global atts for level 1 and level 2
 
-    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w',zlib=True)
+    netcdf_lev1_fast  = Dataset(lev1_fast_name, 'w', clobber=True, zlib=True)
 
     for att_name, att_val in global_atts_fast.items(): # write the global attributes to fast
         netcdf_lev1_fast.setncattr(att_name, att_val)
