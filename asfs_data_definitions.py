@@ -45,7 +45,6 @@ def define_global_atts(station_name, file_type):
         'source'           :'Observations made during the Multidisciplinary drifting Observatory for the Study of Arctic Climate (MOSAiC 2019-2020) expedition PS-122',
         'system'           :'{}'.format(station_name),
         'references'       :'Cox, C. J., M. R. Gallagher, M. D. Shupe, P. O. G. Persson, A. Solomon, C. W. Fairall, T. Ayers, B. Blomquist I. M. Brooks, D. Costa, A. Grachev, D. Gottas, J. K. Hutchings, M. Kutchenreiter, J. Leach, S. M. Morris, V. Morris, J. Osborn, S. Pezoa, A. Preußer, L. D. Riihimaki, T. Uttal, 2022: Continuous observations of the surface energy budget and meteorology over the Arctic sea ice during MOSAiC. Scientific Data', 
-        'reference_doi'    : '', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
         'history'          :'based on raw instrument data files',
@@ -58,7 +57,9 @@ def define_global_atts(station_name, file_type):
     elif file_type == "fast":
         global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
-    elif file_type == "level2":
+    elif file_type == "level2" or file_type == "seb":
+        global_atts['data_provenance'] = f"Based on data from the mos{station_name}slow.level1 datastream with : {doi}"
+
         global_atts['wind_sector_qc_info_flag']  = 'Quality control flags specifically for wind sectors as related to derived turbulence products. This flag indicates if the prevailing wind direction is under the influence of certain obstacles on the sea ice.  The flags are defined as follows:'+os.linesep+\
             '- 10: In Polarstern sector (i.e. Caution)'+os.linesep+\
             '- 11: In Polarstern sector and in footprint (i.e., Bad)'+os.linesep+\
@@ -77,6 +78,10 @@ def define_global_atts(station_name, file_type):
             '1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.'+os.linesep+\
             '2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.'+os.linesep+\
             '3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed.'
+        if file_type == "seb": 
+            global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
+            global_atts['bulk_qc_flags'] = 'Applies to all derived bulk-based turbulence parameters',
+
 
     elif file_type == "`10hz`":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
@@ -85,6 +90,8 @@ def define_global_atts(station_name, file_type):
     elif file_type == "turb":  # some specifics for the tubulence file
         global_atts['quality_control']  = 'The source data measured at 20 Hz was quality controlled. Variables relevant for quality control of the derived quantities supplied in this file are also supplied, but the derived quantities themselves are NOT quality-controlled.',
         global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
+        global_atts['bulk_qc_flags'] = 'Applies to all derived bulk-based turbulence parameters',
+
         global_atts['methods']          = 'Code developed from routines used by NOAA ETL/PSD3. Original code read_sonic_hr was written by Chris Fairall and later adopted by Andrey Grachev as read_sonic_10Hz_1hr_Tiksi_2012_9m_v2.m, read_sonic_hr_10.m, read_Eureka_sonic_0_hr_2009_egu.m, read_sonic_20Hz_05hr_Materhorn2012_es2',
         global_atts['file_creator']     = 'Michael R. Gallagher; Christopher J. Cox',
         global_atts['references']       = 'Grachev et al. (2013), BLM, 147(1), 51-82, doi 10.1007/s10546-012-9771-0; Grachev et al. (2008) Acta Geophysica. 56(1): 142-166; J.C. Kaimal & J.J. Finnigan "Atmospheric Boundary Layer Flows" (1994)',
@@ -1044,8 +1051,9 @@ def define_level2_variables():
 
     lev2_atts['snow_depth']            .update({'long_name'     : 'snow depth near station base',
                                                 'cf_name'       : 'surface_snow_thickness',
-                                                'instrument'    : 'Hukseflux HFP01',
+                                                'instrument'    : 'Campbell Scientific SR50A',
                                                 'methods'       : 'derived snow depth from temperature-corrected SR50 distance values based on initialization. footprint nominally 0.47 m radius.',
+                                                'comment' : 'Increasing values suggest snowfall, decreasing values suggest snow loss through redistribution or melt. Negative values do occur in the dataset when there has been melt of the snow/ice surface. Please read the associated data paper for more information.',
                                                 'height'        : 'N/A',
                                                 'location'      : 'at base of station under SR50',})
 
@@ -1301,8 +1309,12 @@ def define_qc_variables(include_turb=False):
     qc_atts['up_short_hemisp_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
 
     if include_turb:
+
         qc_atts['turbulence_qc'] = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}    
         qc_atts['turbulence_qc'].update({'comment': 'See global attributes for qc flag definitions.'})
+
+        qc_atts['bulk_qc']   = {'long_name' : 'QC flag integer indicating data quality for all bulk turbulence parameters'}
+
 
     return qc_atts, list(qc_atts.keys()).copy() 
 

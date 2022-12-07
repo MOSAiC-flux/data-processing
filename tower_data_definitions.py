@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['4.0', '8/1/2022', 'mgallagher']
+    cv = ['4.000002', '12/7/2022', 'mgallagher']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -33,7 +33,7 @@ def define_global_atts(file_type):
         'project'          :'Thermodynamic and Dynamic Drivers of the Arctic Sea Ice Mass Budget at MOSAiC', 
         'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program; Department of Energy Office of Science Atmospheric Radiation Measurement Program;',
         'source'           :'Observations made during the Multidisciplinary drifting Observatory for the Study of Arctic Climate (MOSAiC 2019-2020) expedition PS-122',
-        'system'           :'10m Tower',
+        'system'           :'Met City',
         'references'       :'Cox, C. J., M. R. Gallagher, M. D. Shupe, P. O. G. Persson, A. Solomon, C. W. Fairall, T. Ayers, B. Blomquist I. M. Brooks, D. Costa, A. Grachev, D. Gottas, J. K. Hutchings, M. Kutchenreiter, J. Leach, S. M. Morris, V. Morris, J. Osborn, S. Pezoa, A. Preußer, L. D. Riihimaki, T. Uttal, 2022: Continuous observations of the surface energy budget and meteorology over the Arctic sea ice during MOSAiC. Scientific Data', 
         'reference_doi'    : '', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
@@ -48,7 +48,9 @@ def define_global_atts(file_type):
     elif file_type == "fast":
         global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
-    elif file_type == "level2":
+    elif file_type == "level2" or file_type == "seb":
+        global_atts['instrument_heights'] = 'Instruments were installed at nominal heights. Exact measured heights and the dates these changed are included as attributes to the appropriate measured fields and some key derived fields. Specifically, the daily start and end heights are given, as well as the last date of the height change.'
+
         global_atts['wind_sector_qc_info_flag']  = 'Quality control flags specifically for wind sectors as related to derived turbulence products. This flag indicates if the prevailing wind direction is under the influence of certain obstacles on the sea ice.  The flags are defined as follows:'+os.linesep+\
             '- 10: In Polarstern sector (i.e. Caution)'+os.linesep+\
             '- 11: In Polarstern sector and in footprint (i.e., Bad)'+os.linesep+\
@@ -60,6 +62,11 @@ def define_global_atts(file_type):
             '- 31: In Tower sector and in footprint (i.e., Bad)'+os.linesep+\
             '- 32: In Tower sector and above sig2/ustar threshold (i.e. Bad)'+os.linesep+\
             '- 40: Other issue'
+
+        if file_type == "seb": 
+            global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
+            global_atts['bulk_qc_flags']       = 'Applies to all derived bulk-based turbulence parameters',
+
 
         global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please use Level 3 data unless you have a specific reason to use Level 2.'
         global_atts['qc_flags'] = '-1 = No Data: Instrument was not functional and no data exists.'+os.linesep+\
@@ -75,6 +82,7 @@ def define_global_atts(file_type):
     elif file_type == "turb":  # some specifics for the tubulence file
         global_atts['quality_control']  = 'The source data measured at 20 Hz was quality controlled. Variables relevant for quality control of the derived quantities supplied in this file are also supplied, but the derived quantities themselves are NOT quality-controlled.',
         global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
+        global_atts['bulk_qc_flags'] = 'Applies to all derived bulk-based turbulence parameters',
 
         global_atts['methods']          = 'Code developed from routines used by NOAA ETL/PSD3. Original code read_sonic_hr was written by Chris Fairall and later adopted by Andrey Grachev as read_sonic_10Hz_1hr_Tiksi_2012_9m_v2.m, read_sonic_hr_10.m, read_Eureka_sonic_0_hr_2009_egu.m, read_sonic_20Hz_05hr_Materhorn2012_es2',
         global_atts['file_creator']     = 'Michael R. Gallagher; Christopher J. Cox',
@@ -807,8 +815,8 @@ def define_level2_variables():
 
     lev2_atts['lat_tower']               = {'units'                                            :'degrees_north'}
     lev2_atts['lon_tower']               = {'units'                                            :'degrees_east'}
-    lev2_atts['heading_tower']           = {'units'                                            :'degrees_true'}
-    lev2_atts['heading_mast']            = {'units'                                            :'deg'}
+    lev2_atts['tower_heading']           = {'units'                                            :'degrees_true'}
+    lev2_atts['mast_heading']            = {'units'                                            :'deg'}
     lev2_atts['lat_mast']                = {'units'                                            :'min'}
     lev2_atts['lon_mast']                = {'units'                                            :'deg'}
     lev2_atts['zenith_true']             = {'units'                                            :'degrees'}
@@ -925,9 +933,9 @@ def define_level2_variables():
                                                       'measurement_source'                     : flux_source,
                                                       'funding_sources'                        : flux_funding,})
 
-    lev2_atts['heading_tower']           .update({    'long_name'                              :'heading from gps at the tower',
+    lev2_atts['tower_heading']           .update({    'long_name'                              :'heading from gps at the tower',
                                                       'cf_name'                                :'',
-                                                      'qc_varname'                             :'Corresponding quality control variable is "heading_tower_qc"',
+                                                      'qc_varname'                             :'Corresponding quality control variable is "tower_heading_qc"',
                                                       'instrument'                             :'Hemisphere V102',
                                                       'methods'                                :'$HEHDT',
                                                       'height'                                 :'N/A',
@@ -963,9 +971,9 @@ def define_level2_variables():
                                                       'location'                               : mast_location_string,}) 
  
 
-    lev2_atts['heading_mast']            .update({    'long_name'                              :'heading from gps at the mast',
+    lev2_atts['mast_heading']            .update({    'long_name'                              :'heading from gps at the mast',
                                                       'cf_name'                                :'',
-                                                      'qc_varname'                             :'Corresponding quality control variable is "heading_mast_qc"',
+                                                      'qc_varname'                             :'Corresponding quality control variable is "mast_heading_qc"',
                                                       'instrument'                             :'Hemisphere V102',
                                                       'methods'                                :'$HEHDT',
                                                       'height'                                 :'N/A',
@@ -1201,7 +1209,7 @@ def define_level2_variables():
                                                       'cf_name'                                :'',
                                                       'qc_varname'                             :'Corresponding quality control variable is "brightness_temp_surface_qc"',
                                                       'instrument'                             :'Apogee SI-4H1-SS IRT',
-                                                      'methods'                                :'digitally polled from instument. No emmisivity correction. No correction for reflected incident.',
+                                                      'methods'                                :'digitally polled from instument. No emissivity correction. No correction for reflected incident.',
                                                       'height'                                 :'surface',
                                                       'location'                               : bottom_location_string,
                                                       'platform'                               : tower_platform,
@@ -1236,8 +1244,9 @@ def define_level2_variables():
     lev2_atts['snow_depth']              .update({    'long_name'                              :'snow depth near tower base',
                                                       'cf_name'                                :'surface_snow_thickness',
                                                       'qc_varname'                             :'Corresponding quality control variable is "snow_depth_qc"',
-                                                      'instrument'                             :'Hukseflux HFP01',
+                                                      'instrument'                             :'Campbell Scientific SR50A',
                                                       'methods'                                :'derived snow depth from temperature-corrected SR50 distance values based on manually measured reference depths and dates. Footprint nominally 0.47 m radius.',
+                                                      'comment' : 'Increasing values suggest snowfall, decreasing values suggest snow loss through redistribution or melt. Negative values do occur in the dataset when there has been melt of the snow/ice surface. Please read the associated data paper for more information.',
                                                       'height'                                 :'',
                                                       'location'                               :'at base of tower under SR50',
                                                       'platform'                               : tower_platform,
@@ -1951,8 +1960,8 @@ def define_qc_variables(include_turb=False):
 
     qc_atts['lat_tower_qc']               = {'long_name'                              :'QC flag integer indicating data quality'}    
     qc_atts['lon_tower_qc']               = {'long_name'                              :'QC flag integer indicating data quality'}    
-    qc_atts['heading_tower_qc']           = {'long_name'                              :'QC flag integer indicating data quality'}    
-    qc_atts['heading_mast_qc']            = {'long_name'                              :'QC flag integer indicating data quality'}    
+    qc_atts['tower_heading_qc']           = {'long_name'                              :'QC flag integer indicating data quality'}    
+    qc_atts['mast_heading_qc']            = {'long_name'                              :'QC flag integer indicating data quality'}    
     qc_atts['lat_mast_qc']                = {'long_name'                              :'QC flag integer indicating data quality'}    
     qc_atts['lon_mast_qc']                = {'long_name'                              :'QC flag integer indicating data quality'}    
     qc_atts['zenith_true_qc']             = {'long_name'                              :'QC flag integer indicating data quality'}    
@@ -2048,8 +2057,8 @@ def define_qc_variables(include_turb=False):
 
     qc_atts['lat_tower_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
     qc_atts['lon_tower_qc']               .update({'comment': 'See global attributes for qc flag definitions.'})
-    qc_atts['heading_tower_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
-    qc_atts['heading_mast_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['tower_heading_qc']           .update({'comment': 'See global attributes for qc flag definitions.'})
+    qc_atts['mast_heading_qc']            .update({'comment': 'See global attributes for qc flag definitions.'})
     qc_atts['lat_mast_qc']                .update({'comment': 'See global attributes for qc flag definitions.'})
     qc_atts['lon_mast_qc']                .update({'comment': 'See global attributes for qc flag definitions.'})
     qc_atts['zenith_true_qc']             .update({'comment': 'See global attributes for qc flag definitions.'})
@@ -2139,17 +2148,19 @@ def define_qc_variables(include_turb=False):
     qc_atts['up_short_hemisp_qc']         .update({'comment': 'See global attributes for qc flag definitions.'})
 
     if include_turb:
-        qc_atts['turbulence_qc_2m']   = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
-        qc_atts['turbulence_qc_6m']   = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
-        qc_atts['turbulence_qc_10m']  = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
-        qc_atts['turbulence_qc_mast'] = {'long_name' : 'QC flag integer indicating data quality for all turbulence parameters'}
+        qc_atts['bulk_qc']   = {'long_name' : 'QC flag integer indicating data quality for all bulk turbulence parameters'}
 
-        qc_atts['turbulence_qc_2m']   .update({'comment': 'See global attributes for qc flag definitions.'})
-        qc_atts['turbulence_qc_6m']   .update({'comment': 'See global attributes for qc flag definitions.'})
-        qc_atts['turbulence_qc_10m']  .update({'comment': 'See global attributes for qc flag definitions.'})
-        qc_atts['turbulence_qc_mast'] .update({'comment': 'See global attributes for qc flag definitions.'})
+        qc_atts['turbulence_2m_qc']   = {'long_name' : 'QC flag integer indicating data quality for all EC turbulence parameters'}
+        qc_atts['turbulence_6m_qc']   = {'long_name' : 'QC flag integer indicating data quality for all EC turbulence parameters'}
+        qc_atts['turbulence_10m_qc']  = {'long_name' : 'QC flag integer indicating data quality for all EC turbulence parameters'}
+        qc_atts['turbulence_mast_qc'] = {'long_name' : 'QC flag integer indicating data quality for all EC turbulence parameters'}
 
-        qc_atts['Hl_qc']   = {'long_name' : 'QC flag integer indicating data quality for latent'}    
+        qc_atts['turbulence_2m_qc']   .update({'comment': 'See global attributes for qc flag definitions.'})
+        qc_atts['turbulence_6m_qc']   .update({'comment': 'See global attributes for qc flag definitions.'})
+        qc_atts['turbulence_10m_qc']  .update({'comment': 'See global attributes for qc flag definitions.'})
+        qc_atts['turbulence_mast_qc'] .update({'comment': 'See global attributes for qc flag definitions.'})
+
+        qc_atts['Hl_qc']   = {'long_name' : 'QC flag integer indicating data quality for latent heat fluxes'}    
         qc_atts['Hl_qc']   .update({'comment': 'See global attributes for qc flag definitions.'})
  
 
