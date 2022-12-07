@@ -1507,11 +1507,11 @@ def main(): # the main data crunching program
                 bulk_input['ts'] = sdt['skin_temp_surface'][minutes_today]   # bulk water/ice surface tempetature (degC) 
                 bulk_input['t']  = sdt['temp'][minutes_today]     # air temperature                    (degC) 
                 bulk_input['Q']  = sdt['mixing_ratio'][minutes_today]/1000  # air moisture mixing ratio          (kg/kg)
-                bulk_input['zi'] = empty_data+600                         # inversion height                   (m) wild guess
+                bulk_input['zi'] = empty_data+600                          # inversion height                   (m) wild guess
                 bulk_input['P']  = sdt['atmos_pressure'][minutes_today]    # surface pressure                   (mb)
-                bulk_input['zu'] = empty_data+3.3                         # height of anemometer               (m)
-                bulk_input['zt'] = empty_data+2                           # height of thermometer              (m)
-                bulk_input['zq'] = empty_data+2                           # height of hygrometer               (m)      
+                bulk_input['zu'] = 3.86-sdt['snow_depth'][minutes_today]   # height of anemometer               (m)
+                bulk_input['zt'] = 2.13-sdt['snow_depth'][minutes_today]   # height of thermometer              (m)
+                bulk_input['zq'] = 1.84-sdt['snow_depth'][minutes_today]   # height of hygrometer               (m)      
                 bulk_input = bulk_input.resample(str(integration_window)+'min',label='left').apply(fl.take_average)
 
                 # output dataframe

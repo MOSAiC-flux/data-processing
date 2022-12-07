@@ -568,7 +568,7 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
          C = (licor['licor_co2']/1000 * M_co2)*1e6 # mmol/m3 -> mol/m_3 -> kg/m3 -> mg/m3
     
     #H = H * Rgas*(T+tdk)/(pr*100) # gas density to mixing ratio
-    Q = Q / (Q + rho) # to specfic humidity
+    Q = Q / rho # to specfic humidity
     npt = len(U)
     
     # despike following Fairall et al.
