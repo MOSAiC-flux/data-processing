@@ -1,7 +1,6 @@
 # #####################################################################
 # this file functions take the full dataset and return the same  dataset
 # with more nans. if you provide a subset of data it will work though.
-
 import numpy  as np
 import pandas as pd
 
@@ -9,6 +8,8 @@ pd.options.mode.use_inf_as_na = True # no inf values anywhere
 
 from datetime  import datetime as dt
 import time
+
+from collections import OrderedDict
 
 from tower_data_definitions import define_qc_variables as tower_qc_variables
 from tower_data_definitions import define_turb_variables
@@ -30,13 +31,13 @@ emis     = 0.985   # snow emis assumption following Andreas, Persson, Miller, Wa
 
 def qc_tower(tower_data): 
 
-    tower_data = qc_flagging(tower_data, "./qc_tables/qc_table_tower.csv", tower_qc_variables()[1])
+    tower_data = qc_flagging(tower_data, "./qc_tables/qc_table_tower.csv", tower_qc_variables()[1], 'tower')
 
     return tower_data 
 
 def qc_stations(asfs_data, station_name): 
 
-    asfs_data = qc_flagging(asfs_data, f"./qc_tables/qc_table_{station_name}.csv", asfs_qc_variables()[1])
+    asfs_data = qc_flagging(asfs_data, f"./qc_tables/qc_table_{station_name}.csv", asfs_qc_variables()[1], station_name)
     
     return asfs_data 
 
@@ -93,7 +94,7 @@ def qc_tower_winds(tower_data, ship_data):
     wind_relative = pd.DataFrame(index=tower_data.index)
     sigw_ustar    = pd.DataFrame(index=tower_data.index)
     for h in heights_to_qc:
-        wind_relative[h] = tower_data[f'wdir_vec_mean_{h}']  - tower_data['heading_tower'] ; 
+        wind_relative[h] = tower_data[f'wdir_vec_mean_{h}']  - tower_data['tower_heading'] ; 
         wind_relative[h][wind_relative[h]<0] = wind_relative[h] [wind_relative[h]<0] +360
         if turb_today[h]:
             sigw_ustar[h] = tower_data[f'sigW_{h}']/tower_data[f'ustar_{h}']
@@ -266,35 +267,82 @@ def qc_asfs_winds(station_data):
 
     return wind_relative, ship_relative, station_data
 
-def qc_flagging(data_frame, table_file, var_names):
+# this is all so ugly and I hate it
+def qc_flagging(data_frame, table_file, qc_var_names, station_name):
 
+    
+    print("…………… getting qc file")
     flag_df = get_qc_table(table_file)
 
-    zero_array = np.array([0]*len(data_frame))
-    qc_var_list = []
-    for iv, v in enumerate(var_names):
-        if v.rsplit("_")[-1] == 'qc':
-            data_frame[v] =  [0]*len(data_frame)
-            qc_var_list.append(v)
+    print("…………… setting qc vals to 0")
+
+    qcdf = pd.DataFrame(index=data_frame.index, columns=qc_var_names, dtype=np.int64)
+    qcdf = qcdf.fillna(0)
+    data_frame = pd.concat([data_frame, qcdf], axis=1)
+
+    # instantiate the turbulence qc variables as nan/0... depending
+    if station_name == 'tower':
+        height_strs = ['2m', '6m', '10m', 'mast'] 
+
+        add_str = '_tower'
+        turb_qc_vars = []
+        for h in height_strs:
+            var = f'turbulence_{h}_qc'
+            turb_qc_vars.append(var)
+            data_frame[var] = np.nan
+            if h!='mast': data_frame[data_frame[f'vaisala_T_{h}']!=np.nan][var] = 0
+            else: data_frame[data_frame[f'{h}_T']!=np.nan][var] = 0 #... WHY, is this a different name
+
+        data_frame['bulk_qc'] = np.nan
+        data_frame[data_frame[f'vaisala_T_10m']!=np.nan]['bulk_qc'] = 0
+
+    else:
+        data_frame['turbulence_qc'] = np.nan
+        data_frame['bulk_qc']       = np.nan
+        data_frame[data_frame['vaisala_T_Avg']!=np.nan]['turbulence_qc'] = 0
+        data_frame[data_frame['vaisala_T_Avg']!=np.nan]['bulk_qc']       = 0
+
+        add_str = '' # some vars are different for tower... :::|
+
+    print("…………… done, moving on to table")
 
     # lookup table for "group" names, these need to include the "_qc", as the code below
     # puts the value into that field, i.e. temp_qc, not just temp, aka 'inheritance'/hierarchy
+    # the order matters, btw, since ALL_FIELDS should be evaluated in the loop below last
     lookup_table = {
-        'ALL_FIELDS' : [v.rstrip('_qc') for v in var_names if v.split('_')[-1] == 'qc'], 
-        'ALL_MAST'   : [v.rstrip('_qc') for v in var_names if v.split('_')[-1] == 'qc' and v.rstrip('_qc').split('_')[-1] == 'mast'],  
         'up_long_hemisp' : ['up_long_hemisp', 'skin_temp_surface'],
         'down_long_hemisp' : ['down_long_hemisp', 'skin_temp_surface'],
         'sr50_dist' : ['sr50_dist', 'snow_depth'], 
         'rh' : ['rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],
-        'temp' : ['temp','rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure', 'bulk_Hs'],
-        'lon'  : ['lon', 'lat'] , 
-        'lat'  : ['lon', 'lat'] , 
-    } 
-    
+        'temp' : ['temp','rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],#, 'bulk_Hs'],
+        'lon'+add_str  : ['lon'+add_str, 'lat'+add_str] , 
+        'lat'+add_str  : ['lon'+add_str, 'lat'+add_str] , 
+
+    }
+    if station_name == 'tower':
+        lookup_table.update({
+            'ALL_TURBULENCE_2M' : ['turbulence_2m'],
+            'ALL_TURBULENCE_6M' : ['turbulence_6m'],
+            'ALL_TURBULENCE_10M' : ['turbulence_10m', 'bulk'],
+            'ALL_TURBULENCE_mast' : ['turbulence_mast'],
+            'ALL_MAST'   : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc' and v.rstrip('_qc').split('_')[-1] == 'mast'], 
+
+            'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'], 
+        })
+    else:
+        lookup_table.update({
+            'ALL_TURBULENCE_10M' : ['turbulence_qc', 'bulk_qc'],
+            'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'], 
+        })
+
+    lookup_table = OrderedDict(lookup_table) # ensure order doesn't change
+
+
     problem_rows = {} # dictionary to keep rows that don't match any of the conditionals, i.e. bad/nonsense rows
+    # we go through every entry in the qc table and fill in the qc vars in the dataframe
     for irow, row in flag_df.iterrows():
 
-        # some hackery to account for heights that might exist avoiding duplicating stuff up there ^
+        # hackery to account for heights that might exist avoiding duplicating stuff up there ^
         height_strs = ['2m', '6m', '10m', 'mast'] 
         if any(h in row['var_name'] for h in height_strs):
             hstr = '_'+row['var_name'].split('_')[-1]
@@ -304,35 +352,85 @@ def qc_flagging(data_frame, table_file, var_names):
             hstr = ''
             special_key = row['var_name']
 
+        # is the current variable inthe lookup list
         if any(special_key in c for c in lookup_table.keys()):
-
-            if 'temp' in special_key: print(f"-------- YES WE GOT THE SPECIAL KEY {special_key+hstr}")
 
             for v in lookup_table[special_key]: 
                 try: 
                     special_var = v+hstr+'_qc'
                     data_frame[special_var].loc[row['start_date']:row['end_date']] = row['qc_val']
-                except:
+                except Exception as ex:
+                    print(ex)
                     print(f"... failed for {special_key=} and val {v+hstr}")
+
+        # it wasn't in the lookup list, only fill out the qc var for this individual variable
         else:
             try:
                 var_to_qc = row['var_name']+'_qc' # get var_name column from file
                 data_frame[var_to_qc].loc[row['start_date']:row['end_date']] = row['qc_val']
 
             except KeyError as ke: 
-                    # print(f"!!! problem with entry in manual QC table for {table_file} for var {var_to_qc} at row {irow}!!!")
-                    # print(f"{row}")
-                    # print("==========================================================================================")
-                    # print("Python traceback: \n\n")
-                    # import traceback
-                    # import sys
-                    # print(traceback.format_exc())
-                    # print("==========================================================================================")
+                    print(f"!!! problem with entry in manual QC table for {table_file} for var {var_to_qc} at row {irow}!!!")
+                    print(f"{row}")
+                    print("==========================================================================================")
+                    print("Python traceback: \n\n")
+                    import traceback, sys
+                    print(traceback.format_exc())
+                    print("==========================================================================================")
 
                     problem_rows[irow] = row
 
+    print("…………… done, moving on to inheritance")
+
+    #now make sure that everything is inherited from before as well, this could include the automatic qc..
+    # we loop through the list of inherited variables
+    for parent_var, child_var_list in lookup_table.items():
+        # if the parent variable is a "real" measured param, copy all engineering/bad data
+        # from the parent variable and apply it to all inherited variables...
+        if 'ALL_' not in parent_var:
+            try:
+                data_frame[parent_var+'_qc'] # does this var exist?
+                height_strs = ['',]
+            except KeyError as ke:
+                data_frame[parent_var+'_2m_qc'] # if no, then it has to be a height var
+                height_strs = ['_2m', '_6m', '_10m', '_mast'] 
+            for h in height_strs:
+                bad_inds = (data_frame[parent_var+h+'_qc']==2)  
+                eng_inds = (data_frame[parent_var+h+'_qc']==3)
+                for child_var in child_var_list:
+                    data_frame.loc[bad_inds, child_var+h+'_qc'] = 2
+                    data_frame.loc[eng_inds, child_var+h+'_qc'] = 3
+
+        # but for "ALL_" variables we're going to manually apply the qc values for each time
+        # range specified in the qc table to all of the applicable variables...
+        # ... this is done here and not above because it needs to supersede any of the other
+        # possible qc values specified
+        else:
+            for irow, row in flag_df.iterrows():
+                if parent_var == row['var_name']: 
+                    for child_var in child_var_list:
+                        try: 
+                            child_qc_var = child_var+'_qc'
+                            data_frame.loc[row['start_date']:row['end_date'], child_qc_var] = row['qc_val']
+                        except:
+
+                            height_strs = ['_2m', '_6m', '_10m', '_mast'] 
+                            for h in height_strs:
+                                child_qc_var = child_var+h+'_qc'
+                                try:
+                                    data_frame.loc[row['start_date']:row['end_date'], child_qc_var] = row['qc_val']
+                                except: 
+                                    import traceback, sys
+                                    print(traceback.format_exc())
+                                    print(f"... an 'ALL_*' ({parent_var})variable had an invalid child ({child_var})"+
+                                          f"! this should never happen...!!!!")
+                                    raise
+
+    print("…………… done, returning")
+                                
     if len(problem_rows)>1:
-        print(f"\n\n There were some prolems with the QC file {table_file}, specifically,  {len(problem_rows)} of them...\n\n")
+        print(f"\n\n There were some problems with the QC file {table_file}, specifically,"+
+              f"{len(problem_rows)} of them...\n\n")
         time.sleep(10)
     return data_frame 
 
@@ -346,7 +444,7 @@ def get_qc_table(table_file):
         if d == 'beg': d = mos_begin
         elif d=='end': d =mos_end
             
-        #hour = (str_two := d.split(' ')[1])[0:2] # no walrus in the trio python
+        hour = (str_two := d.split(' ')[1])[0:2] # no walrus in the trio python
         str_two = d.split(' ')[1]
         hour = str_two[0:2]
         mins = str_two[2:4]
@@ -395,27 +493,33 @@ def qc_tower_turb_data(tower_df, turb_df):
                 turb_df[var] # single height variable
                 var_list.append(var)
 
-        tdf = turb_df.copy()[var_list]
+        tdf = pd.concat([tower_df[f'turbulence_{h}_qc' ], turb_df.copy()[var_list]], axis=1) #_qc is in the tower_df
         tdf.columns = tdf.columns.str.replace(f'_{h}','') # remove height suffix before passing to qc routine
 
-        tower_df[f'turbulence_qc_{h}'] = qc_turb_data(tdf)
+        tower_df[f'turbulence_{h}_qc'] = qc_turb_data(tdf)
 
         sector_qc_info = tower_df[f'wind_sector_qc_info_{h}']   
 
         # tower specific stuff        
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 10] = 1 # in polarstern sector
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 11] = 2 # *and* within footprint
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 12] = 2 # *and* sigw/ustar thresh
+        tower_df[f'turbulence_{h}_qc'][(sector_qc_info == 10) & (tower_df[f'turbulence_{h}_qc']!=2)] = 1 # in polarstern sector
+        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 11] = 2 # *and* within footprint
+        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 12] = 2 # *and* sigw/ustar thresh
 
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 20] = 1 # in methut sector
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 21] = 2 # *and* within footprint
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 22] = 2 # *and* sigw/ustar thresh
+        tower_df[f'turbulence_{h}_qc'][(sector_qc_info == 20) & (tower_df[f'turbulence_{h}_qc']!=2)] = 1 # in methut sector
+        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 21] = 2 # *and* within footprint
+        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 22] = 2 # *and* sigw/ustar thresh
 
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 30] = 1 # in tower frame sector
-        tower_df[f'turbulence_qc_{h}'][sector_qc_info == 32] = 2 # *and* sigw/ustar thresh
+        tower_df[f'turbulence_{h}_qc'][(sector_qc_info == 30) & (tower_df[f'turbulence_{h}_qc']!=2)] = 1 # in tower frame sector
+        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 32] = 2 # *and* sigw/ustar thresh
 
         # if pressure missing flag nan, if pressure exists then it's bad data
-        tower_df[f'Hl_qc'] = tower_df['turbulence_qc_2m']
+        tower_df[f'Hl_qc'] = tower_df['turbulence_2m_qc']
+        tower_df[f'Hl_qc'] = tower_df['turbulence_2m_qc']
+
+    qc_df = tower_df[['turbulence_10m_qc', 'wspd_vec_mean_10m_qc','temp_10m_qc', 'rh_10m_qc',
+                      'atmos_pressure_2m_qc','skin_temp_surface_qc']].copy()
+        
+    tower_df  = qc_bulk_fluxes(tower_df, qc_df)
 
     return tower_df, turb_df 
 
@@ -437,26 +541,44 @@ def qc_asfs_turb_data(asfs_df, turb_df):
     sector_qc_info = asfs_df[f'wind_sector_qc_info']   
 
     # asfs specific stuff        
-    asfs_df[f'turbulence_qc'][sector_qc_info == 10] = 1 # in polarstern sector
+    asfs_df[f'turbulence_qc'][(sector_qc_info == 10) & (asfs_df['turbulence_qc'] != 2)] = 1 # in polarstern sector
     asfs_df[f'turbulence_qc'][sector_qc_info == 11] = 2 # *and* within footprint
     asfs_df[f'turbulence_qc'][sector_qc_info == 12] = 2 # *and* sigw/ustar thresh
 
     # if pressure missing flag nan, if pressure exists then it's bad data
     asfs_df[f'Hl_qc'] = asfs_df['turbulence_qc']
 
+    qc_df = asfs_df[['turbulence_qc', 'wspd_vec_mean_qc','temp_qc', 'rh_qc',
+                      'atmos_pressure_qc','skin_temp_surface_qc']].copy()
+        
+    asfs_df  = qc_bulk_fluxes(asfs_df, qc_df)
+
     return asfs_df, turb_df 
 
+def qc_bulk_fluxes(df, qc_df):
+
+    for ic, c in enumerate(qc_df.columns):
+        if ic==0: df['bulk_qc'] = qc_df[c]
+        else:
+            caut_inds = qc_df[c]==1
+            bad_inds  = qc_df[c]==2
+            eng_inds  = qc_df[c]==3
+
+            df['bulk_qc'].loc[bad_inds] = 2 
+
+            # only label caution if it's not bad or engineering
+            df['bulk_qc'].loc[(caut_inds) & (df['bulk_qc']!=2) & (df['bulk_qc']!=3)] = 1
+
+            # only label engineering if it's not bad
+            df['bulk_qc'].loc[(eng_inds) & (df['bulk_qc']!=2)]  = 3
+
+    return df
 
 def qc_turb_data(df):
 
-    # does the generic turbulence variable exist, if it doesn't or it's entirely NaNs, let's fill it with zeros, aka good
-    try:
-        if df['turbulence_qc'].isna().all(): df['turbulence_qc'] = 0
-    except: df['turbulence_qc'] = [0]*len(df)
-
     turbulence_qc = df['turbulence_qc'].copy()
-
-    turbulence_qc[df['ustar'] < 0] = 1   # ustar < 0 is caution
+    
+    turbulence_qc[(df['ustar'] < 0) & (turbulence_qc != 2)] = 1   # ustar < 0 is caution
     turbulence_qc[df['Hs'].isna()] = 2   # missing sensible heat flux means bad turb data
 
     return turbulence_qc

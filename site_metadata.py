@@ -63,7 +63,7 @@ def metcity_metadata():
     instrument_info   = {} # dictionary that maps instruments to their params (pd.Series)
     instrument_params = {'height': float, 'serial': str, 'events':str} # instrument parameter categories
 
-    instrument_var_map_dict =  get_metcity_var_map() # key==instr_name, values==list_of_associated_hvariables
+    instrument_var_map_dict =  get_metcity_var_map() # key==instr_name, values==list_of_associated_variables
     for instr_name in instrument_var_map_dict: 
         instrument_info[instr_name] = {}
         instr_vars = instrument_var_map_dict[instr_name]
@@ -113,10 +113,10 @@ def metcity_metadata():
 
 
     # ####################################################################################
-    sonic_height_raised     = (2.66, 5.68, 10.54) # height from tower base plate (m)
-    sensor_T_height_raised  = (1.65, 5.44, 9.34)  # height from tower base plate (m)
-    sensor_Rh_height_raised = (1.45, 5.24, 9.14)  # height from tower base plate (m)
-    sensor_P_height_raised  = (1.65)
+    sonic_height_raised     = (2.62, 6.4, 10.34) # height from tower base plate (m)
+    sensor_T_height_raised  = (1.75, 5.63, 9.44)  # height from tower base plate (m)
+    sensor_Rh_height_raised = (1.46, 5.34, 9.15)  # height from tower base plate (m)
+    sensor_P_height_raised  = (1.54, )
 
     instrument_info['sonic_2m']      ['height'][date_twr_raised] = sonic_height_raised[0]
     instrument_info['sonic_6m']      ['height'][date_twr_raised] = sonic_height_raised[1]
@@ -127,7 +127,7 @@ def metcity_metadata():
     instrument_info['sensor_Rh_2m']  ['height'][date_twr_raised] = sensor_Rh_height_raised[0]
     instrument_info['sensor_Rh_6m']  ['height'][date_twr_raised] = sensor_Rh_height_raised[1]
     instrument_info['sensor_Rh_10m'] ['height'][date_twr_raised] = sensor_Rh_height_raised[2]
-    instrument_info['sensor_P_2m']   ['height'][date_twr_raised] = 1.65
+    instrument_info['sensor_P_2m']   ['height'][date_twr_raised] = sensor_P_height_raised[0]
     instrument_info['SR50']          ['height'][date_twr_raised] = 2.0
 
     wxt_insts = ['sensor_P_mast', 'sensor_T_mast', 'sensor_Rh_mast']
@@ -270,20 +270,21 @@ def  get_metcity_var_map():
     # now lets map instruments to the vars they measure, so each var gets a height as necessary
     # when the actual file writing is done in main() 
     instr_vars_map= {
-        'sonic'     : ['wspd_u_mean', 'wspd_v_mean', 'wspd_z_mean', 'temp_acoustic_mean', 'temp_acoustic_std',
-                        'Hs','Cd','ustar','Tstar','zeta_level_n','wu_csp','wv_csp','uv_csp','wT_csp','uT_csp','vT_csp',
-                        'phi_u','phi_v','phi_w','phi_T','phi_uT','epsilon_u','epsilon_v','epsilon_w','epsilon',
-                        'Phi_epsilon','nSu','nSv','nSw','nSt','Nt','Phi_Nt','Phix','DeltaU','DeltaV','DeltaT','Kurt_u',
-                        'Kurt_v','Kurt_w','Kurt_T','Kurt_uw','Kurt_vw','Kurt_wT','Kurt_uT','Skew_u','Skew_v','Skew_w',
-                        'Skew_T','Skew_uw','Skew_vw','Skew_wT','Skew_uT','sus','svs','sws','sTs','cwus','cwvs','cuvs',
-                        'cwTs','cuTs','cvTs',],
+        'sonic'     : ['wspd_vec_mean', 'wdir_vec_mean', 
+                       'wspd_u_mean', 'wspd_v_mean', 'wspd_z_mean', 'temp_acoustic_mean', 'temp_acoustic_std',
+                       'Hs','Cd','ustar','Tstar','zeta_level_n','wu_csp','wv_csp','uv_csp','wT_csp','uT_csp','vT_csp',
+                       'phi_u','phi_v','phi_w','phi_T','phi_uT','epsilon_u','epsilon_v','epsilon_w','epsilon',
+                       'Phi_epsilon','nSu','nSv','nSw','nSt','Nt','Phi_Nt','Phix','DeltaU','DeltaV','DeltaT','Kurt_u',
+                       'Kurt_v','Kurt_w','Kurt_T','Kurt_uw','Kurt_vw','Kurt_wT','Kurt_uT','Skew_u','Skew_v','Skew_w',
+                       'Skew_T','Skew_uw','Skew_vw','Skew_wT','Skew_uT','sus','svs','sws','sTs','cwus','cwvs','cuvs',
+                       'cwTs','cuTs','cvTs',],
         'sensor_T'  : ['temp'], 
         'sensor_Rh' : ['rh', 'rhi'],
         'sensor_P'  : ['atmos_pressure'], 
         'SR50'      : ['sr50_dist', 'snow_depth'], 
         'IRT'       : ['brightness_temp_surface', 'skin_temp_surface'] , 
         'FP_a'      : [''], 
-        'licor'     : ['temp_licor', 'co2_licor', 'h2o_licor', 'pressure_licor'],
+        'licor'     : ['temp_licor', 'co2_licor', 'h2o_licor', 'pressure_licor', 'Hl'],
         'FP_b'      : [''], 
         'SPC_sfc'   : [''], 
         'SPC_10m'   : [''], 

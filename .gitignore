@@ -3,6 +3,7 @@
 .gitignore
 debug_functions.py
 ramdisk
+*.txt
 *.log
 *.pyc
 *.CR1X
