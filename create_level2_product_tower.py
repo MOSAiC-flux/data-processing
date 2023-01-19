@@ -68,9 +68,12 @@ global nthreads
 hostname = socket.gethostname()
 if '.psd.' in hostname:
     if hostname.split('.')[0] in ['linux1024', 'linux512']:
-        nthreads = 40  # the twins have 32 cores/64 threads, won't hurt if we use <30 threads
+        nthreads = 25  # the twins have 32 cores/64 threads, won't hurt if we use <30 threads
+    elif hostname.split('.')[0] in ['linux64', 'linux128', 'linux256']:
+        nthreads = 12  # 
     else:
-        nthreads = 12  # the trio only has 12 cores
+        nthreads = 90  # the new compute is hefty.... real hefty
+
 else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 
 from multiprocessing import Process as P
@@ -93,6 +96,7 @@ pd.options.mode.use_inf_as_na = True # no inf values anywhere
 
 from datetime  import datetime, timedelta
 from numpy     import sqrt
+from scipy     import stats
 from netCDF4   import Dataset
 
 import warnings; warnings.filterwarnings(action='ignore') # vm python version problems, cleans output....
@@ -534,11 +538,17 @@ def main(): # the main data crunching program
 
     verboseprint("... creating qc flags... takes a minute and some RAM")
 
-    with open(f'./{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug.pkl', 'wb') as pkl_file:
-        import pickle
-        pickle.dump(slow_data, pkl_file)
-    g
+    if we_want_to_debug:
+        with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_before.pkl', 'wb') as pkl_file:
+            import pickle
+            pickle.dump(slow_data, pkl_file)
+
     slow_data = qc_tower(slow_data)
+
+    if we_want_to_debug:
+        with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_after.pkl', 'wb') as pkl_file:
+            import pickle
+            pickle.dump(slow_data, pkl_file)
 
     # where arm data is missing, mark qc var as bad 
     arm_vars = ['down_long_hemisp', 'down_short_hemisp', 'up_long_hemisp', 'up_short_hemisp']
@@ -751,7 +761,7 @@ def main(): # the main data crunching program
         
         # R218 (2m): no offset
         # P917 (P197) (6m after Dec 2019): dT = 7.5e-5 x YD - 0.13
-        # R217'https://mail.google.com/mail/u/0?ui=2&ik=50bf1b7bff&attid=0.1&permmsgid=msg-f:1722978961312138638&th=17e9403c907b458e&view=att&disp=safe&realattid=f_kyuvbuok0'  (6m before Dec 2019): dT = 0.0972
+        # R217  (6m before Dec 2019): dT = 0.0972
         # R428 (10 m throughout MOSAiC): dT = -0.000302 x YD + 0.17
         # mast (30 m & 22 m): dT = 0.338
 
@@ -1489,6 +1499,18 @@ def main(): # the main data crunching program
             #       t = air temperature in C, scaler
             #       q = vapor mixing ratio, scaler
             turb_data_dict = {}
+
+            # calculate before loop, used to modify height offsets below to be 'more correct'
+            # snow depth calculation shouldn't/doesn't fail but catch the exception just in case
+            try: 
+                snow_depth = slow_data['snow_depth'][seconds_today].copy()  # get snow_depth, heights evolve in time
+                snow_depth[(np.abs(stats.zscore(snow_depth.values)) < 3)]   # remove weird outliers
+                snow_depth = snow_depth*0.01                                # convert to meters
+                snow_depth = snow_depth.rolling(600, min_periods=10).mean() # fill nans for bulk calc only
+            except Exception as ex: 
+                print(f"... calculating snow depth for {today} failed for some reason... ")
+                snow_depth = pd.Series(0, index=slow_data[seconds_today].index)
+
             for win_len in range(0,len(integ_time_step)):
                 turb_data       = pd.DataFrame()    
                 flux_freq       = '{}T'.format(integ_time_step[win_len])
@@ -1687,21 +1709,24 @@ def main(): # the main data crunching program
                 print('... calculating bulk fluxes for day: {}'.format(today))
  
                 # Input dataframe
-                    # first get 1 s wind speed. i dont care about direction. 
+                # first get 1 s wind speed. i dont care about direction. 
                 ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v']**2)**0.5
                 ws = ws.resample('1s',label='left').apply(fl.take_average)
                     # make a better surface temperature
                 empty_data = np.zeros(np.size(slow_data['mixing_ratio_10m'][seconds_today]))
                 bulk_input = pd.DataFrame()
-                bulk_input['u']  = ws[seconds_today]                                  # wind speed                (m/s)
-                bulk_input['t']  = slow_data['temp_10m'][seconds_today]               # air temperature           (degC) 
-                bulk_input['Q']  = slow_data['mixing_ratio_10m'][seconds_today]/1000  # air moisture mixing ratio (kg/kg)
-                bulk_input['zi'] = empty_data+600                                     # inversion height          (m) guess!
-                bulk_input['P']  = slow_data['atmos_pressure_2m'][seconds_today]      # surface pressure          (mb)
-                bulk_input['zu'] = 10.54-slow_data['snow_depth'][seconds_today]       # height of anemometer      (m)
-                bulk_input['zt'] = 9.34-slow_data['snow_depth'][seconds_today]        # height of thermometer     (m)
-                bulk_input['zq'] = 9.14-slow_data['snow_depth'][seconds_today]        # height of hygrometer      (m)      
-                bulk_input['ts'] = slow_data['skin_temp_surface'][seconds_today]      # bulk water/ice surface tempetature (degC) 
+                bulk_input['u']  = ws[seconds_today]                                 # wind speed                (m/s)
+                bulk_input['t']  = slow_data['temp_10m'][seconds_today]              # air temperature           (degC) 
+                bulk_input['Q']  = slow_data['mixing_ratio_10m'][seconds_today]/1000 # air moisture mixing ratio (kg/kg)
+                bulk_input['zi'] = empty_data+600                                    # inversion height          (m) guess!
+                bulk_input['P']  = slow_data['atmos_pressure_2m'][seconds_today]     # surface pressure          (mb)
+
+
+                bulk_input['zu'] = 10.54-snow_depth # height of anemometer      (m)
+                bulk_input['zt'] = 9.34-snow_depth  # height of thermometer     (m)
+                bulk_input['zq'] = 9.14-snow_depth  # height of hygrometer      (m)      
+                
+                bulk_input['ts'] = slow_data['skin_temp_surface'][seconds_today]     # bulk water/ice surface temp (degC) 
 
                 bulk_input = bulk_input.resample(str(integ_time_step[win_len])+'min',label='left').apply(fl.take_average)
 
@@ -1792,7 +1817,35 @@ def main(): # the main data crunching program
         verboseprint('... writing to level2 netcdf files and calcuating averages for day: {}'.format(today))
 
         # for level2 we are only writing out 1minute+ files so we
-        logger_1min = logger_today.resample('1T', label='left').apply(fl.take_average)
+        vector_vars = [] # these come from metek stats, leaving but vestigial
+        angle_vars  = ['tower_heading', 'ship_bearing', 'mast_heading']
+
+        l2_atts, l2_cols = define_level2_variables(); qc_atts, qc_cols = define_qc_variables(include_turb=True)
+        l2_cols = l2_cols+qc_cols
+
+        logger_list = []
+        for ivar, var_name in enumerate(logger_today.columns):
+            fstr = f'1T' # pandas notation for timestep
+
+            # this was copied from the 10min debugging, not all these
+            # vars are actually in the 1 second logger_today dataframe
+            try: 
+                if var_name.split('_')[-1] == 'qc':
+                    logger_list.append(fl.average_mosaic_flags(logger_today[var_name], fstr))
+                elif any(substr in var_name for substr in angle_vars):
+                    logger_list.append(logger_today[var_name].resample(fstr, label='left').apply(fl.take_average, is_angle=True))
+                else:
+                    logger_list.append(logger_today[var_name].resample(fstr, label='left').apply(fl.take_average))
+
+            except Exception as e: 
+                print("... this should never happen, why did it?\n {e}\n\n")
+                import traceback
+                import sys
+                print(traceback.format_exc())
+                raise
+
+        logger_1min = pd.concat(logger_list, axis=1)
+
         try: l2_data = pd.concat([logger_1min, stats_data], axis=1)
         except UnboundLocalError: l2_data = logger_1min # there was no fast data, rare
 
@@ -1808,11 +1861,6 @@ def main(): # the main data crunching program
 
             data_list = []
 
-            l2_atts, l2_cols = define_level2_variables(); qc_atts, qc_cols = define_qc_variables(include_turb=True)
-            l2_cols = l2_cols+qc_cols
-
-            vector_vars = ['wspd_vec_mean', 'wdir_vec_mean']
-            angle_vars  = ['tower_heading', 'ship_bearing', 'mast_heading']
 
             for ivar, var_name in enumerate(l2_cols):
                 fstr = f'{integ_time_step[win_len]}T' # pandas notation for timestep
@@ -1821,7 +1869,7 @@ def main(): # the main data crunching program
                     if var_name.split('_')[-1] == 'qc':
                         data_list.append(fl.average_mosaic_flags(l2_data[var_name], fstr))
                     elif any(substr in var_name for substr in vector_vars):
-                         data_list.append(turb_data[var_name]) 
+                        data_list.append(turb_data[var_name]) 
                     elif any(substr in var_name for substr in angle_vars):
                         data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average, is_angle=True))
                     else:
@@ -1837,16 +1885,18 @@ def main(): # the main data crunching program
 
             # run qc on wind sector for 10 minute data 
             try: 
-                avged_data = qc_tower_winds(avged_data, ship_df[today:tomorrow].resample(fstr,label='left').apply(fl.take_average))
-                avged_data, turb_data = qc_tower_turb_data(avged_data, turb_data_dict[win_len].copy())
-
-                # for debugging the write function.... ugh
-                # import pickle
-                # seb_args = [avged_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data[today:tomorrow]]
-                # pkl_file = open(f'./{today.strftime("%Y%m%d")}_seb_data_write.pkl', 'wb')
-                # pickle.dump(seb_args, pkl_file)
-                # pkl_file.close()
                 
+
+                avged_data = qc_tower_winds(avged_data, ship_df[today:tomorrow].resample(fstr,label='left').apply(fl.take_average))
+                # for debugging the write function.... ugh
+                if we_want_to_debug:
+                    import pickle
+                    pickle_args = [avged_data.copy(), turb_data_dict[win_len], today, f"{integ_time_step[win_len]}min"]
+                    pkl_file = open(f'./tests/{today.strftime("%Y%m%d")}_pre-qc_data.pkl', 'wb')
+                    pickle.dump(pickle_args, pkl_file)
+                    pkl_file.close()
+
+                avged_data, turb_data = qc_tower_turb_data(avged_data, turb_data_dict[win_len].copy())
 
                 write_level2_netcdf(avged_data.copy(), today, f"{integ_time_step[win_len]}min", turb_data[today:tomorrow])
 
@@ -2014,13 +2064,14 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
         short_name = 'seb'
 
 
-    # THIS ALL NEEDS TO BE DELETED!!!!!!!!!!!!!!!!!!!!
-    # level2_dir  =  './'
-    # epoch_time        = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
-    # def_fill_flt = -9999.0
-    # def_fill_int = -9999
-    # nan = np.NaN
-   
+    # THIS ALL NEEDS TO BE DELETED!!!!!!!!!!!!!!!!!!!! replace global vars so you can run in isolation
+    if we_want_to_debug:
+        level2_dir  =  './tests/'
+        epoch_time = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
+        def_fill_flt = -9999.0
+        def_fill_int = -9999
+        nan = np.NaN
+
     out_dir  =  level2_dir
     if not os.path.exists(out_dir):
         print("!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!")
@@ -2193,7 +2244,6 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
                  'ancillary_variables'  : 'base_time',
                  'calendar'  : 'standard',}
 
-
     delta_ints = np.floor((dti - tm).total_seconds())      # seconds
 
     t_ind = pd.Int64Index(delta_ints)
@@ -2216,6 +2266,7 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
     for att_name, att_val in t_atts.items(): netcdf_lev2['time'].setncattr(att_name,att_val)
     for att_name, att_val in bt_atts.items(): netcdf_lev2['time_offset'].setncattr(att_name,att_val)
 
+
     for var_name, var_atts in l2_atts.items():
 
         try:
@@ -2228,6 +2279,35 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
 
         perc_miss = fl.perc_missing(l2_data[var_name])
 
+        var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
+
+        # all qc flags set to -01 for when corresponding variables are missing data, except for these vars 
+        # exception_cols = ['bulk_qc', 'turbulence_2m_qc', 'turbulence_6m_qc', 'turbulence_10m_qc', 
+        #                   'turbulence_mast_qc', 'Hl_qc', 'down_long_hemisp', 'down_short_hemisp',
+        #                   'up_long_hemisp', 'up_short_hemisp']
+
+        exception_cols = {'bulk_qc': 'bulk_Hs_10m', 'turbulence_2m_qc': 'Hs_2m',
+                          'turbulence_6m_qc': 'Hs_6m', 'turbulence_10m_qc': 'Hs_10m', 
+                          'turbulence_mast_qc': 'Hs_mast', 'Hl_qc': 'Hl',
+                          'down_long_hemisp': False, 'down_short_hemisp': False,
+                          'up_long_hemisp': False, 'up_short_hemisp': False}
+
+        if var_name.split('_')[-1] == 'qc':
+            fill_val = np.int32(-1)
+
+            if not any(var_name in c for c in list(exception_cols.keys())): 
+                 l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+
+            else: 
+                if exception_cols[var_name] != False: 
+
+                    try:
+                        l2_data.loc[l2_data[exception_cols[var_name]].isnull(), var_name] = fill_val
+                    except:
+                        l2_data.loc[turb_data[exception_cols[var_name]].isnull(), var_name] = fill_val
+                        
+                    l2_data.loc[l2_data[var_name].isnull(), var_name] = fill_val
+
         if fl.column_is_ints(l2_data[var_name]):
             var_dtype = np.int32
             fill_val  = def_fill_int
@@ -2235,19 +2315,7 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
         else:
             fill_val  = def_fill_flt
 
-        var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
-
-        # all qc flags set to -01 for when corresponding variables are missing data
-        if var_name.split('_')[-1] == 'qc':
-            fill_val = -1
-            exception_cols = ['bulk_qc', 'turbulence_2m_qc', 'turbulence_6m_qc', 'turbulence_10m_qc', 
-                              'turbulence_mast_qc', 'Hl_qc', 'down_long_hemisp', 'down_short_hemisp',
-                              'up_long_hemisp', 'up_short_hemisp']
-
-            if not any(var_name in c for c in exception_cols): 
-                l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
-
-        vtmp = l2_data[var_name]
+        vtmp = l2_data[var_name].copy()
 
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
@@ -2257,7 +2325,7 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
         min_val = np.nanmin(vtmp.values)
         avg_val = np.nanmean(vtmp.values)
 
-        if var_name.split('_')[-1] != 'qc':
+        if var_name.split('_')[-1] != 'qc' or var_name.split('_')[-1] != 'info':
         
             netcdf_lev2[var_name].setncattr('max_val', max_val)
             netcdf_lev2[var_name].setncattr('min_val', min_val)
