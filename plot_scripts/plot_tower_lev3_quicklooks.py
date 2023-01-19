@@ -176,18 +176,20 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks/tower/2_level/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks/tower/3_level/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 
     # plot for all of leg 2.
     day_series = pd.date_range(start_time, end_time) # we're going to get date for these days between start->end
-    df, code_version = get_flux_data('tower', start_time, end_time, 2,
+    df, code_version = get_flux_data('tower', start_time, end_time, 3,
                                      data_dir, 'seb', True, nthreads, pickle_dir=pickle_dir)
 
     #df.index = df.index.droplevel("freq")
     df = df[~df.index.duplicated(keep='first')]
     #df = df.drop_duplicates()
+
+    #dm(locals(), 0)
 
     #filter_up = df['up_short_hemisp'].notnull() & df['up_long_hemisp'].isna()
     #filter_down = df['down_short_hemisp'].notnull() & ~np.array(df['down_long_hemisp'].isna()
@@ -210,7 +212,7 @@ def main(): # the main data crunching program
             try: unit_dict[plot_name][var_label] = l2_atts[var_names[0]]['units']
             except:
                 unit_dict[plot_name][var_label] = l2_atts[var_names[0]+'_2m']['units'] 
-    make_plots_pretty('seaborn-whitegrid') # ... and higher resolution
+    make_plots_pretty('fivethirtyeight') # ... and higher resolution
 
     if make_daily_plots:
         day_delta  = pd.to_timedelta(86399999999,unit='us') # we want to go up to but not including 00:00
