@@ -78,9 +78,17 @@ from pvlib import spa
 import os, inspect, argparse, time, sys, socket
 
 global nthreads 
-if '.psd.' in socket.gethostname():
-    nthreads = 24  # the twins have 64 cores, it won't hurt if we use <20
-else: nthreads = 2 # laptops don't tend to have 64 cores
+hostname = socket.gethostname()
+if '.psd.' in hostname:
+    if hostname.split('.')[0] in ['linux1024', 'linux512']:
+        nthreads = 25  # the twins have 32 cores/64 threads, won't hurt if we use <30 threads
+    elif hostname.split('.')[0] in ['linux64', 'linux128', 'linux256']:
+        nthreads = 12  # 
+    else:
+        nthreads = 90  # the new compute is hefty.... real hefty
+
+else: nthreads = 8     # laptops don't tend to have 12  cores... yet
+
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
@@ -100,6 +108,7 @@ pd.options.mode.use_inf_as_na = True # no inf values anywhere
 
 from datetime  import datetime, timedelta
 from numpy     import sqrt
+from scipy     import stats
 from netCDF4   import Dataset, MFDataset, num2date
 
 import warnings; warnings.filterwarnings(action='ignore') # vm python version problems, cleans output....
@@ -1374,6 +1383,19 @@ def main(): # the main data crunching program
                 metek_10hz = fl.fix_high_frequency(metek_10hz)
 
                 turb_ec_data = {}
+
+                # calculate before loop, used to modify height offsets below to be 'more correct'
+                # snow depth calculation shouldn't/doesn't fail but catch the exception just in case
+                try: 
+                    snow_depth = sdt['snow_depth'][minutes_today].copy()  # get snow_depth, heights evolve in time
+                    snow_depth[(np.abs(stats.zscore(snow_depth.values)) < 3)]   # remove weird outliers
+                    snow_depth = snow_depth*0.01                                # convert to meters
+                    snow_depth = snow_depth.rolling(30, min_periods=5).mean() # fill nans for bulk calc only
+                except Exception as ex: 
+                    print(f"... calculating snow depth for {today} failed for some reason...")
+                    print(sdt)
+                    snow_depth = pd.Series(0, index=sdt[minutes_today].index)
+
                 for win_len in range(0,len(integ_time_turb_flux)):
                     integration_window = integ_time_turb_flux[win_len]
                     flux_freq_str = '{}T'.format(integration_window) # flux calc intervals
@@ -1503,15 +1525,16 @@ def main(): # the main data crunching program
                 # Input dataframe
                 empty_data = np.zeros(np.size(sdt['mixing_ratio'][minutes_today]))
                 bulk_input = pd.DataFrame()
-                bulk_input['u']  = sdt['wspd_vec_mean'][minutes_today] # wind speed                         (m/s)
-                bulk_input['ts'] = sdt['skin_temp_surface'][minutes_today]   # bulk water/ice surface tempetature (degC) 
-                bulk_input['t']  = sdt['temp'][minutes_today]     # air temperature                    (degC) 
-                bulk_input['Q']  = sdt['mixing_ratio'][minutes_today]/1000  # air moisture mixing ratio          (kg/kg)
+                bulk_input['u']  = sdt['wspd_vec_mean'][minutes_today]     # wind speed                         (m/s)
+                bulk_input['ts'] = sdt['skin_temp_surface'][minutes_today] # bulk water/ice surface tempetature (degC) 
+                bulk_input['t']  = sdt['temp'][minutes_today]              # air temperature                    (degC) 
+                bulk_input['Q']  = sdt['mixing_ratio'][minutes_today]/1000 # air moisture mixing ratio          (kg/kg)
                 bulk_input['zi'] = empty_data+600                          # inversion height                   (m) wild guess
                 bulk_input['P']  = sdt['atmos_pressure'][minutes_today]    # surface pressure                   (mb)
-                bulk_input['zu'] = 3.86-sdt['snow_depth'][minutes_today]   # height of anemometer               (m)
-                bulk_input['zt'] = 2.13-sdt['snow_depth'][minutes_today]   # height of thermometer              (m)
-                bulk_input['zq'] = 1.84-sdt['snow_depth'][minutes_today]   # height of hygrometer               (m)      
+
+                bulk_input['zu'] = 3.86-snow_depth   # height of anemometer               (m)
+                bulk_input['zt'] = 2.13-snow_depth   # height of thermometer              (m)
+                bulk_input['zq'] = 1.84-snow_depth   # height of hygrometer               (m)      
                 bulk_input = bulk_input.resample(str(integration_window)+'min',label='left').apply(fl.take_average)
 
                 # output dataframe
@@ -1675,7 +1698,7 @@ def main(): # the main data crunching program
         #out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' 
         #out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
 
-        wr, sr, write_data = qc_asfs_winds(station_data)
+        wr, sr, write_data = qc_asfs_winds(station_data.copy())
 
         # import pickle
         # met_args = [write_data.copy(), curr_station, today, "1min", out_dir]
@@ -1683,8 +1706,7 @@ def main(): # the main data crunching program
         # pickle.dump(met_args, pkl_file)
         # pkl_file.close()
 
-
-        trash_var = write_level2_netcdf(write_data, curr_station, today, "1min", out_dir)
+        trash_var = write_level2_netcdf(write_data.copy(), curr_station, today, "1min", out_dir)
 
         for win_len in range(0, len(integ_time_turb_flux)):
             integration_window = integ_time_turb_flux[win_len]
@@ -1709,11 +1731,11 @@ def main(): # the main data crunching program
                     elif any(substr in var_name for substr in vector_vars):
                         data_list.append(turb_data[var_name]) # yank a few select variables out of turbulence, vestigial nonsense
                     elif any(substr in var_name for substr in angle_vars):
-                        data_list.append(l2_data[var_name].resample(fstr, label='left').apply(fl.take_average, is_angle=True))
+                        data_list.append(station_data[var_name].resample(fstr, label='left').apply(fl.take_average, is_angle=True))
                     else:
                         data_list.append(station_data[var_name].resample(fstr, label='left').apply(fl.take_average))
                 except Exception as e: 
-                    # this is a little silly, data didn't exist for var fill with nans
+                    # this is a little silly, data didn't exist for var fill with nans so computation continues
                     print(f"... wait what/why/huh??? {var_name} — {e}")
                     data_list.append(pd.Series([np.nan]*len(station_data), index=station_data.index, name=var_name)\
                                      .resample(fstr, label='left').apply(fl.take_average))
@@ -1984,22 +2006,29 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_dat
             var_tmp = write_data[var_name].values.astype(np.int32)
 
         # all qc flags set to -1 for when corresponding variables are missing data
+        exception_cols = {'bulk_qc': 'bulk_Hs', 'turbulence_qc': 'Hs', 'Hl_qc': 'Hl'}
+
         try:
             if var_name.split('_')[-1] == 'qc':
                 fill_val = np.int32(-1)
-                exception_cols = ['bulk_qc', 'turbulence_qc', 'Hl_qc']
-                if not any(var_name in c for c in exception_cols): 
+                if not any(var_name in c for c in list(exception_cols.keys())): 
                     write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+                    write_data.loc[write_data[var_name].isnull(), var_name] = 0
+            
+                else: 
+                    turb_data.loc[turb_data[exception_cols[var_name]].isnull(), var_name] = fill_val
+                    turb_data.loc[turb_data[var_name].isnull(), var_name] = 0
 
-        except Exception as e: print(f"!!! failed to fill in qc var: {var_name}!!!\n !!! {e}")
+        except Exception as e:
+            print(f"!!! failed to fill in qc var: {var_name}!!!\n !!! {e}")
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
 
         # all qc flags set to -01 for when corresponding variables are missing data
         if var_name.split('_')[-1] == 'qc':
-            fill_val = -1
-            if ('turbulence_qc' not in var_name) and ('Hl_qc' not in var_name): 
-                l2_data.loc[l2_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
+            fill_val = np.int32(-1)
+            if ('turbulence_qc' not in var_name) and ('Hl_qc' not in var_name) and ('bulk_qc' not in var_name):  
+                write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
 
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
@@ -2030,6 +2059,10 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_dat
             # create variable, # dtype inferred from data file via pandas
             var_dtype = turb_data[var_name][0].dtype
             if turb_data[var_name][0].size == 1:
+
+                # all qc flags set to -1 for when corresponding variables are missing data
+                exception_cols = {'bulk_qc': 'bulk_Hs', 'turbulence_qc': 'Hs', 'Hl_qc': 'Hl'}
+
                 var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
 
                 # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data)
@@ -2042,19 +2075,27 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_dat
                     var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('freq'))
                     # convert DataFrame to np.ndarray and pass data into netcdf (netcdf can't handle pandas data). this is even stupider in multipple dimensions
                     td = turb_data[var_name][0]
-                    td.fillna(def_fill_flt, inplace=True)
-                    var_turb[:] = td.values
+                    try: 
+                        td.fillna(def_fill_flt, inplace=True)
+                        var_turb[:] = td.values
+                    except: 
+                        var_turb[:] = nan
+                        print(f"... weird, {date} failed to get frequency data...")
+
                 else:   
                     var_turb  = netcdf_lev2.createVariable(var_name, var_dtype, ('time','freq'))
 
                     tmp_df = pd.DataFrame(index=turb_data.index)
 
-                    # replaced some sketchy code loops with functional OO calls and list comprehensions
-                    # put the timeseries into a temporary DF that's a simple timeseries, not an array of 'freq'
-                    tmp_list    = [col.values for col in turb_data[var_name].values]
-                    tmp_df      = pd.DataFrame(tmp_list, index=turb_data.index).fillna(def_fill_flt)
-                    tmp         = tmp_df.to_numpy()
-                    var_turb[:] = tmp         
+                    try: 
+                        # replaced some sketchy code loops with functional OO calls and list comprehensions
+                        # put the timeseries into a temporary DF that's a simple timeseries, not an array of 'freq'
+                        tmp_list    = [col.values for col in turb_data[var_name].values]
+                        tmp_df      = pd.DataFrame(tmp_list, index=turb_data.index).fillna(def_fill_flt)
+                        tmp         = tmp_df.to_numpy()
+                        var_turb[:] = tmp         
+                    except:
+                        var_turb[:] = nan
 
         else:
             var_turb  = netcdf_lev2.createVariable(var_name, np.double(), 'time')
@@ -2378,6 +2419,7 @@ def write_turb_netcdf(turb_data, curr_station, date, integration_window, win_len
         max_val = np.nanmax(var_turb) # masked array max/min/etc
         min_val = np.nanmin(var_turb)
         avg_val = np.nanmean(var_turb)
+
         netcdf_turb[var_name].setncattr('max_val', max_val)
         netcdf_turb[var_name].setncattr('min_val', min_val)
         netcdf_turb[var_name].setncattr('avg_val', avg_val)
