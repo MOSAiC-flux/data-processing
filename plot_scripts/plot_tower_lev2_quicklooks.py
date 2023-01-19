@@ -27,9 +27,17 @@ import matplotlib        as mpl
 import matplotlib.pyplot as plt
 import colorsys
 
-if '.psd.' in socket.gethostname():
-    nthreads = 32 # the twins have 64 cores, it won't hurt if we use ~30
-else: nthreads = 10 # if nthreads < nplots then plotting will not be threaded
+
+hostname = socket.gethostname()
+if '.psd.' in hostname:
+    if hostname.split('.')[0] in ['linux1024', 'linux512']:
+        nthreads = 25  # the twins have 32 cores/64 threads, won't hurt if we use <30 threads
+    elif hostname.split('.')[0] in ['linux64', 'linux128', 'linux256']:
+        nthreads = 12  # trio is sooooooooooooo old
+    else:
+        nthreads = 90  # the new compute is hefty.... real hefty
+
+else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 
 # need to debug something? kills multithreading to step through function calls
 # from multiprocessing.dummy import Process as P
@@ -100,7 +108,7 @@ def main(): # the main data crunching program
                                       }
     var_dict['lat_lon']            = {'latitude'       : ['lat_tower','lat_mast'],
                                       'longitude'      : ['lon_tower','lon_mast'],
-                                      'heading'        : ['heading_tower','heading_mast'],
+                                      'heading'        : ['tower_heading', 'mast_heading'],
                                       }
 
     var_dict['radiation']       = {'shortwave'         : ['up_short_hemisp','down_short_hemisp'], 
@@ -168,7 +176,7 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks/tower/2_level/finalqc/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks/tower/2_level/jan2023/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 

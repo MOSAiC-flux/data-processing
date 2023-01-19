@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 import colorsys
 
 if '.psd.' in socket.gethostname():
-    nthreads = 20 # the twins have 64 cores, it won't hurt if we use ~30
+    nthreads = 90 # the twins have 64 cores, it won't hurt if we use ~30
 else: nthreads = 8 # if nthreads < nplots then plotting will not be threaded
 
 # need to debug something? kills multithreading to step through function calls
@@ -199,11 +199,11 @@ def main(): # the main data crunching program
     df_list = []
     for station in sleds_to_plot:
         df_station, code_version = get_flux_data(station, start_time, end_time, 2,
-                                                 data_dir, 'met', True, nthreads, pickle_dir)
+                                                 data_dir, 'met', True, nthreads, False, pickle_dir)
         df_station = df_station.add_suffix('_{}'.format(station))
         df_list.append(df_station)
+
     df = pd.concat(df_list, axis=1)
-    dm(locals(),0)
 
     make_plots_pretty('seaborn-whitegrid') # ... and higher resolution
 
