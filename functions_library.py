@@ -1112,8 +1112,18 @@ def grachev_fluxcapacitor(z_level_n, metek, licor, h2ounit, co2unit, pr, temp, m
     # >>> Some Monin-Obukhov (MO) parameters based on the local turbulent measurements:
     # Monin-Obukhov stability parameter, z/L:
     zeta_level_n = - ((0.4*9.81)/(Tsm+tdk))*(z_level_n*wT_csp/(ustar**3))
+
     # Drag coefficient, Cd:
-    Cd = - wu_csp/(wsp**2)
+    Cd  = - wu_csp/(wsp**2)
+
+    # add reasonable cut on cd and return nans if outside
+    if not -0.01 < Cd < 0.05: 
+        turbulence_data.keys    = turbulence_data.keys()#+'_'+z_level_nominal
+        turbulence_data.columns = turbulence_data.keys
+        turbulence_data         = turbulence_data.append([{turbulence_data.keys[0]: nan}])
+        verboseprint(f'  Bad Cd outside bounds {Cd}')
+        return turbulence_data
+
     # MO universal functions for the standard deviations:
     phi_u = sigu_spc/ustar
     phi_v = sigv_spc/ustar
@@ -1838,6 +1848,7 @@ def cor_ice_A10(bulk_input):
     
     # Neutral coefficient
     u10=ut*math.log(10/zogs)/math.log(zu/zogs)
+
     cdhg=von/math.log(10/zogs)    
     usr=cdhg*u10
     zo10=zogs
@@ -1851,6 +1862,7 @@ def cor_ice_A10(bulk_input):
     
     # Grachev and Fairall (1997)    
     Ct=von/math.log(zt/zot10) # temp transfer coeff
+        
     CC=von*Ct/Cd # z/L vs Rib linear coefficient
     Ribcu=-zu/zi/.004/Beta**3 # Saturation Rib
     Ribu=-grav*zu/ta*((dt-dter)+.61*ta*dq)/ut**2
@@ -2149,6 +2161,11 @@ def average_mosaic_flags(qc_series, fstr):
         if tot_good/len(data_series) >= 0.5:             return 0 # if more than half are good, we're good
         if tot_caution_and_good/len(data_series) >= 0.5: return 1 # if more than half are caution&&good, we're caution
         if tot_engineering/len(data_series) >= 0.5:      return 3 # if more than half are engineering, we're engineers
+
+        # this should only affect data from turbulence calculations, are there an other places that
+        # would have an issue with this ugly fix??
+        if data_series.isna().sum() == len(data_series): return nan
+
         return 2                                                  # any other combination is bad bad not good
 
     return qc_series.resample(fstr, label='left').apply(take_qc_average)
