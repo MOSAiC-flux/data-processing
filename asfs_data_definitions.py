@@ -22,7 +22,7 @@ import numpy as np
 from collections import OrderedDict
 
 def code_version():
-    cv = ['4.0', '8/1/2022', 'mgallagher']
+    cv = ['4.00005', '1/1/2023', 'mgallagher']
     return cv
 
 # file_type must be "slow", "fast", "level2", or "turb"
@@ -44,7 +44,7 @@ def define_global_atts(station_name, file_type):
         'funding'          :'Funding sources: National Science Foundation Award Number OPP1724551; NOAA Physical Science Laboratory and Arctic Research Program',
         'source'           :'Observations made during the Multidisciplinary drifting Observatory for the Study of Arctic Climate (MOSAiC 2019-2020) expedition PS-122',
         'system'           :'{}'.format(station_name),
-        'references'       :'Cox, C. J., M. R. Gallagher, M. D. Shupe, P. O. G. Persson, A. Solomon, C. W. Fairall, T. Ayers, B. Blomquist I. M. Brooks, D. Costa, A. Grachev, D. Gottas, J. K. Hutchings, M. Kutchenreiter, J. Leach, S. M. Morris, V. Morris, J. Osborn, S. Pezoa, A. Preußer, L. D. Riihimaki, T. Uttal, 2022: Continuous observations of the surface energy budget and meteorology over the Arctic sea ice during MOSAiC. Scientific Data', 
+        'references'       :'Cox, C. J., M. R. Gallagher, M. D. Shupe, P. O. G. Persson, A. Solomon, C. W. Fairall, T. Ayers, B. Blomquist I. M. Brooks, D. Costa, A. Grachev, D. Gottas, J. K. Hutchings, M. Kutchenreiter, J. Leach, S. M. Morris, V. Morris, J. Osborn, S. Pezoa, A. Preusser, L. D. Riihimaki, T. Uttal, 2022: Continuous observations of the surface energy budget and meteorology over the Arctic sea ice during MOSAiC. Scientific Data', 
         'keywords'         :'Polar, Arctic, Supersite, Observations, Flux, Atmosphere, MOSAiC',
         'conventions'      :'cf convention variable naming as attribute whenever possible',  
         'history'          :'based on raw instrument data files',
@@ -57,8 +57,14 @@ def define_global_atts(station_name, file_type):
     elif file_type == "fast":
         global_atts['quality_control']  = 'This Level 1 product is for archival purposes and has undergone minimal data processing and quality control, please contact the authors/PI if you would like to know more.',
 
-    elif file_type == "level2" or file_type == "seb":
-        global_atts['data_provenance'] = f"Based on data from the mos{station_name}slow.level1 datastream with : {doi}"
+    elif file_type == "level2" or file_type == "seb" or file_type == "level3" or file_type == 'seb3':
+        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please use Level 3 data unless you have a specific reason to use Level 2.'
+        global_atts['qc_flags'] = '-1 = No Data: Instrument was not functional and no data exists.'+os.linesep+\
+            '0 = Good: High certainty that data is accurate to within the expected measurement uncertainty.'+os.linesep+\
+            '1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.'+os.linesep+\
+            '2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.'+os.linesep+\
+            '3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed.'
+
 
         global_atts['wind_sector_qc_info_flag']  = 'Quality control flags specifically for wind sectors as related to derived turbulence products. This flag indicates if the prevailing wind direction is under the influence of certain obstacles on the sea ice.  The flags are defined as follows:'+os.linesep+\
             '- 10: In Polarstern sector (i.e. Caution)'+os.linesep+\
@@ -72,16 +78,18 @@ def define_global_atts(station_name, file_type):
             '- 32: In Tower sector and above sig2/ustar threshold (i.e. Bad)'+os.linesep+\
             '- 40: Other issue'
 
-        global_atts['quality_control']  = 'Significant quality control in place for the observations used in the derived products. This Level 2 data is processed in many significant ways and this particular version is *for preliminary results only*. Please use Level 3 data unless you have a specific reason to use Level 2.'
-        global_atts['qc_flags'] = '-1 = No Data: Instrument was not functional and no data exists.'+os.linesep+\
-            '0 = Good: High certainty that data is accurate to within the expected measurement uncertainty.'+os.linesep+\
-            '1 = Caution: Use data with caution as there is reason to believe that the data might have a higher uncertainty than expected and/or is adversely impacted in some way.'+os.linesep+\
-            '2 = Bad: Data is determined to be clearly erroneous (out of range, does not pass quality control, is adversely impacted in some way, etc). Data has been removed.'+os.linesep+\
-            '3 = Engineering: Data collected was designed for engineering or testing purposes and not for general scientific use.  Data has been removed.'
-        if file_type == "seb": 
+        global_atts['data_provenance'] = f"Based on data from the mos{station_name}slow.level1 datastream with : {doi}"
+
+        if file_type == "seb" or file_type == 'seb3': 
             global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
             global_atts['bulk_qc_flags'] = 'Applies to all derived bulk-based turbulence parameters',
 
+
+        if file_type == 'level3': 
+            global_atts['data_provenance'] = f"Based on data from the mos{station_name}met.level2 datastream with doi :"
+
+        if file_type == 'seb3': 
+            global_atts['data_provenance'] = f"Based on data from the mos{station_name}seb.level2 datastream with doi: "
 
     elif file_type == "`10hz`":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
@@ -1111,7 +1119,7 @@ def define_level2_variables():
     lev2_atts['brightness_temp_surface'] .update({'long_name'   : 'sensor target 8-14 micron brightness temperature',
                                                 'cf_name'       : '',
                                                 'instrument'    : 'Apogee SI-4H1-SS IRT',
-                                                'methods'       : 'digitally polled from instument. No emisivity correction. No correction for reflected incident.',
+                                                'methods'       : 'digitally polled from instument. No emissivity correction. No correction for reflected incident.',
                                                 'height'        : 'surface',
                                                 'location'      : inst_boom_location_string,})
 
