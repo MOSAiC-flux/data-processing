@@ -24,7 +24,7 @@ def get_flux_data(station, start_day, end_day, level,
     station     : str station name, used to determine directory and file name, 'asfs30', etc 'tower'
     start_day   : datetime object, used to determine file names
     end_day     : datetime object, used to determine when to stop
-    level       : 1, 2, ... which dataset 
+    level       : 1, 2, 3 ... which dataset 
 
     Optional params
     ---------------
@@ -99,7 +99,7 @@ def get_flux_data(station, start_day, end_day, level,
             if station == 'tower':
                 subdir   = f'/{level}_level_{level_str}/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
-                if level == 2:
+                if level in [2, 3]:
                     #subdir = subdir+'version3/'
                     #subdir = subdir+'finalqc/'
                     cadence = '1'
@@ -109,7 +109,7 @@ def get_flux_data(station, start_day, end_day, level,
 
             else:
                 file_str = f'/mos{station}{data_type}.level{level}.{date_str}.nc'
-                if level == 2:
+                if level in [2, 3]:
                     cadence = '1'
                     if data_type=='seb': cadence = '10'
                     file_str = f'/mos{data_type}.{station}.level{level}.4.{cadence}min.{date_str}.nc'
