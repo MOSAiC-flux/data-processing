@@ -254,8 +254,8 @@ def qc_asfs_winds(station_data):
 
     # remove points in ship direction within footprint distance or outside of sigw_ustar bounds
     if turb_today: 
-        distance_fraction = 4 # footprint factor for point editing
-        in_fp_to_qc       = (ship_distance < footprint_df[f'fp']/distance_fraction )   
+        distance_fraction    = 4 # footprint factor for point editing
+        in_fp_to_qc          = (ship_distance < footprint_df[f'fp']/distance_fraction )   
         values_bad_sigwustar = (sigw_ustar < min_sigw_u) | (sigw_ustar > max_sigw_u)
 
         station_data.loc[(values_caution_ship & in_fp_to_qc), f'wind_sector_qc_info'] = 10
@@ -290,17 +290,17 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
             var = f'turbulence_{h}_qc'
             turb_qc_vars.append(var)
             data_frame[var] = np.nan
-            if h!='mast': data_frame[data_frame[f'vaisala_T_{h}']!=np.nan][var] = 0
-            else: data_frame[data_frame[f'{h}_T']!=np.nan][var] = 0 #... WHY, is this a different name
+            if h!='mast': data_frame.loc[~data_frame[f'vaisala_T_{h}'].isnull(), var] = 0
+            else: data_frame.loc[~data_frame[f'{h}_T'].isnull(), var] = 0 #... WHY, is this a different name
 
         data_frame['bulk_qc'] = np.nan
-        data_frame[data_frame[f'vaisala_T_10m']!=np.nan]['bulk_qc'] = 0
+        data_frame.loc[~data_frame[f'vaisala_T_10m'].isnull(), 'bulk_qc'] = 0
 
     else:
         data_frame['turbulence_qc'] = np.nan
         data_frame['bulk_qc']       = np.nan
-        data_frame[data_frame['vaisala_T_Avg']!=np.nan]['turbulence_qc'] = 0
-        data_frame[data_frame['vaisala_T_Avg']!=np.nan]['bulk_qc']       = 0
+        data_frame.loc[~data_frame['temp'].isnull(), 'turbulence_qc'] = 0
+        data_frame.loc[~data_frame['temp'].isnull(), 'bulk_qc']       = 0
 
         add_str = '' # some vars are different for tower... :::|
 
@@ -325,14 +325,17 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
             'ALL_TURBULENCE_6M' : ['turbulence_6m'],
             'ALL_TURBULENCE_10M' : ['turbulence_10m', 'bulk'],
             'ALL_TURBULENCE_mast' : ['turbulence_mast'],
-            'ALL_MAST'   : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc' and v.rstrip('_qc').split('_')[-1] == 'mast'], 
+            'ALL_MAST'   : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc' and v.rstrip('_qc').split('_')[-1] == 'mast'] \
+                          +['turbulence_mast'], 
 
-            'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'], 
+            'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'] \
+                          +['turbulence_2m', 'turbulence_6m', 'turbulence_10m', 'turbulence_mast', 'bulk'], 
         })
     else:
         lookup_table.update({
-            'ALL_TURBULENCE_10M' : ['turbulence_qc', 'bulk_qc'],
-            'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'], 
+            'ALL_TURBULENCE' : ['turbulence', 'bulk'],
+            'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'] \
+                          +['turbulence', 'bulk'], 
         })
 
     lookup_table = OrderedDict(lookup_table) # ensure order doesn't change
@@ -352,7 +355,7 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
             hstr = ''
             special_key = row['var_name']
 
-        # is the current variable inthe lookup list
+        # is the current variable in the lookup list
         if any(special_key in c for c in lookup_table.keys()):
 
             for v in lookup_table[special_key]: 
@@ -382,7 +385,7 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
 
     print("…………… done, moving on to inheritance")
 
-    #now make sure that everything is inherited from before as well, this could include the automatic qc..
+    # now make sure that everything is inherited from before as well, this could include the automatic qc..
     # we loop through the list of inherited variables
     for parent_var, child_var_list in lookup_table.items():
         # if the parent variable is a "real" measured param, copy all engineering/bad data
@@ -432,6 +435,7 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
         print(f"\n\n There were some problems with the QC file {table_file}, specifically,"+
               f"{len(problem_rows)} of them...\n\n")
         time.sleep(10)
+
     return data_frame 
 
 def get_qc_table(table_file):
@@ -495,22 +499,23 @@ def qc_tower_turb_data(tower_df, turb_df):
 
         tdf = pd.concat([tower_df[f'turbulence_{h}_qc' ], turb_df.copy()[var_list]], axis=1) #_qc is in the tower_df
         tdf.columns = tdf.columns.str.replace(f'_{h}','') # remove height suffix before passing to qc routine
+        tdf.columns = tdf.columns.str.replace(f'_{h}_qc','_qc') # remove height suffix before passing to qc routine
 
         tower_df[f'turbulence_{h}_qc'] = qc_turb_data(tdf)
 
-        sector_qc_info = tower_df[f'wind_sector_qc_info_{h}']   
+        sector_qc_info = tower_df[f'wind_sector_qc_info_{h}'] # the info needed to make cuts
+        no_overwrite   = (tower_df[f'turbulence_{h}_qc']!=2)&(tower_df[f'turbulence_{h}_qc']!=3)
 
-        # tower specific stuff        
-        tower_df[f'turbulence_{h}_qc'][(sector_qc_info == 10) & (tower_df[f'turbulence_{h}_qc']!=2)] = 1 # in polarstern sector
-        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 11] = 2 # *and* within footprint
-        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 12] = 2 # *and* sigw/ustar thresh
+        tower_df.loc[(sector_qc_info == 10) & (no_overwrite) , f'turbulence_{h}_qc'] = 1 # in polarstern sector
+        tower_df.loc[ sector_qc_info == 11                   , f'turbulence_{h}_qc'] = 2 # *and* within footprint
+        tower_df.loc[ sector_qc_info == 12                   , f'turbulence_{h}_qc'] = 2 # *and* sigw/ustar thresh
 
-        tower_df[f'turbulence_{h}_qc'][(sector_qc_info == 20) & (tower_df[f'turbulence_{h}_qc']!=2)] = 1 # in methut sector
-        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 21] = 2 # *and* within footprint
-        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 22] = 2 # *and* sigw/ustar thresh
+        tower_df.loc[(sector_qc_info == 20) & (no_overwrite) , f'turbulence_{h}_qc'] = 1 # in methut sector
+        tower_df.loc[ sector_qc_info == 21                   , f'turbulence_{h}_qc'] = 2 # *and* within footprint
+        tower_df.loc[ sector_qc_info == 22                   , f'turbulence_{h}_qc'] = 2 # *and* sigw/ustar thresh
 
-        tower_df[f'turbulence_{h}_qc'][(sector_qc_info == 30) & (tower_df[f'turbulence_{h}_qc']!=2)] = 1 # in tower frame sector
-        tower_df[f'turbulence_{h}_qc'][sector_qc_info == 32] = 2 # *and* sigw/ustar thresh
+        tower_df.loc[(sector_qc_info == 30) & (no_overwrite) , f'turbulence_{h}_qc'] = 1 # in tower frame sector
+        tower_df.loc[ sector_qc_info == 32                   , f'turbulence_{h}_qc'] = 2 # *and* sigw/ustar thresh
 
         # if pressure missing flag nan, if pressure exists then it's bad data
         tower_df[f'Hl_qc'] = tower_df['turbulence_2m_qc']
@@ -536,14 +541,18 @@ def qc_asfs_turb_data(asfs_df, turb_df):
 
     tdf = turb_df.copy()[var_list]
 
+    tdf['turbulence_qc'] = 0
+    tdf['bulk_qc'] = 0
+
     asfs_df[f'turbulence_qc'] = qc_turb_data(tdf)
  
     sector_qc_info = asfs_df[f'wind_sector_qc_info']   
+    no_overwrite   = (asfs_df[f'turbulence_qc']!=2)&(asfs_df[f'turbulence_qc']!=3)
 
     # asfs specific stuff        
-    asfs_df[f'turbulence_qc'][(sector_qc_info == 10) & (asfs_df['turbulence_qc'] != 2)] = 1 # in polarstern sector
-    asfs_df[f'turbulence_qc'][sector_qc_info == 11] = 2 # *and* within footprint
-    asfs_df[f'turbulence_qc'][sector_qc_info == 12] = 2 # *and* sigw/ustar thresh
+    asfs_df.loc[(sector_qc_info == 10) & (no_overwrite), f'turbulence_qc'] = 1 # in polarstern sector
+    asfs_df.loc[ sector_qc_info == 11,                   f'turbulence_qc'] = 2 # *and* within footprint
+    asfs_df.loc[ sector_qc_info == 12,                   f'turbulence_qc'] = 2 # *and* sigw/ustar thresh
 
     # if pressure missing flag nan, if pressure exists then it's bad data
     asfs_df[f'Hl_qc'] = asfs_df['turbulence_qc']
@@ -578,8 +587,8 @@ def qc_turb_data(df):
 
     turbulence_qc = df['turbulence_qc'].copy()
     
-    turbulence_qc[(df['ustar'] < 0) & (turbulence_qc != 2)] = 1   # ustar < 0 is caution
-    turbulence_qc[df['Hs'].isna()] = 2   # missing sensible heat flux means bad turb data
+    turbulence_qc.loc[(df['ustar'] < 0) & ((turbulence_qc!=2)&(turbulence_qc!=3))] = 1   # ustar < 0 is caution
+    turbulence_qc.loc[df['Hs'].isna()] = 2   # missing sensible heat flux means bad turb data
 
     return turbulence_qc
 
