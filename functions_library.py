@@ -363,7 +363,7 @@ def take_average(array_like_thing, **kwargs):
         return np.nan
     else:
         is_angle = kwargs.get('is_angle')
-        if is_angle != None: 
+        if is_angle == True:
 
             try: mean_val = stats.circmean(array_like_thing, high=360, nan_policy='omit')
             except UFuncTypeError as e: 
