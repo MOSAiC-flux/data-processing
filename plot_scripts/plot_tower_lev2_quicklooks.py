@@ -41,9 +41,9 @@ if '.psd.' in hostname:
 else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 
 # need to debug something? kills multithreading to step through function calls
-from multiprocessing.dummy import Process as P
-from multiprocessing.dummy import Queue   as Q
-nthreads = 1
+# from multiprocessing.dummy import Process as P
+# from multiprocessing.dummy import Queue   as Q
+# nthreads = 1
 
 # this is here because for some reason the default matplotlib doesn't
 # like running headless...  off with its head
