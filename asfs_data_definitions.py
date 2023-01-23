@@ -29,9 +29,22 @@ def code_version():
 def define_global_atts(station_name, file_type):
     cv = code_version()
 
-    if station_name == 'asfs30' : doi = 'https://doi.org/10.18739/A20C4SM1J'
-    if station_name == 'asfs40' : doi = 'https://doi.org/10.18739/A2CJ87M7G'
-    if station_name == 'asfs50' : doi = 'https://doi.org/10.18739/A2445HD46'
+    # level1 data dois
+    if station_name == 'asfs30' :
+        lev1_doi = 'https://doi.org/10.18739/A20C4SM1J'
+        lev2_doi = 'https://doi.org/10.18739/A2K649V1F'
+        lev3_doi = 'https://doi.org/10.18739/A2FF3M18K'
+
+
+    if station_name == 'asfs40' :
+        lev1_doi = 'https://doi.org/10.18739/A2CJ87M7G'
+        lev2_doi = 'https://doi.org/10.18739/A29P2W74F'
+        lev3_doi = 'https://doi.org/10.18739/A25X25F0P'
+
+    if station_name == 'asfs50' :
+        lev1_doi = 'https://doi.org/10.18739/A2445HD46'
+        lev2_doi = 'https://doi.org/10.18739/A2251FM5R'
+        lev3_doi = 'https://doi.org/10.18739/A2XD0R00S'
 
     global_atts = {                # attributes to be written into the netcdf output file
         'date_created'     :'{}'.format(time.ctime(time.time())),
@@ -78,9 +91,10 @@ def define_global_atts(station_name, file_type):
             '- 32: In Tower sector and above sig2/ustar threshold (i.e. Bad)'+os.linesep+\
             '- 40: Other issue'
 
-        global_atts['data_provenance'] = f"Based on data from the mos{station_name}slow.level1 datastream with : {doi}"
+        global_atts['data_provenance'] = f"Based on data from the mos{station_name}slow.level1 datastream with : {lev1_doi}"
 
         if file_type == "seb" or file_type == 'seb3': 
+
             global_atts['quality_control']  = 'Significant quality control is in place for the observations used in the derived products. This Level 3 data is processed in many significant ways that improve upon prior data levels. This Level 3 data should be used unless you have a specific reason to use a lower level.'
 
             global_atts['turbulence_qc_flags'] = 'Applies to all derived EC-based turbulence parameters',
@@ -88,10 +102,10 @@ def define_global_atts(station_name, file_type):
 
 
         if file_type == 'level3': 
-            global_atts['data_provenance'] = f"Based on data from the mos{station_name}met.level2 datastream with doi :"
+            global_atts['data_provenance'] = f"Based on data from the mos{station_name}met.level2 datastream with doi {lev2_doi}:"
 
         if file_type == 'seb3': 
-            global_atts['data_provenance'] = f"Based on data from the mos{station_name}seb.level2 datastream with doi: "
+            global_atts['data_provenance'] = f"Based on data from the mos{station_name}seb.level2 datastream with doi: {lev2_doi} "
 
     elif file_type == "`10hz`":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
