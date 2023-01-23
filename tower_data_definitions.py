@@ -22,6 +22,11 @@ def code_version():
 
 # file_type must be "slow", "fast", "level2", or "turb"
 def define_global_atts(file_type):
+
+    lev1_doi = 'https://doi.org/10.18739/A2VM42Z5F'
+    lev2_doi = 'https://doi.org/10.18739/A2TM7227K'
+    lev3_doi = 'https://doi.org/10.18739/A2PV6B83F'
+ 
     cv = code_version()
     global_atts = {                # attributes to be written into the netcdf output file
         'date_created'     :'{}'.format(time.ctime(time.time())),
@@ -803,7 +808,7 @@ def define_level2_variables():
     flux_slow_provenance = "Based on data from the mosflxtowerslow.level1 datastream with : https://doi.org/10.18739/A2VM42Z5F"
     flux_fast_provenance = "Based on data from the mosflxtowerfast.level1 datastream with : https://doi.org/10.18739/A2VM42Z5F"
     radiation_provenance = "Based on data from the mosiceradriihimakiS3.b2 datastream with : https://doi.org/10.5439/1608608"
- 
+
     # measurement_source
     radiation_source = "Department of Energy Atmospheric Radiation Measurement (ARM) User Facility"
     flux_source      = "CIRES, University of Colorado / NOAA atmospheric surface flux team"
