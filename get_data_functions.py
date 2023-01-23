@@ -96,6 +96,7 @@ def get_flux_data(station, start_day, end_day, level,
             if level == 3: level_str = 'archive'
 
             subdir   = f'/{level}_level_{level_str}_{station}/'
+            if level==3: subdir   = f'/{level}_level_{level_str}/'
             if station == 'tower':
                 subdir   = f'/{level}_level_{level_str}/'
                 file_str = f'/mosflx{station}{data_type}.level{level}.{date_str}.nc'
