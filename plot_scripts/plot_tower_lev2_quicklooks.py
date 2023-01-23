@@ -41,9 +41,9 @@ if '.psd.' in hostname:
 else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 
 # need to debug something? kills multithreading to step through function calls
-# from multiprocessing.dummy import Process as P
-# from multiprocessing.dummy import Queue   as Q
-# nthreads = 1
+from multiprocessing.dummy import Process as P
+from multiprocessing.dummy import Queue   as Q
+nthreads = 1
 
 # this is here because for some reason the default matplotlib doesn't
 # like running headless...  off with its head
@@ -76,8 +76,9 @@ def main(): # the main data crunching program
 
     default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
 
-    make_daily_plots = False
-    make_leg_plots   = True # make plots that include data from each leg
+    make_daily_plots = True
+    make_leg_plots   = False # make plots that include data from each leg
+    plot_all_days    = False
 
     leg1_start = datetime(2019,10,5)
     leg2_start = datetime(2019,12,15) 
@@ -186,22 +187,26 @@ def main(): # the main data crunching program
     df, code_version = get_flux_data('tower', start_time, end_time, 2,
                                      data_dir, 'seb', True, nthreads, pickle_dir=pickle_dir)
 
+
+    s = datetime(2020,4,25)
+    e = datetime(2020,4,26)
+
     #df.index = df.index.droplevel("freq")
     df = df[~df.index.duplicated(keep='first')]
     #df = df.drop_duplicates()
 
     #filter_up = df['up_short_hemisp'].notnull() & df['up_long_hemisp'].isna()
     #filter_down = df['down_short_hemisp'].notnull() & ~np.array(df['down_long_hemisp'].isna()
-    df['up_short_hemisp'].where(df['up_short_hemisp'].notnull(), df['up_long_hemisp']*0, inplace=True)
-    df['down_short_hemisp'].where(df['down_short_hemisp'].notnull(), df['down_long_hemisp']*0, inplace=True)
-
+    # df['up_short_hemisp'].where(df['up_short_hemisp'].notnull(), df['up_long_hemisp']*0, inplace=True)
+    # df['down_short_hemisp'].where(df['down_short_hemisp'].notnull(), df['down_long_hemisp']*0, inplace=True)
+ 
     df['radiation_LWnet'] = df['down_long_hemisp']-df['up_long_hemisp']
     df['radiation_SWnet'] = df['down_short_hemisp']-df['up_short_hemisp']
     df['net_radiation']   = df['radiation_LWnet'] + df['radiation_SWnet'] 
     l2_atts, l2_cols = define_level2_variables()
     turb_atts, turb_cols = define_turb_variables()
 
-    l2_atts['net_radiation'] = {}
+     l2_atts['net_radiation'] = {}
     l2_atts['net_radiation'] ['units'] = 'W/m2'
     l2_atts = {**l2_atts, **turb_atts}
     unit_dict = {}
@@ -290,21 +295,23 @@ def main(): # the main data crunching program
             for plot_name, subplot_dict in var_dict.items():
                 plot_q_dict[plot_name].get()
         print("\n") # end of leg plots
+
     # make plots for range *actually* requested when calling scripts
-    start_str = start_time.strftime('%Y-%m-%d') # get date string for file name
-    end_str   = end_time.strftime('%Y-%m-%d')   # get date string for file name
+    if plot_all_days: 
+        start_str = start_time.strftime('%Y-%m-%d') # get date string for file name
+        end_str   = end_time.strftime('%Y-%m-%d')   # get date string for file name
 
-    print(" ... making plots for entire data set")
-    plot_q_dict = {}; plot_p_dict = {}
-    for plot_name, subplot_dict in var_dict.items():
-        plot_q_dict[plot_name] = Q()
-        save_str  ='{}/MOSAiC_Tower_{}_{}_to_{}.png'.format(out_dir_all_days, plot_name, start_str, end_str)
-        plot_p_dict[plot_name] = P(target=make_plot,
-                                   args=(df[start_time:end_time].copy(), subplot_dict, unit_dict[plot_name],
-                                         color_dict[plot_name], save_str,False,plot_q_dict[plot_name])).start()
+        print(" ... making plots for entire data set")
+        plot_q_dict = {}; plot_p_dict = {}
+        for plot_name, subplot_dict in var_dict.items():
+            plot_q_dict[plot_name] = Q()
+            save_str  ='{}/MOSAiC_Tower_{}_{}_to_{}.png'.format(out_dir_all_days, plot_name, start_str, end_str)
+            plot_p_dict[plot_name] = P(target=make_plot,
+                                       args=(df[start_time:end_time].copy(), subplot_dict, unit_dict[plot_name],
+                                             color_dict[plot_name], save_str,False,plot_q_dict[plot_name])).start()
 
-    for plot_name, subplot_dict in var_dict.items():
-        plot_q_dict[plot_name].get()
+        for plot_name, subplot_dict in var_dict.items():
+            plot_q_dict[plot_name].get()
 
     plt.close('all') # closes figure before looping again 
     exit() # end main()
@@ -361,6 +368,9 @@ def make_plot(df, subplot_dict, units, colors, save_str, daily, q):
                         obs_var   = var+'{}'.format(hs)
                         var_color = color_tuples[ihs]
                         perc_miss  = fl.perc_missing(df[obs_var])
+
+                        s = datetime(2020,4,25)
+                        e = datetime(2020,4,26)
 
                         time_lims = (df.index[0], df.index[-1]+(df.index[-1]-df.index[-2])) 
                         df[obs_var].plot(xlim=time_lims, ax=ax[isub], color=var_color)
