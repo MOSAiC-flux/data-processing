@@ -21,6 +21,7 @@ from datetime  import datetime, timedelta
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
+from multiprocessing import Pool   
 
 import os, inspect, argparse, sys, socket
 import matplotlib        as mpl
@@ -35,7 +36,7 @@ if '.psd.' in hostname:
     elif hostname.split('.')[0] in ['linux64', 'linux128', 'linux256']:
         nthreads = 12  # trio is sooooooooooooo old
     else:
-        nthreads = 90  # the new compute is hefty.... real hefty
+        nthreads = 60  # the new compute is hefty.... real hefty
 
 else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 
@@ -75,7 +76,7 @@ def main(): # the main data crunching program
 
     default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
 
-    make_daily_plots = True
+    make_daily_plots = False
     make_leg_plots   = True # make plots that include data from each leg
 
     leg1_start = datetime(2019,10,5)
@@ -252,7 +253,22 @@ def main(): # the main data crunching program
     print("\n ... daily plotting done!!!")
     print("-----------------------------------------------")
     print(" ... resampling for non-daily plots, we have to")
-    df = df.resample('30T',label='left').mean()
+
+    angle_vars  = ['tower_heading', 'ship_bearing', 'mast_heading', 'wdir_vec_mean']
+
+    dlist = []
+
+    p = Pool(nthreads)
+    arg_list = []
+    for var_name in df.columns:
+        if any(substr in var_name for substr in angle_vars):
+            arg_list.append((df[var_name], True))
+        else:
+            arg_list.append((df[var_name], False))
+
+    df_list = p.map(resample, arg_list)
+
+    df = pd.concat(df_list, axis=1)
 
     if make_leg_plots:
         print(" ... making leg plots for ",end='', flush=True)
@@ -292,6 +308,12 @@ def main(): # the main data crunching program
 
     plt.close('all') # closes figure before looping again 
     exit() # end main()
+
+def resample(args):
+    data = args[0]
+    is_angle = args[1]
+
+    return data.resample('30T', label='left').apply(fl.take_average, is_angle=is_angle)
 
 def get_tower_data(curr_file, curr_station, today, q):
 

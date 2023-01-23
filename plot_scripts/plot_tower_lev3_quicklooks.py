@@ -21,6 +21,7 @@ from datetime  import datetime, timedelta
 
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
+from multiprocessing import Pool
 
 import os, inspect, argparse, sys, socket
 import matplotlib        as mpl
@@ -212,6 +213,7 @@ def main(): # the main data crunching program
             try: unit_dict[plot_name][var_label] = l2_atts[var_names[0]]['units']
             except:
                 unit_dict[plot_name][var_label] = l2_atts[var_names[0]+'_2m']['units'] 
+
     make_plots_pretty('fivethirtyeight') # ... and higher resolution
 
     if make_daily_plots:
@@ -254,7 +256,21 @@ def main(): # the main data crunching program
     print("\n ... daily plotting done!!!")
     print("-----------------------------------------------")
     print(" ... resampling for non-daily plots, we have to")
-    df = df.resample('30T',label='left').mean()
+
+    angle_vars  = ['tower_heading', 'ship_bearing', 'mast_heading', 'wdir_vec_mean']
+    dlist = []
+
+    p = Pool(nthreads)
+    arg_list = []
+    for var_name in df.columns:
+        if any(substr in var_name for substr in angle_vars):
+            arg_list.append((df[var_name], True))
+        else:
+            arg_list.append((df[var_name], False))
+
+    df_list = p.map(resample, arg_list)
+
+    df = pd.concat(df_list, axis=1)
 
     if make_leg_plots:
         print(" ... making leg plots for ",end='', flush=True)
@@ -294,6 +310,12 @@ def main(): # the main data crunching program
 
     plt.close('all') # closes figure before looping again 
     exit() # end main()
+
+def resample(args):
+    data = args[0]
+    is_angle = args[1]
+
+    return data.resample('30T', label='left').apply(fl.take_average, is_angle=is_angle)
 
 def get_tower_data(curr_file, curr_station, today, q):
 

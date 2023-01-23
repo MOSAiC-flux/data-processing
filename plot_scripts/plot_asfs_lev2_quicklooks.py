@@ -188,7 +188,7 @@ def main(): # the main data crunching program
     print('Plotting data days between {} -----> {}'.format(start_time,end_time))
     print('---------------------------------------------------------------------------------------\n')
 
-    quicklooks_dir   = '{}/quicklooks_test_mgallagh/asfs/2_level/'.format(data_dir)
+    quicklooks_dir   = '{}/quicklooks/asfs/2_level/'.format(data_dir)
     out_dir_daily    = '{}/daily/'.format(quicklooks_dir)    # where you want to put the png
     out_dir_all_days = '{}/all_days/'.format(quicklooks_dir) # where you want to put the png
 
@@ -198,6 +198,7 @@ def main(): # the main data crunching program
     print(f"Retreiving data from netcdf files... {data_dir}")
     df_list = []
     for station in sleds_to_plot:
+
         df_station, code_version = get_flux_data(station, start_time, end_time, 2,
                                                  data_dir, 'met', True, nthreads, False, pickle_dir)
         df_station = df_station.add_suffix('_{}'.format(station))
