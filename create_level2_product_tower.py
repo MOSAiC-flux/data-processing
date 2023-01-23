@@ -79,12 +79,13 @@ else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
-# need to debug something? kills multithreading to step through function calls
-we_want_to_debug = False
+# need to debug something? this makes useful pickle files in ./tests/ ... uncomment below if you want to kill threading
+we_want_to_debug = True
 if we_want_to_debug:
-    from multiprocessing.dummy import Process as P
-    from multiprocessing.dummy import Queue   as Q
-    nthreads = 1
+
+    # from multiprocessing.dummy import Process as P
+    # from multiprocessing.dummy import Queue   as Q
+    # nthreads = 1
     try: from debug_functions import drop_me as dm
     except: you_dont_care=True
  
@@ -1712,7 +1713,8 @@ def main(): # the main data crunching program
                 # first get 1 s wind speed. i dont care about direction. 
                 ws = (fast_data_10hz['metek_10m']['metek_10m_u']**2 + fast_data_10hz['metek_10m']['metek_10m_v']**2)**0.5
                 ws = ws.resample('1s',label='left').apply(fl.take_average)
-                    # make a better surface temperature
+
+                # make a better surface temperature
                 empty_data = np.zeros(np.size(slow_data['mixing_ratio_10m'][seconds_today]))
                 bulk_input = pd.DataFrame()
                 bulk_input['u']  = ws[seconds_today]                                 # wind speed                (m/s)
@@ -1854,7 +1856,7 @@ def main(): # the main data crunching program
 
         # write out all the hard work that we've done at native resolution
         write_level2_10hz(fast_data_10hz.copy(), licor_10hz.copy(), today)
-        write_level2_netcdf(onemin_data, today, "1min")
+        write_level2_netcdf(onemin_data.copy(), today, "1min")
 
         # now resample variables at specified turbulence integration timestep, currently only 10 minutes
         for win_len in range(0,len(integ_time_step)):
