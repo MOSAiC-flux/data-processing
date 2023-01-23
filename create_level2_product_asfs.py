@@ -2012,29 +2012,29 @@ def write_level2_netcdf(l2_data, curr_station, date, timestep, out_dir, turb_dat
             if var_name.split('_')[-1] == 'qc':
                 fill_val = np.int32(-1)
                 if not any(var_name in c for c in list(exception_cols.keys())): 
-                    write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
                     write_data.loc[write_data[var_name].isnull(), var_name] = 0
+                    write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
             
                 else: 
-                    turb_data.loc[turb_data[exception_cols[var_name]].isnull(), var_name] = fill_val
-                    turb_data.loc[turb_data[var_name].isnull(), var_name] = 0
+                    write_data.loc[write_data[var_name].isnull(), var_name] = 0
+                    write_data.loc[turb_data[exception_cols[var_name]].isnull(), var_name] = fill_val
 
         except Exception as e:
+            print("Python traceback: \n\n")
+            import traceback
+            import sys
+            print(traceback.format_exc())
+            print("==========================================================================================\n")
+            
             print(f"!!! failed to fill in qc var: {var_name}!!!\n !!! {e}")
 
         var  = netcdf_lev2.createVariable(var_name, var_dtype, 'time')
-
-        # all qc flags set to -01 for when corresponding variables are missing data
-        if var_name.split('_')[-1] == 'qc':
-            fill_val = np.int32(-1)
-            if ('turbulence_qc' not in var_name) and ('Hl_qc' not in var_name) and ('bulk_qc' not in var_name):  
-                write_data.loc[write_data[var_name.rstrip('_qc')].isnull(), var_name] = fill_val
 
         # write atts to the var now
         for att_name, att_desc in var_atts.items(): netcdf_lev2[var_name].setncattr(att_name, att_desc)
         netcdf_lev2[var_name].setncattr('missing_value', fill_val)
 
-        vtmp = write_data[var_name]
+        vtmp = write_data[var_name].copy()
 
         max_val = np.nanmax(vtmp.values) # masked array max/min/etc
         min_val = np.nanmin(vtmp.values)
