@@ -106,11 +106,14 @@ def main(station_name, start_time=datetime(2019,10,1), end_time=datetime(2020,10
     ds, code_version = get_flux_data(station_name, start_time, end_time, 2, data_dir,
                                      filetype, True, nthreads, True, pickle_dir)
  
-    # a wrapper that does some accounting for filling in nans, etc, gets called below
+    # a wrapper that does detailed accounting of filling in nans for bad/enginnering, etc, gets called below
+    # and reports back the results
     def fill_var_nans(ds, var_name, qc_var):
+
         notnan_count_before = ds[var_name].notnull().sum().values # some accounting of what has been pulled out
         ds[var_name][ds[qc_var]==2] = np.nan # bad data 
         ds[var_name][ds[qc_var]==3] = np.nan # engineering data
+
         ndropped = notnan_count_before - ds[var_name].notnull().sum().values
 
         # keep track of what happened in caase we want to review
@@ -122,63 +125,59 @@ def main(station_name, start_time=datetime(2019,10,1), end_time=datetime(2020,10
 
     # the do-er part of it all, loop over the variables and fill in all
     # the data with nans for each variable as mapped to the variables respective qc var  
+
+    parent_var_keep_dict = {}
     if station_name == 'tower':
-        turb_vars_allheights = ['Hs', 'Cd', 'ustar', 'Tstar', 'zeta_level_n', 'sigU', 'sigV', 'sigW', 'sigT', 'epsilon']
-        turb_vars_10m        = ['Hl', 'bulk_Hs_10m', 'bulk_Hl_10m']
 
-        turb_vars_to_keep = []
+        # we are keeping the following turb/bulk variables in level3:
+        # Hs_*, Hl_*, Cd_*, ustar_*,  Tstar_*, zeta_level_n_*, epsilon_*, sig[UVW]_*, bulk_Hs_10m, bulk_Hl_10m, bulk_
+        # Hl_Webb_10m, bulk_ustar, wspd_[uvw]_std_*
+
+        turbulence_qc_allheights = ['Hs', 'Cd', 'ustar', 'Tstar', 'zeta_level_n', 'sigU', 'sigV', 'sigW', 'epsilon']
+
+        # append the appropriate height strings to vars above
         for h in ['2m', '6m', '10m', 'mast']:
-            for tv in turb_vars_allheights:
-                turb_vars_to_keep.append(tv+'_'+h)
-        turb_vars_to_keep    += ['ustar_10m', 'bulk_Hs_10m', 'bulk_Hl_10m', 'bulk_ustar', 'Hl',
-                                 'Hl_Webb', 'bulk_Hl_Webb_10m',]
-         
-    else:
-        turb_vars_allheights = []
-        turb_vars_10m        = ['Hl', 'bulk_Hs', 'bulk_Hl'] # this is nonsensical but it does the right thing
-        turb_vars_to_keep    = ['Hs', 'Hl', 'Cd', 'ustar', 'bulk_Hs_10m', 'bulk_Hl_10m', 'bulk_ustar',
-                                'Tstar', 'zeta_level_n', 'epsilon', 'sigU', 'sigV', 'sigW',
-                                'Hl_Webb', 'bulk_Hs', 'bulk_Hl', 'bulk_Hl_Webb']
 
-    dropped_df           = pd.DataFrame()
+            parent_var_keep_dict[f'turbulence_{h}_qc'] = [tv+'_'+h for tv in turbulence_qc_allheights]
+
+        parent_var_keep_dict[f'bulk_qc'] = ['bulk_Hs_10m', 'bulk_Hl_10m', 'bulk_Hl_Webb_10m', 'bulk_ustar']
+        parent_var_keep_dict[f'Hl_qc']   = ['Hl', 'Hl_Webb']
+
+    else:
+
+        parent_var_keep_dict[f'bulk_qc']       = ['bulk_Hs', 'bulk_Hl', 'bulk_Hl_Webb', 'bulk_ustar']
+        parent_var_keep_dict[f'Hl_qc']         = ['Hl', 'Hl_Webb']
+        parent_var_keep_dict[f'turbulence_qc'] = ['Hs', 'Hl', 'Cd', 'ustar', 'Tstar', 'zeta_level_n',
+                                                  'epsilon', 'sigU', 'sigV', 'sigW', 'epsilon', 'Hl_Webb']
+
+    dropped_df = pd.DataFrame()
     qc_vars = [] # keep track and drop
 
-    print(ds)
     for var in ds.variables:
 
         if '_qc' in var: 
-            qc_var = var
+            qc_var   = var
+            var_name = var.rstrip('_qc')
+
             qc_vars.append(qc_var)
-            var_name = qc_var.rstrip('_qc')
-            if var_name!=qc_var: # the rstrip actually worked, *_qc are 1:1 mappings
+
+            try:
+                child_var_list = parent_var_keep_dict[qc_var] # does this key exist, if yes do things
+
+                print(f"... keeping variables for {qc_var}")
+                for cv in child_var_list:
+                    dd, ds = fill_var_nans(ds, cv, qc_var)
+                    dropped_df = dropped_df.append(dd, ignore_index=True)
+
+            except KeyError: # key didn't exist, qc var does not correspond to multiple variables
+
                 try: 
                     dd, ds = fill_var_nans(ds, var_name, qc_var)
                     dropped_df = dropped_df.append(dd, ignore_index=True)
 
                 except Exception as e: 
-                    allowed_exceptions = ['turbulence', 'bulk', 'turbulence_2m', 'turbulence_6m',
-                                          'turbulence_10m', 'turbulence_mast']
+                    raise # should we ever get here?? prolly not
 
-                    if var_name not in allowed_exceptions:
-                        raise
-
-            else: 
-
-                if 'turbulence_qc' in qc_var:
-                    height = qc_var.split('_')[-1]
-                    for tv in turb_vars_allheights: 
-                        try:
-                            dd, ds = fill_var_nans(ds, tv+f"_{height}", qc_var)
-                            dropped_df = dropped_df.append(dd, ignore_index=True)
-
-                        except Exception as e: 
-                            print(e)
-                            print("-----")
-                if qc_var == 'turbulence_qc_10m':
-                    for v in turb_vars_10m: 
-                        dd, ds = fill_var_nans(ds, v, qc_var)
-                        dropped_df = dropped_df.append(dd, ignore_index=True)
-                        
     # figure out which variable name has been dropped the most as a sanity check
     print(dropped_df)
     dropped_df.index = dropped_df['name']
@@ -195,16 +194,22 @@ def main(station_name, start_time=datetime(2019,10,1), end_time=datetime(2020,10
     if station_name!='tower': short_name = 'asfs'
     else: short_name = 'tower'
 
-    vars_to_drop = []
+    vars_to_drop     = []
+    turb_vars_to_keep = []
+    for parent_var_list in parent_var_keep_dict.values(): turb_vars_to_keep+=parent_var_list
+    print(turb_vars_to_keep)
+
     for v in eval(f'define_turb_variables_{short_name}()')[1]: 
         if not any(tv == v for tv in turb_vars_to_keep): vars_to_drop.append(v)
 
-    # a few other things to throw out
+    #a few other things to throw out manually
+    vars_to_drop +=  ['temp_acoustic_mean', 'temp_acoustic_std']
+    vars_to_drop +=  ['temp_acoustic_mean_qc', 'temp_acoustic_std_qc']
+
     for h in ['2m', '6m', '10m', 'mast']:
         for v in ['temp_acoustic_mean', 'temp_acoustic_std']:
             vars_to_drop+=[v+'_'+h]
-
-    # drop qc, turbulence, and other listed variables
+            vars_to_drop+=[v+'_'+h+'_qc']
 
     #vars_to_drop.extend(qc_vars) # we *aren't* dropping the qc variables for now
 
