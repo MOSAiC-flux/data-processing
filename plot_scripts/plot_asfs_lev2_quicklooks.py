@@ -88,8 +88,8 @@ def main(): # the main data crunching program
                                       }
     var_dict['radiation']          = {'shortwave'      : ['down_short_hemisp','up_short_hemisp'],
                                       'longwave'       : ['down_long_hemisp','up_long_hemisp'], 
-                                      'net'            : ['net_radiation'], 
                                       }
+
     var_dict['moisture']           = {'dew point'      : ['dew_point'],
                                       'mixing ratio'   : ['mixing_ratio'],
                                       'vapor pressure' : ['vapor_pressure'], 

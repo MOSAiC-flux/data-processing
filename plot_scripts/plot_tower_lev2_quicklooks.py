@@ -77,8 +77,8 @@ def main(): # the main data crunching program
     default_data_dir = '/Projects/MOSAiC/' # give '-p your_directory' to the script if you don't like this
 
     make_daily_plots = True
-    make_leg_plots   = False # make plots that include data from each leg
-    plot_all_days    = False
+    make_leg_plots   = True # make plots that include data from each leg
+    plot_all_days    = True
 
     leg1_start = datetime(2019,10,5)
     leg2_start = datetime(2019,12,15) 
