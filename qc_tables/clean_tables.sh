@@ -22,3 +22,5 @@ do
       sed -i 's/ALL_BULK/bulk/g' $f 
       sed -i 's/ALL_EC_FIELDS/turbulence/g' $f 
 done
+
+./reorder_tables.py
