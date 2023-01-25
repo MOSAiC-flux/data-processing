@@ -324,9 +324,10 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
             'ALL_TURBULENCE_2M' : ['turbulence_2m'],
             'ALL_TURBULENCE_6M' : ['turbulence_6m'],
             'ALL_TURBULENCE_10M' : ['turbulence_10m', 'bulk'],
-            'ALL_TURBULENCE_mast' : ['turbulence_mast'],
+            'ALL_TURBULENCE_MAST' : ['turbulence_mast'],
             'ALL_MAST'   : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc' and v.rstrip('_qc').split('_')[-1] == 'mast'] \
                           +['turbulence_mast'], 
+
 
             'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'] \
                           +['turbulence_2m', 'turbulence_6m', 'turbulence_10m', 'turbulence_mast', 'bulk'], 
@@ -334,6 +335,7 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
     else:
         lookup_table.update({
             'ALL_TURBULENCE' : ['turbulence', 'bulk'],
+            'ALL_MET' : ['temp', 'rh', 'mixing_ratio' ,'dew_point', 'skin_temp_surface'],
             'ALL_FIELDS' : [v.rstrip('_qc') for v in qc_var_names if v.split('_')[-1] == 'qc'] \
                           +['turbulence', 'bulk'], 
         })
@@ -357,11 +359,12 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
 
         # is the current variable in the lookup list
         if any(special_key in c for c in lookup_table.keys()):
-
+            
             for v in lookup_table[special_key]: 
+
                 try: 
                     special_var = v+hstr+'_qc'
-                    data_frame[special_var].loc[row['start_date']:row['end_date']] = row['qc_val']
+                    data_frame.loc[row['start_date']:row['end_date'], special_var] = row['qc_val']
                 except Exception as ex:
                     print(ex)
                     print(f"... failed for {special_key=} and val {v+hstr}")
@@ -370,7 +373,7 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
         else:
             try:
                 var_to_qc = row['var_name']+'_qc' # get var_name column from file
-                data_frame[var_to_qc].loc[row['start_date']:row['end_date']] = row['qc_val']
+                data_frame.loc[row['start_date']:row['end_date'], var_to_qc] = row['qc_val']
 
             except KeyError as ke: 
                     print(f"!!! problem with entry in manual QC table for {table_file} for var {var_to_qc} at row {irow}!!!")
@@ -429,12 +432,16 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
                                           f"! this should never happen...!!!!")
                                     raise
 
-    print("…………… done, returning")
                                 
     if len(problem_rows)>1:
         print(f"\n\n There were some problems with the QC file {table_file}, specifically,"+
               f"{len(problem_rows)} of them...\n\n")
         time.sleep(10)
+
+    else:
+        print("…………… CONGRATULATIONS THERE WERE ZERO TYPOS FOR ONCE OMG")
+
+    print("…………… done, returning")
 
     return data_frame 
 
@@ -446,14 +453,20 @@ def get_qc_table(table_file):
     def custom_date_parser(d):
 
         if d == 'beg': d = mos_begin
-        elif d=='end': d =mos_end
+        elif d=='end': d = mos_end
+
+        try:
             
-        hour = (str_two := d.split(' ')[1])[0:2] # no walrus in the trio python
-        str_two = d.split(' ')[1]
-        hour = str_two[0:2]
-        mins = str_two[2:4]
-        secs = str_two[4:6]
-        date_str = f"{d.split(' ')[0]} {hour}:{mins}:{secs}"
+            hour = (str_two := d.split(' ')[1])[0:2] # no walrus in the trio python
+            str_two = d.split(' ')[1]
+            hour = str_two[0:2]
+            mins = str_two[2:4]
+            secs = str_two[4:6]
+            date_str = f"{d.split(' ')[0]} {hour}:{mins}:{secs}"
+
+        except:
+            print(f" BAD DATE FORMAT!!!! {d}")
+            return pd.NaT 
 
         try: 
             rtime = dt.strptime(date_str, "%Y%m%d %H:%M:%S")
