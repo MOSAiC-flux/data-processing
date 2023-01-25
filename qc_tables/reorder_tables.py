@@ -19,10 +19,18 @@ def main(): # the main data crunching program
         
         with open(table) as table_file:
             table_header = [table_file.readline() for iline in range(0,6)]
-        t = get_qc_table(table).sort_values('qc_val')
+
+        # make flag 2 highest priority........ why is this the order again? then sort based on that weird priority
+        priority_dict = {1:0, 3:1, 2:2}
+        table_df      = get_qc_table(table)
+        t             = table_df.iloc[table_df['qc_val'].map(priority_dict).sort_values().index]
+
+        #t = get_qc_table(table).sort_values('qc_val')
         #t['qc_val'].astype('int32', copy=False) # not necessary
 
         t.to_csv(f'{table}.new', date_format='%Y%m%d %H%M%S', index=False, header=None) # add our own header
+
+        # put the original header at the top
         with open(f'{table}.new', 'r+') as table_file:
             content = table_file.read()
             table_file.seek(0)
