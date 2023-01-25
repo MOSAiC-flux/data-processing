@@ -92,13 +92,15 @@ else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
-# need to debug something? kills multithreading to step through function calls
+# need to debug something? this makes useful pickle files in ./tests/ ... uncomment below if you want to kill threading
 we_want_to_debug = False
 if we_want_to_debug:
-    from multiprocessing.dummy import Process as P
-    from multiprocessing.dummy import Queue   as Q
-    from debug_functions import drop_me as dm
-    nthreads = 1
+
+    # from multiprocessing.dummy import Process as P
+    # from multiprocessing.dummy import Queue   as Q
+    # nthreads = 1
+    try: from debug_functions import drop_me as dm
+    except: you_dont_care=True
      
 import numpy  as np
 import pandas as pd
@@ -1681,8 +1683,18 @@ def main(): # the main data crunching program
         for win_len in range(0, len(integ_time_turb_flux)):
             turb_all[curr_station][win_len] = pd.concat( turb_data_dict[curr_station][win_len] ).sort_index()
 
+        if we_want_to_debug:
+            with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_before_{curr_station}.pkl', 'wb') as pkl_file:
+                import pickle
+                pickle.dump(slow_all[curr_station], pkl_file)
+
         slow_all[curr_station] = qc_stations(slow_all[curr_station], curr_station)
 
+
+        if we_want_to_debug:
+            with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_after_{curr_station}.pkl', 'wb') as pkl_file:
+                import pickle
+                pickle.dump(slow_all[curr_station], pkl_file)
 
     print(" ... done with concatting and QC, now we write! here's a sample of the output data:\n\n")
     for curr_station in flux_stations:
