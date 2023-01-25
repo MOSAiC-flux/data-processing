@@ -2067,13 +2067,13 @@ def write_level2_netcdf(l2_data, date, timestep, turb_data=None):
 
 
     # THIS ALL NEEDS TO BE DELETED!!!!!!!!!!!!!!!!!!!! replace global vars so you can run in isolation
-    if we_want_to_debug:
-        level2_dir  =  './tests/'
-        epoch_time = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
-        def_fill_flt = -9999.0
-        def_fill_int = -9999
-        nan = np.NaN
-
+    # if we_want_to_debug:
+    #     level2_dir  =  './tests/'
+    #     epoch_time = datetime(1970,1,1,0,0,0) # Unix epoch, sets time integers
+    #     def_fill_flt = -9999.0
+    #     def_fill_int = -9999
+    #     nan = np.NaN
+ 
     out_dir  =  level2_dir
     if not os.path.exists(out_dir):
         print("!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! !!!")
