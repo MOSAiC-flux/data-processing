@@ -102,10 +102,10 @@ def define_global_atts(station_name, file_type):
 
 
         if file_type == 'level3': 
-            global_atts['data_provenance'] = f"Based on data from the mos{station_name}met.level2 datastream with doi {lev2_doi}:"
+            global_atts['data_provenance'] = f"Based on data from the mosmet.{station_name}.level2.4.1min datastream with doi {lev2_doi}:"
 
         if file_type == 'seb3': 
-            global_atts['data_provenance'] = f"Based on data from the mos{station_name}seb.level2 datastream with doi: {lev2_doi} "
+            global_atts['data_provenance'] = f"Based on data from the mosseb.{station_name}.level2.4.10min datastream with doi: {lev2_doi} "
 
     elif file_type == "`10hz`":
         global_atts['quality_control']  = 'This 10Hz product is a product for turbulence junkies that would like to evaluate sonic/licor observations at their own peril. Minor quality control is in place, including rotation to x/y/z but the data remains untouched in processing terms.',
