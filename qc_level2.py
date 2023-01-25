@@ -401,30 +401,46 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
                 data_frame[parent_var+'_2m_qc'] # if no, then it has to be a height var
                 height_strs = ['_2m', '_6m', '_10m', '_mast'] 
             for h in height_strs:
-                bad_inds = (data_frame[parent_var+h+'_qc']==2)  
-                eng_inds = (data_frame[parent_var+h+'_qc']==3)
+                caut_inds = (data_frame[parent_var+h+'_qc']==1)  
+                bad_inds  = (data_frame[parent_var+h+'_qc']==2)  
+                eng_inds  = (data_frame[parent_var+h+'_qc']==3)
                 for child_var in child_var_list:
-                    data_frame.loc[bad_inds, child_var+h+'_qc'] = 2
-                    data_frame.loc[eng_inds, child_var+h+'_qc'] = 3
+                    data_frame.loc[caut_inds, child_var+h+'_qc'] = 1
+                    data_frame.loc[eng_inds, child_var+h+'_qc']  = 3
+                    data_frame.loc[bad_inds, child_var+h+'_qc']  = 2
 
         # but for "ALL_" variables we're going to manually apply the qc values for each time
         # range specified in the qc table to all of the applicable variables...
         # ... this is done here and not above because it needs to supersede any of the other
         # possible qc values specified
         else:
+            print(f".............. DOING {parent_var}")
             for irow, row in flag_df.iterrows():
                 if parent_var == row['var_name']: 
                     for child_var in child_var_list:
                         try: 
                             child_qc_var = child_var+'_qc'
-                            data_frame.loc[row['start_date']:row['end_date'], child_qc_var] = row['qc_val']
+
+                            no_overwrite = (data_frame[child_qc_var]!=2)&(data_frame[child_qc_var]!=3)
+                            if row['qc_val'] == 2:
+                                no_overwrite = (data_frame[child_qc_var]!=2)
+
+                            time_range = (data_frame.index>row['start_date'])&(data_frame.index<row['end_date'])
+
+                            data_frame.loc[(time_range) & (no_overwrite), child_qc_var] = row['qc_val']
                         except:
 
                             height_strs = ['_2m', '_6m', '_10m', '_mast'] 
                             for h in height_strs:
                                 child_qc_var = child_var+h+'_qc'
                                 try:
-                                    data_frame.loc[row['start_date']:row['end_date'], child_qc_var] = row['qc_val']
+                                    no_overwrite = (data_frame[child_qc_var]!=2)&(data_frame[child_qc_var]!=3)
+                                    if row['qc_val'] == 2:
+                                        no_overwrite = (data_frame[child_qc_var]!=2)
+
+                                    time_range = (data_frame.index>row['start_date'])&(data_frame.index<row['end_date'])
+
+                                    data_frame.loc[(time_range) & (no_overwrite), child_qc_var] = row['qc_val']
                                 except: 
                                     import traceback, sys
                                     print(traceback.format_exc())
@@ -432,7 +448,6 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
                                           f"! this should never happen...!!!!")
                                     raise
 
-                                
     if len(problem_rows)>1:
         print(f"\n\n There were some problems with the QC file {table_file}, specifically,"+
               f"{len(problem_rows)} of them...\n\n")
