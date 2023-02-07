@@ -5,178 +5,119 @@ THIS IS FOR ASFS30,,,,,
 Instrument / measurement,"date, time start","date, time end",Flag,Reason,Who
 "[i.e., temp_2m]",[YYYYMMDD hhmmss],[YYYYMMDD hhmmss],"[1,2,3,4]",[details for determination],[last name]
 subsurface_heat_flux_B,20200415 000000,20201001 000000,1,"we have concerns about uncertainties in the second half of mosaic - solar heating, contact issues, frequent melt out, level, etc",ccox
-rh,20200707 001500,20200707 015500,1,spike to unreasonably high values,shupe
-rh,20200708 145500,20200708 162000,1,spike to unreasonably high values,shupe
-rh,20200719 003000,20200719 015500,1,spike to unreasonably high values,shupe
-rh,20200729 142000,20200719 154000,1,spike to unreasonably high values,shupe
-rh,20191130 111500,20191130 152500,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-rh,20200706 223500,20200706 234000,1,spike to unreasonably high values,shupe
+wspd_w_mean,20200831 051600,20200831 052800,1,no idea. was the sled being moved?,ccox
 wspd_v_mean,20200928 160400,20200928 170500,1,suspicious,ccox
-rh,20200215 124000,20200215 141000,1,Strange spike in RH value compared to others. THere is a coincident temperature increase as well. Could be exhaust?,shupe
-down_short_hemisp,20200910 133000,20200911 042000,1,difficult to diagnose this situation. Appears to be affected by icing on domes but not sure,shupe
-wspd_u_mean,20200911 043000,20200911 043700,1,no idea. was the sled being moved?,ccox
-wspd_u_mean,20200831 051600,20200831 052800,1,no idea. was the sled being moved?,ccox
+wspd_v_mean,20200913 085300,20200913 091100,1,no idea. was the sled being moved?,ccox
+wspd_v_mean,20200911 043000,20200911 043700,1,no idea. was the sled being moved?,ccox
 wspd_v_mean,20200831 051600,20200831 052800,1,no idea. was the sled being moved?,ccox
 wspd_u_mean,20200928 160400,20200928 170500,1,suspicious,ccox
-wspd_v_mean,20200911 043000,20200911 043700,1,no idea. was the sled being moved?,ccox
 wspd_u_mean,20200913 085300,20200913 091100,1,no idea. was the sled being moved?,ccox
+wspd_u_mean,20200911 043000,20200911 043700,1,no idea. was the sled being moved?,ccox
+wspd_u_mean,20200831 051600,20200831 052800,1,no idea. was the sled being moved?,ccox
 subsurface_heat_flux_A,20200415 000000,20201001 000000,1,"we have concerns about uncertainties in the second half of mosaic - solar heating, contact issues, frequent melt out, level, etc",ccox
-ALL_TURBULENCE,20191018 232900,20191019 070000,1,big difference from others,shupe
-up_short_hemisp,20200910 133000,20200911 042000,1,difficult to diagnose this situation. Appears to be affected by icing on domes but not sure,shupe
-subsurface_heat_flux_B,20200630 155000,20201002 235900,1,caution for all flux plates after re-install during Leg 4,shupe
-subsurface_heat_flux_A,20200630 155000,20201002 235900,1,caution for all flux plates after re-install during Leg 4,shupe
-wspd_v_mean,20200913 085300,20200913 091100,1,no idea. was the sled being moved?,ccox
-rh,20200706 194500,20200706 210000,1,spike to unreasonably high values,shupe
-wspd_w_mean,20200928 160400,20200928 170500,1,suspicious,ccox
-rh,20200723 023000,20200723 032000,1,spike to unreasonably high values,shupe
-rh,20200706 122000,20200706 131000,1,spike to unreasonably high values,shupe
+down_short_hemisp,20200910 133000,20200911 042000,1,difficult to diagnose this situation. Appears to be affected by icing on domes but not sure,shupe
 dew_point,20191015 000000,20191007 020900,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-wspd_w_mean,20200831 051600,20200831 052800,1,no idea. was the sled being moved?,ccox
+brightness_temp_surface,20200904 091200,20200904 111200,1,new installation at pond. impacts from install,shupe
 dew_point,20200330 120500,20200331 025500,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 dew_point,20200330 090000,20200330 093600,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 dew_point,20200317 125100,20200317 132300,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-rh,20200706 142000,20200706 145000,1,spike to unreasonably high values,shupe
-wspd_w_mean,20200911 043000,20200911 043700,1,no idea. was the sled being moved?,ccox
-dew_point,20200215 124000,20200215 141000,1,Strange spike in RH value compared to others. THere is a coincident temperature increase as well. Could be exhaust?,shupe
-dew_point,20191130 111500,20191130 152500,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-sr50_dist,20200526 050000,20200802 141800,1,"caution because the sleds were tilting. error is theoretically < 1%, but experience with tower guy line resets suggests errors can be a few cm",ccox
-dew_point,20191112 110900,20191112 124300,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 dew_point,20200304 103100,20200304 104800,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
 co2_licor,20201015 000000,20200919 000000,1,caution. h2o crosstalk,ccox
-rh,20200304 103100,20200306 030000,1,Similar odd behavior as others after power on.  took a long time to adjust,ccox/shupe
+co2_licor,20191017 000000,20200918 050200,1,caution. h2o crosstalk,ccox
+dew_point,20200215 124000,20200215 141000,1,Strange spike in RH value compared to others. THere is a coincident temperature increase as well. Could be exhaust?,shupe
+dew_point,20191112 110900,20191112 124300,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+wspd_w_mean,20200911 043000,20200911 043700,1,no idea. was the sled being moved?,ccox
 dew_point,20200201 040000,20200203 130000,1,RH value is much higher than at the other stations and seems to be too high to be realistic,shupe
-brightness_temp_surface,20200904 091200,20200904 111200,1,new installation at pond. impacts from install,shupe
 wspd_w_mean,20200913 085300,20200913 091100,1,no idea. was the sled being moved?,ccox
 rh,20191112 110900,20191112 124300,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
-rh,20200317 125100,20200320 094000,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox/shupe
-rh,20200330 090000,20200331 104000,1,RH appears to be biased high relative to others,ccox/shupe
-rh,20200201 040000,20200203 130000,1,RH value is much higher than at the other stations and seems to be too high to be realistic,shupe
+up_short_hemisp,20200910 133000,20200911 042000,1,difficult to diagnose this situation. Appears to be affected by icing on domes but not sure,shupe
+temp,20200215 124000,20200215 141000,1,Strange spike in RH at the same time as this strange spike in Temp.  Possible Exhaust?,shupe
+subsurface_heat_flux_B,20200630 155000,20201002 235900,1,caution for all flux plates after re-install during Leg 4,shupe
+subsurface_heat_flux_A,20200630 155000,20201002 235900,1,caution for all flux plates after re-install during Leg 4,shupe
+sr50_dist,20200526 050000,20200802 141800,1,"caution because the sleds were tilting. error is theoretically < 1%, but experience with tower guy line resets suggests errors can be a few cm",ccox
+rh,20200708 145500,20200708 162000,1,spike to unreasonably high values,shupe
+rh,20200707 001500,20200707 015500,1,spike to unreasonably high values,shupe
+rh,20200706 223500,20200706 234000,1,spike to unreasonably high values,shupe
+wspd_w_mean,20200928 160400,20200928 170500,1,suspicious,ccox
+ALL_TURBULENCE,20191018 232900,20191019 070000,1,big difference from others,shupe
+dew_point,20191130 111500,20191130 152500,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+rh,20200706 142000,20200706 145000,1,spike to unreasonably high values,shupe
+rh,20200706 122000,20200706 131000,1,spike to unreasonably high values,shupe
 rh,20200706 060000,20200706 101500,1,spike to unreasonably high values,shupe
-co2_licor,20191017 000000,20200918 050200,1,caution. h2o crosstalk,ccox
-ALL_FIELDS,20200407 131200,20200415 122800,3,LOG Cross Comparison ASFS30/50,ccox
-ALL_FIELDS,20200802 141500,20200821 163500,3,on PS deck,ccox
+rh,20200330 090000,20200331 104000,1,RH appears to be biased high relative to others,ccox/shupe
+rh,20200317 125100,20200320 094000,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox/shupe
+rh,20200304 103100,20200306 030000,1,Similar odd behavior as others after power on.  took a long time to adjust,ccox/shupe
+rh,20200201 040000,20200203 130000,1,RH value is much higher than at the other stations and seems to be too high to be realistic,shupe
+rh,20191130 111500,20191130 152500,1,"Odd behavior in RH sensor at power on: Plausibly, when the tower was powered back on after being off, the (heated) RH sensor needed to warm and equillibrate. It seems this equillibration period is 15-30 min and has a characteristic shape: when the tower turns on the RH starts very low, increases very high then falls back to the accurate value. Instead of automating a screening procedure I just mannually screened the RH data.",ccox
+rh,20200706 194500,20200706 210000,1,spike to unreasonably high values,shupe
+rh,20191015 000000,20191007 020900,3,"Fedorov hold, I think. Most data streams besides met were either non-functioning or screen in autoQC",ccox
+sr50_dist,20200919 090000,20201002 000000,3,"RS comparison, IS 1,2,3: these brief experiments were not well suited for deriving snow depth changes and will be ignored",ccox
+temp,20191015 000000,20191007 011100,3,"Fedorov hold, I think. Most data streams besides met were either non-functioning or screen in autoQC",ccox
+dew_point,20191015 000000,20191007 011100,3,"Fedorov hold, I think. Most data streams besides met were either non-functioning or screen in autoQC",ccox
+ALL_FIELDS,20191007 000000,20191007 071000,3,Set up of the station,shupe
+ALL_FIELDS,20200930 135931,20201002 000000,3,"moved on ship, on ship during transit, end of deployment",persson
 ALL_FIELDS,20200920 072000,20200923 235959,3,on PS  ,shupe
 ALL_FIELDS,20200904 091005,20200904 103043,3,ASFS being moved from Met City to Hinterland Pond,persson
-ALL_FIELDS,20200920 044926,20200924 060144,3,"moved on ship, on ship during transit, slung off at Ice Station 1",persson
-temp,20191015 000000,20191007 011100,3,"Fedorov hold, I think. Most data streams besides met were either non-functioning or screen in autoQC",ccox
-ALL_FIELDS,20200926 105931,20200930 083950,3,"moved on ship, on ship during transit, slung off at Ice Station 3",persson
-ALL_FIELDS,20200930 135931,20201002 000000,3,"moved on ship, on ship during transit, end of deployment",persson
-dew_point,20191015 000000,20191007 011100,3,"Fedorov hold, I think. Most data streams besides met were either non-functioning or screen in autoQC",ccox
-sr50_dist,20200919 090000,20201002 000000,3,"RS comparison, IS 1,2,3: these brief experiments were not well suited for deriving snow depth changes and will be ignored",ccox
-ALL_FIELDS,20191007 000000,20191007 071000,3,Set up of the station,shupe
-ALL_FIELDS,20200924 113950,20200926 061424,3,"moved on ship, on ship during transit, slung off at Ice Station 2",persson
+ALL_FIELDS,20200407 131200,20200415 122800,3,LOG Cross Comparison ASFS30/50,ccox
 ALL_FIELDS,20200919 084955,20200919 091005,3,ASFS being moved from Hinterland Pond to RS for intercomparison,persson
-rh,20191015 000000,20191007 020900,3,"Fedorov hold, I think. Most data streams besides met were either non-functioning or screen in autoQC",ccox
-wspd_v_mean,20191007 050700,20191007 050800,2,spike,ccox
-brightness_temp_surface,20200902 120500,20200902 121200,2,spike,shupe
-brightness_temp_surface,20200903 042300,20200903 043100,2,spike,shupe
-brightness_temp_surface,20191130 112000,20191130 124000,2,on site work,shupe
-down_short_hemisp,20200417 094000,20200417 094300,2,shadow,ccox
-down_short_hemisp,20200317 123000,20200317 130000,2,start up of system,shupe
-heading,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-down_short_hemisp,20200915 051800,20200915 052400,2,cleaning,shupe
-down_short_hemisp,20200916 121000,20200916 100000,2,cleaning,shupe
-down_short_hemisp,20200421 232200,20200421 232400,2,shadow,ccox
-heading,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-heading,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-heading,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-heading,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-heading,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-snow_depth,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-snow_depth,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-snow_depth,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-snow_depth,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-snow_depth,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-snow_depth,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lat,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lat,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lat,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-brightness_temp_surface,20200902 051100,20200902 051500,2,spike,shupe
-lat,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-brightness_temp_surface,20200901 042100,20200901 042200,2,spike,shupe
-brightness_temp_surface,20200831 050200,20200831 050900,2,spike,shupe
-down_long_hemisp,20191221 130000,20191222 194000,2,"LWD tracks LWU closely while this is not the case at Met City, ASFS40 or ASFS50. Likely freezing fog on the radiometer dome leading to icing and erroneous measurements.",shupe
-down_short_hemisp,20200407 184400,20200407 185000,2,shadow?,shupe
-brightness_temp_surface,20200908 120800,20200908 120900,2,spike,shupe
-brightness_temp_surface,20200903 113700,20200903 113900,2,spike,shupe
-ALL_MET,20200630 120700,20200630 122600,2,all data impacted by shutdown,shupe
-ALL_TURBULENCE,20200215 123900,20200215 133900,2,spike and variable,shupe
-ALL_TURBULENCE,20200304 102900,20200304 103900,2,spike at startup,shupe
-ALL_TURBULENCE,20200323 051900,20200323 052900,2,spike,shupe
-ALL_TURBULENCE,20200825 070900,20200825 071900,2,spike,shupe
-ALL_TURBULENCE,20200831 051600,20200831 052800,2,spike,shupe
-ALL_TURBULENCE,20200904 095900,20200904 100900,2,spike,shupe
+ALL_FIELDS,20200924 113950,20200926 061424,3,"moved on ship, on ship during transit, slung off at Ice Station 2",persson
+ALL_FIELDS,20200926 105931,20200930 083950,3,"moved on ship, on ship during transit, slung off at Ice Station 3",persson
+ALL_FIELDS,20200802 141500,20200821 163500,3,on PS deck,ccox
+ALL_FIELDS,20200920 044926,20200924 060400,3,"moved on ship, on ship during transit, slung off at Ice Station 1",persson
+ALL_TURBULENCE,20200915 045900,20200915 050900,2,spike,shupe
+rh,20200215 124000,20200215 141000,2,Strange spike in RH value compared to others. THere is a coincident temperature increase as well. Could be exhaust?,shupe
+dew_point,20191112 111800,20191112 124100,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 ALL_TURBULENCE,20200911 042900,20200911 043900,2,spike,shupe
+atmos_pressure,20200530 090900,20200530 091500,2,spike,shupe
+atmos_pressure,20200701 001900,20200701 002900,2,spike,shupe
 ALL_TURBULENCE,20200919 102900,20200919 103900,2,spike,shupe
-atmos_pressure,20200530 091100,20200530 091100,2,spike,shupe
-atmos_pressure,20200701 001900,20200701 001900,2,spike,shupe
-brightness_temp_surface,20200904 042300,20200904 043200,2,spike,shupe
+ALL_TURBULENCE,20200904 095900,20200904 100900,2,spike,shupe
+ALL_TURBULENCE,20200831 051600,20200831 052800,2,spike,shupe
 brightness_temp_surface,20191016 020100,20191016 020200,2,spike,ccox
-brightness_temp_surface,20200215 124000,20200215 150000,2,Strange measurements during and after site visit,shupe
-brightness_temp_surface,20200304 102000,20200304 150000,2,spike after startup ,shupe
-brightness_temp_surface,20200305 182400,20200305 183200,2,Spike,ccox
-brightness_temp_surface,20200306 025000,20200306 060000,2,system failure,shupe
-brightness_temp_surface,20200317 123000,20200317 130000,2,system startup,shupe
-brightness_temp_surface,20200621 074200,20200621 083000,2,site visit,shupe
-brightness_temp_surface,20200831 052800,20200831 052900,2,spike,shupe
-down_short_hemisp,20200407 163000,20200407 164000,2,shadow?,shupe
-lat,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lon,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-down_short_hemisp,20200426 010700,20200426 011300,2,shadow,ccox
-down_short_hemisp,20200621 185700,20200621 191400,2,shadow,shupe
-down_short_hemisp,20200621 180000,20200621 180800,2,shadow,shupe
-down_short_hemisp,20200618 211200,20200618 211800,2,shadow,shupe
-down_short_hemisp,20200606 211400,20200606 212200,2,shadow,shupe
-down_short_hemisp,20200622 181300,20200622 182000,2,shadow,ccox
-down_short_hemisp,20200510 221700,20200510 222800,2,shadow,ccox
-down_short_hemisp,20200510 212000,20200510 212600,2,shadow,ccox
-down_short_hemisp,20200426 091800,20200426 092900,2,shadow,ccox
-down_short_hemisp,20200427 092500,20200427 093500,2,shadow,ccox
-down_short_hemisp,20200606 201000,20200606 202300,2,shadow,shupe
-wspd_u_mean,20200331 230700,20200331 230800,2,spike,ccox
-wspd_u_mean,20200416 143500,20200416 144400,2,vals stuck in buffer,ccox
-wspd_u_mean,20200502 125000,20200502 234700,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
-wspd_v_mean,20191007 041500,20191007 041600,2,spike,ccox
-wspd_u_mean,20200704 120800,20200704 181000,2,vals stuck in buffer,ccox
-wspd_u_mean,20200505 092000,20200505 105700,2,vals stuck in buffer,ccox
-wspd_v_mean,20200928 065200,20200928 065300,2,spike,ccox
-wspd_w_mean,20200915 082400,20200915 235100,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
-wspd_u_mean,20200928 065200,20200928 065300,2,spike,ccox
-wspd_u_mean,20200928 090200,20200928 090400,2,spike,ccox
-wspd_w_mean,20200928 065200,20200928 065300,2,spike,ccox
+ALL_TURBULENCE,20200825 070900,20200825 071900,2,spike,shupe
+ALL_TURBULENCE,20200323 051900,20200323 052900,2,spike,shupe
+ALL_TURBULENCE,20200304 102900,20200304 103900,2,spike at startup,shupe
+ALL_TURBULENCE,20200215 123900,20200215 133900,2,spike and variable,shupe
+ALL_MET,20200630 120700,20200630 122600,2,all data impacted by shutdown,shupe
+rh,20200719 003000,20200719 015500,2,"spike to unreasonably high values, exhaust?",shupe
+rh,20200723 023000,20200723 032000,2,"spike to unreasonably high values, exhaust?",shupe
+rh,20200729 142000,20200729 154000,2,"spike to unreasonably high values, exhaust?",shupe
+rh,20200731 054800,20200731 064200,2,"spike to unreasonably high values, exhaust?",shupe
+rh,20200916 060000,20200916 070000,2,spike at startup?,shupe
+rh,20200331 104100,20200331 150000,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 wspd_w_mean,20200928 090200,20200928 090400,2,spike,ccox
-down_short_hemisp,20200629 212600,20200629 213100,2,shadow,shupe
-lat,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-down_short_hemisp,20200426 020800,20200426 021200,2,shadow,ccox
-down_short_hemisp,20200425 091600,20200425 092400,2,shadow,ccox
-lon,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lon,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lon,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-lon,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-wspd_u_mean,20191007 041500,20191007 041600,2,spike,ccox
-wspd_u_mean,20191007 050700,20191007 050800,2,spike,ccox
-down_short_hemisp,20200806 011200,20200806 020800,2,shadow,ccox
-down_short_hemisp,20200722 195900,20200722 200900,2,shadow,ccox
-lon,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-down_short_hemisp,20200630 220600,20200630 221900,2,shadow,ccox
-down_short_hemisp,20200422 011200,20200422 011700,2,shadow,ccox
-down_short_hemisp,20200422 021100,20200422 021500,2,shadow,ccox
-down_short_hemisp,20200422 091900,20200422 092600,2,shadow,ccox
-down_short_hemisp,20200422 231800,20200422 232000,2,shadow,ccox
-down_short_hemisp,20200423 010700,20200423 011300,2,shadow,ccox
-down_short_hemisp,20200423 020600,20200423 021100,2,shadow,ccox
-down_short_hemisp,20200423 092200,20200423 092500,2,shadow,ccox
-down_short_hemisp,20200423 231800,20200423 232100,2,shadow,ccox
-down_short_hemisp,20200424 010800,20200424 011400,2,shadow,ccox
-down_short_hemisp,20200722 190600,20200722 191900,2,shadow,ccox
-down_short_hemisp,20200424 092400,20200424 092600,2,shadow,ccox
-down_short_hemisp,20200425 010900,20200425 011500,2,shadow,ccox
-down_short_hemisp,20200425 020900,20200425 021400,2,shadow,ccox
-down_short_hemisp,20200424 020700,20200424 021200,2,shadow,ccox
-down_short_hemisp,20200407 123600,20200407 123700,2,??,ccox
-down_short_hemisp,20200331 144800,20200331 145000,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-wspd_u_mean,20191110 072000,20191112 111800,2,dying station randomness,ccox
-temp,20200306 030000,20200306 045800,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+wspd_w_mean,20200915 082400,20200915 235100,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
+ship_bearing,20191112 110700,20201112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+wspd_v_mean,20200416 143500,20200416 144400,2,vals stuck in buffer,ccox
+wspd_v_mean,20200502 125000,20200502 234700,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
+wspd_v_mean,20200505 092000,20200505 105700,2,vals stuck in buffer,ccox
+wspd_v_mean,20200704 120800,20200704 181000,2,vals stuck in buffer,ccox
+brightness_temp_surface,20200621 074200,20200621 083000,2,site visit,shupe
+brightness_temp_surface,20200317 123000,20200317 130000,2,system startup,shupe
+brightness_temp_surface,20200306 025000,20200306 060000,2,system failure,shupe
+wspd_v_mean,20200915 082400,20200915 235100,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
+wspd_v_mean,20200928 065200,20200928 065300,2,spike,ccox
+wspd_v_mean,20200928 090200,20200928 090400,2,spike,ccox
+brightness_temp_surface,20200305 182400,20200305 183200,2,Spike,ccox
+wspd_w_mean,20191007 041500,20191007 041600,2,spike,ccox
+wspd_w_mean,20200928 065200,20200928 065300,2,spike,ccox
+wspd_w_mean,20191007 050700,20191007 050800,2,spike,ccox
+wspd_w_mean,20191110 072000,20191112 111800,2,dying station randomness,ccox
+wspd_w_mean,20200305 170800,20200305 181100,2,vals stuck in buffer,ccox
+wspd_w_mean,20200306 030100,20200306 045000,2,vals stuck in buffer,ccox
+wspd_w_mean,20200306 060800,20200306 060900,2,vals stuck in buffer,ccox
+wspd_w_mean,20200331 230700,20200331 230800,2,spike,ccox
+wspd_w_mean,20200416 143500,20200416 144400,2,vals stuck in buffer,ccox
+wspd_w_mean,20200502 125000,20200502 234700,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
+wspd_w_mean,20200505 092000,20200505 105700,2,vals stuck in buffer,ccox
+wspd_w_mean,20200704 120800,20200704 181000,2,vals stuck in buffer,ccox
+brightness_temp_surface,20200304 102000,20200304 150000,2,spike after startup ,shupe
+brightness_temp_surface,20200215 124000,20200215 150000,2,Strange measurements during and after site visit,shupe
+brightness_temp_surface,20191130 112000,20191130 124000,2,on site work,shupe
+wspd_w_mean,20191007 081500,20191007 090200,2,0s and vals stuck in buffer,ccox
+ship_bearing,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_bearing,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_bearing,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
 temp,20200330 122700,20200331 025200,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 temp,20200331 104100,20200331 150000,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 temp,20200505 090900,20200505 092900,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
@@ -199,52 +140,84 @@ up_long_hemisp,20200916 121000,20200916 100000,2,cleaning,shupe
 up_short_hemisp,20200317 123000,20200317 130000,2,startup of system,shupe
 up_short_hemisp,20200621 074200,20200621 083000,2,on-site maintenance,shupe
 up_short_hemisp,20200915 051800,20200915 052400,2,cleaning,shupe
-temp,20200226 213000,20200226 214500,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 up_short_hemisp,20200916 121000,20200916 100000,2,cleaning,shupe
-wspd_u_mean,20200306 030100,20200306 045000,2,vals stuck in buffer,ccox
-wspd_w_mean,20191110 072000,20191112 111800,2,dying station randomness,ccox
-wspd_w_mean,20200505 092000,20200505 105700,2,vals stuck in buffer,ccox
-wspd_v_mean,20191110 072000,20191112 111800,2,dying station randomness,ccox
-wspd_v_mean,20200928 090200,20200928 090400,2,spike,ccox
-wspd_w_mean,20191007 041500,20191007 041600,2,spike,ccox
-wspd_w_mean,20191007 050700,20191007 050800,2,spike,ccox
-wspd_w_mean,20191007 081500,20191007 090200,2,0s and vals stuck in buffer,ccox
-wspd_w_mean,20200305 170800,20200305 181100,2,vals stuck in buffer,ccox
-wspd_w_mean,20200306 030100,20200306 045000,2,vals stuck in buffer,ccox
-wspd_v_mean,20200704 120800,20200704 181000,2,vals stuck in buffer,ccox
-wspd_v_mean,20200505 092000,20200505 105700,2,vals stuck in buffer,ccox
-wspd_w_mean,20200306 060800,20200306 060900,2,vals stuck in buffer,ccox
-wspd_v_mean,20191007 081500,20191007 090200,2,0s and vals stuck in buffer,ccox
-wspd_v_mean,20200502 125000,20200502 234700,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
-wspd_w_mean,20200331 230700,20200331 230800,2,spike,ccox
-wspd_v_mean,20200331 230700,20200331 230800,2,spike,ccox
-wspd_w_mean,20200416 143500,20200416 144400,2,vals stuck in buffer,ccox
-wspd_v_mean,20200306 060800,20200306 060900,2,vals stuck in buffer,ccox
-wspd_v_mean,20200306 030100,20200306 045000,2,vals stuck in buffer,ccox
-wspd_v_mean,20200305 170800,20200305 181100,2,vals stuck in buffer,ccox
-wspd_w_mean,20200502 125000,20200502 234700,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
-wspd_v_mean,20200915 082400,20200915 235100,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
-wspd_w_mean,20200704 120800,20200704 181000,2,vals stuck in buffer,ccox
-wspd_v_mean,20200416 143500,20200416 144400,2,vals stuck in buffer,ccox
-ship_bearing,20191112 110700,20201112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+temp,20200306 030000,20200306 045800,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+temp,20200226 213000,20200226 214500,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 temp,20191130 120000,20191130 152300,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-rh,20200331 104100,20200331 150000,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 temp,20191112 111800,20191112 124100,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-wspd_u_mean,20191007 081500,20191007 090200,2,0s and vals stuck in buffer,ccox
-brightness_temp_surface,20200915 051900,20200915 052300,2,spike,shupe
-brightness_temp_surface,20200916 121000,20200916 121600,2,spike,shupe
-dew_point,20191007 063300,20191007 063600,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-dew_point,20191112 111800,20191112 124100,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+ship_bearing,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+wspd_v_mean,20200331 230700,20200331 230800,2,spike,ccox
+ship_distance,20191112 110700,20201112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_distance,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_distance,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_distance,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_distance,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+ship_distance,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20200105 193000,20200105 201500,2,Two stray points within enough context for auto-qc,ccox
+sr50_dist,20200105 201600,20200106 111200,2,Some SR50 times are not easily auto-QC'd,ccox
+sr50_dist,20200107 225400,20200107 225700,2,Some SR50 times are not easily auto-QC'd,ccox
+ship_bearing,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20200824 125000,20200831 235100,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
+sr50_dist,20200830 060200,20200901 104800,2,"outliers tied to averaging of bad values, I think",ccox
+sr50_dist,20200830 060300,20200901 104500,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
+sr50_dist,20200909 235700,20200910 202700,2,"outliers tied to averaging of bad values, I think",ccox
+sr50_dist,20200910 000800,20200910 190700,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
+sr50_dist,20200912 001900,20200912 045800,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
+subsurface_heat_flux_A,20200305 182300,20200305 183200,2,0s. Probably when Chris turned the station back on,ccox
+subsurface_heat_flux_A,20200407 120000,20200415 124700,2,"The plate was plugged in, but not installed...just blowing in the wind.",ccox
+subsurface_heat_flux_A,20191015 000000,20191007 045300,2,"After initial install, this is when it equillibrated",ccox
+subsurface_heat_flux_B,20200305 182300,20200305 183200,2,0s. Probably when Chris turned the station back on,ccox
+subsurface_heat_flux_B,20191015 000000,20191007 045300,2,"After initial install, this is when it equillibrated",ccox
+temp,20191007 063300,20191007 063600,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+sr50_dist,20200824 215400,20200824 232500,2,"outliers tied to averaging of bad values, I think",ccox
 dew_point,20191130 120000,20191130 152300,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+wspd_v_mean,20200306 060800,20200306 060900,2,vals stuck in buffer,ccox
+wspd_v_mean,20200305 170800,20200305 181100,2,vals stuck in buffer,ccox
+down_short_hemisp,20200417 094000,20200417 094300,2,shadow,ccox
+down_short_hemisp,20200421 232200,20200421 232400,2,shadow,ccox
+down_short_hemisp,20200422 011200,20200422 011700,2,shadow,ccox
+down_short_hemisp,20200422 021100,20200422 021500,2,shadow,ccox
+down_short_hemisp,20200422 091900,20200422 092600,2,shadow,ccox
+down_short_hemisp,20200422 231800,20200422 232000,2,shadow,ccox
+down_short_hemisp,20200423 010700,20200423 011300,2,shadow,ccox
+down_short_hemisp,20200423 020600,20200423 021100,2,shadow,ccox
+down_short_hemisp,20200423 092200,20200423 092500,2,shadow,ccox
+down_short_hemisp,20200423 231800,20200423 232100,2,shadow,ccox
+down_short_hemisp,20200424 010800,20200424 011400,2,shadow,ccox
+down_short_hemisp,20200424 020700,20200424 021200,2,shadow,ccox
+down_short_hemisp,20200424 092400,20200424 092600,2,shadow,ccox
+down_short_hemisp,20200425 010900,20200425 011500,2,shadow,ccox
+down_short_hemisp,20200425 020900,20200425 021400,2,shadow,ccox
+down_short_hemisp,20200425 091600,20200425 092400,2,shadow,ccox
+down_short_hemisp,20200426 010700,20200426 011300,2,shadow,ccox
+down_short_hemisp,20200426 020800,20200426 021200,2,shadow,ccox
+down_short_hemisp,20200426 091800,20200426 092900,2,shadow,ccox
+down_short_hemisp,20200427 092500,20200427 093500,2,shadow,ccox
+down_short_hemisp,20200510 212000,20200510 212600,2,shadow,ccox
+down_short_hemisp,20200510 221700,20200510 222800,2,shadow,ccox
+down_short_hemisp,20200606 201000,20200606 202300,2,shadow,shupe
+down_short_hemisp,20200606 211400,20200606 212200,2,shadow,shupe
+down_short_hemisp,20200618 211200,20200618 211800,2,shadow,shupe
+down_short_hemisp,20200407 184400,20200407 185000,2,shadow?,shupe
+down_short_hemisp,20200621 180000,20200621 180800,2,shadow,shupe
+down_short_hemisp,20200407 163000,20200407 164000,2,shadow?,shupe
+down_short_hemisp,20200331 144800,20200331 145000,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+dew_point,20191007 063300,20191007 063600,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 dew_point,20200226 213000,20200226 214500,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+brightness_temp_surface,20200916 121000,20200916 121600,2,spike,shupe
 dew_point,20200306 030000,20200306 045800,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+brightness_temp_surface,20200915 051900,20200915 052300,2,spike,shupe
+brightness_temp_surface,20200914 130700,20200914 130900,2,spike,shupe
+brightness_temp_surface,20200908 120800,20200908 120900,2,spike,shupe
 dew_point,20200330 122700,20200331 025200,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 dew_point,20200331 104100,20200331 150000,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 dew_point,20200505 090900,20200505 092900,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
 dew_point,20200505 144300,20200505 144400,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
+brightness_temp_surface,20200904 042300,20200904 043200,2,spike,shupe
+brightness_temp_surface,20200903 113700,20200903 113900,2,spike,shupe
 down_long_hemisp,20191008 114900,20191106 090700,2,"A fan on the LWD failed during installation and Chris failed to notice :( It appeared to stay clear until clearing skies midday 10/8. It was fixed again on Nov 6.  I'm manually screening instead of thresholding fan spin because it is less restrictive, allowing for some likely good data to go thru.",ccox
-brightness_temp_surface,20200914 130700,20200914 130900,2,spike,shupe
 down_long_hemisp,20191219 120000,20191220 190000,2,LWD tracks LWU closely while this is not the case at Met City or ASFS40 (ASFS50 appears to have the same issue for the first couple of days but then recovers before ASFS30). Likely freezing fog on the radiometer dome leading to icing and erroneous measurements.,shupe
+down_long_hemisp,20191221 130000,20191222 194000,2,"LWD tracks LWU closely while this is not the case at Met City, ASFS40 or ASFS50. Likely freezing fog on the radiometer dome leading to icing and erroneous measurements.",shupe
 down_long_hemisp,20200215 124000,20200215 150000,2,Strange measurements during and after site visit,shupe
 down_long_hemisp,20200304 102000,20200305 110000,2,Start up after cold soak; Measurements are very slowly adjusting over time towards more reasonable values (as measured by other systems). By the end of this window this instrument appears to finally be steady and at values that are within reason of other systems,shupe
 down_long_hemisp,20200317 124000,20200317 150000,2,"start up, takes time to equilibrate",shupe
@@ -253,33 +226,65 @@ down_long_hemisp,20200321 025000,20200325 180000,2,"LWD close to LWU for extende
 down_long_hemisp,20200831 050000,20200831 051100,2,cleaning,shupe
 down_long_hemisp,20200915 051800,20200915 052400,2,cleaning,shupe
 down_long_hemisp,20200916 121000,20200916 100000,2,cleaning,shupe
+down_short_hemisp,20200317 123000,20200317 130000,2,start up of system,shupe
+down_short_hemisp,20200407 123600,20200407 123700,2,??,ccox
+down_short_hemisp,20200621 185700,20200621 191400,2,shadow,shupe
+down_short_hemisp,20200622 181300,20200622 182000,2,shadow,ccox
+down_short_hemisp,20200629 212600,20200629 213100,2,shadow,shupe
+lon,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+brightness_temp_surface,20200902 120500,20200902 121200,2,spike,shupe
+wspd_u_mean,20191007 041500,20191007 041600,2,spike,ccox
+wspd_u_mean,20191007 050700,20191007 050800,2,spike,ccox
+wspd_u_mean,20191007 081500,20191007 090200,2,0s and vals stuck in buffer,ccox
+wspd_u_mean,20191110 072000,20191112 111800,2,dying station randomness,ccox
 wspd_u_mean,20200305 170800,20200305 181100,2,vals stuck in buffer,ccox
-temp,20191007 063300,20191007 063600,2,Constant values. Probably sensor not responding and last response stuck in logger memory allocation.,ccox
-subsurface_heat_flux_B,20200305 182300,20200305 183200,2,0s. Probably when Chris turned the station back on,ccox
-subsurface_heat_flux_A,20191015 000000,20191007 045300,2,"After initial install, this is when it equillibrated",ccox
-subsurface_heat_flux_B,20191015 000000,20191007 045300,2,"After initial install, this is when it equillibrated",ccox
-ship_bearing,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_bearing,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_bearing,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_bearing,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_bearing,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_distance,20191112 110700,20201112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_distance,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_distance,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_distance,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-ship_distance,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-wspd_u_mean,20200915 082400,20200915 235100,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
-ship_distance,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
-sr50_dist,20200105 201600,20200106 111200,2,Some SR50 times are not easily auto-QC'd,ccox
-sr50_dist,20200107 225400,20200107 225700,2,Some SR50 times are not easily auto-QC'd,ccox
-sr50_dist,20200824 125000,20200831 235100,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
-sr50_dist,20200824 215400,20200824 232500,2,"outliers tied to averaging of bad values, I think",ccox
-sr50_dist,20200830 060200,20200901 104800,2,"outliers tied to averaging of bad values, I think",ccox
-sr50_dist,20200830 060300,20200901 104500,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
-sr50_dist,20200909 235700,20200910 202700,2,"outliers tied to averaging of bad values, I think",ccox
-sr50_dist,20200910 000800,20200910 190700,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
+wspd_u_mean,20200306 030100,20200306 045000,2,vals stuck in buffer,ccox
 wspd_u_mean,20200306 060800,20200306 060900,2,vals stuck in buffer,ccox
-subsurface_heat_flux_A,20200305 182300,20200305 183200,2,0s. Probably when Chris turned the station back on,ccox
-subsurface_heat_flux_A,20200407 120000,20200415 124700,2,"The plate was plugged in, but not installed...just blowing in the wind.",ccox
-sr50_dist,20200105 193000,20200105 201500,2,Two stray points within enough context for auto-qc,ccox
-sr50_dist,20200912 001900,20200912 045800,2,bad data. Looks like corruption. I think the SR50s are on their way out now.,ccox
+wspd_u_mean,20200331 230700,20200331 230800,2,spike,ccox
+wspd_u_mean,20200416 143500,20200416 144400,2,vals stuck in buffer,ccox
+wspd_u_mean,20200502 125000,20200502 234700,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
+wspd_u_mean,20200505 092000,20200505 105700,2,vals stuck in buffer,ccox
+wspd_u_mean,20200704 120800,20200704 181000,2,vals stuck in buffer,ccox
+brightness_temp_surface,20200902 051100,20200902 051500,2,spike,shupe
+brightness_temp_surface,20200901 042100,20200901 042200,2,spike,shupe
+brightness_temp_surface,20200831 052800,20200831 052900,2,spike,shupe
+wspd_u_mean,20200915 082400,20200915 235100,2,"not sure what this means, but the data is bad (e.g., compare to tower)",ccox
+wspd_u_mean,20200928 065200,20200928 065300,2,spike,ccox
+wspd_u_mean,20200928 090200,20200928 090400,2,spike,ccox
+brightness_temp_surface,20200831 050200,20200831 050900,2,spike,shupe
+wspd_v_mean,20191007 041500,20191007 041600,2,spike,ccox
+wspd_v_mean,20191007 050700,20191007 050800,2,spike,ccox
+wspd_v_mean,20191007 081500,20191007 090200,2,0s and vals stuck in buffer,ccox
+wspd_v_mean,20191110 072000,20191112 111800,2,dying station randomness,ccox
+lon,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lon,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lon,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lon,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+down_short_hemisp,20200630 220600,20200630 221900,2,shadow,ccox
+down_short_hemisp,20200722 190600,20200722 191900,2,shadow,ccox
+down_short_hemisp,20200722 195900,20200722 200900,2,shadow,ccox
+down_short_hemisp,20200806 011200,20200806 020800,2,shadow,ccox
+brightness_temp_surface,20200903 042300,20200903 043100,2,spike,shupe
+down_short_hemisp,20200915 051800,20200915 052400,2,cleaning,shupe
+down_short_hemisp,20200916 121000,20200916 100000,2,cleaning,shupe
+down_short_hemisp,20200924 110000,20200924 113950,2,spikes   ,shupe
+heading,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+heading,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+heading,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+heading,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+wspd_v_mean,20200306 030100,20200306 045000,2,vals stuck in buffer,ccox
+heading,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+sr50_dist,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lat,20191112 110700,20191112 125600,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lat,20200226 212800,20200226 212900,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lat,20200306 030000,20200306 050500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lat,20200327 182500,20200327 185500,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lat,20200331 104200,20200331 141000,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lat,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+heading,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox
+lon,20200415 115800,20200415 121300,2,"Sometimes values apparently get stuck in memory when GPS shuts off, especially in a dying station.",ccox

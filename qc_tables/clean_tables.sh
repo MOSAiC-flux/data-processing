@@ -15,8 +15,8 @@ do
       sed -i 's/apogee_body_T/brightness_surface_temperature/g' $f
       sed -i 's/body_T_IRT/brightness_temp_surface/g' $f
       sed -i 's/CO2_flux/co2_licor/g' $f
-      sed -i 's/tower_ice_alt/snow_depth/g' $f
-      sed -i 's/ice_alt/snow_depth/g' $f
+      sed -i 's/tower_ice_alt/sr50_dist/g' $f
+      sed -i 's/ice_alt/sr50_dist/g' $f
       sed -i 's/heading_tower/tower_heading/g' $f
       sed -i 's/heading_mast/mast_heading/g' $f
       sed -i 's/ALL_BULK/bulk/g' $f 

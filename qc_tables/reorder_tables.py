@@ -36,6 +36,15 @@ def main(): # the main data crunching program
             table_file.seek(0)
             table_file.write(''.join(table_header) + content)
 
+    # # now check the tables for errors... it would be nice to do this without the data.....  
+    # from tower_data_definitions import define_qc_variables as tower_qc_variables
+    # from asfs_data_definitions  import define_qc_variables as asfs_qc_variables
+    # tower_data = qc_flagging(tower_data, "./qc_tables/qc_table_tower.csv", tower_qc_variables()[1], 'tower')
+
+    # for station in ['asfs30', 'asfs40', 'asfs50']: 
+
+    #     asfs_data = qc_flagging(asfs_data, f"./qc_tables/qc_table_{station_name}.csv", asfs_qc_variables()[1], station_name)
+
 # this runs the function main as the main program... this is a hack that allows functions
 # to come after the main code so it presents in a more logical, C-like, way
 if __name__ == '__main__':
