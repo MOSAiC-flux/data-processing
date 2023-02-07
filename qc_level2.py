@@ -18,7 +18,7 @@ import functions_library as fl
 
 try:
     from debug_functions import drop_me as dm
-except: do_nothing=True
+except: do_nothing = True
 
 global nan,Rd,K_offset,h2o_mass,co2_mass,sb,emis
 nan      = np.NaN
@@ -270,8 +270,7 @@ def qc_asfs_winds(station_data):
 # this is all so ugly and I hate it
 def qc_flagging(data_frame, table_file, qc_var_names, station_name):
 
-    
-    print("…………… getting qc file")
+    print(f"…………… getting qc file, {table_file}")
     flag_df = get_qc_table(table_file)
 
     print("…………… setting qc vals to 0")
@@ -310,13 +309,13 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
     # puts the value into that field, i.e. temp_qc, not just temp, aka 'inheritance'/hierarchy
     # the order matters, btw, since ALL_FIELDS should be evaluated in the loop below last
     lookup_table = {
-        'up_long_hemisp' : ['up_long_hemisp', 'skin_temp_surface'],
+        'up_long_hemisp'   : ['up_long_hemisp', 'skin_temp_surface'],
         'down_long_hemisp' : ['down_long_hemisp', 'skin_temp_surface'],
-        'sr50_dist' : ['sr50_dist', 'snow_depth'], 
-        'rh' : ['rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],
-        'temp' : ['temp','rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],#, 'bulk_Hs'],
-        'lon'+add_str  : ['lon'+add_str, 'lat'+add_str] , 
-        'lat'+add_str  : ['lon'+add_str, 'lat'+add_str] , 
+        'sr50_dist'        : ['sr50_dist', 'snow_depth'], 
+        'rh'               : ['rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],
+        'temp'             : ['temp','rh', 'rhi', 'mixing_ratio', 'dew_point', 'vapor_pressure'],#, 'bulk_Hs'],
+        'lon'+add_str      : ['lon'+add_str, 'lat'+add_str] , 
+        'lat'+add_str      : ['lon'+add_str, 'lat'+add_str] , 
 
     }
     if station_name == 'tower':
@@ -388,12 +387,14 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
 
     print("…………… done, moving on to inheritance")
 
+
     # now make sure that everything is inherited from before as well, this could include the automatic qc..
     # we loop through the list of inherited variables
     for parent_var, child_var_list in lookup_table.items():
         # if the parent variable is a "real" measured param, copy all engineering/bad data
         # from the parent variable and apply it to all inherited variables...
         if 'ALL_' not in parent_var:
+
             try:
                 data_frame[parent_var+'_qc'] # does this var exist?
                 height_strs = ['',]
@@ -405,16 +406,22 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
                 bad_inds  = (data_frame[parent_var+h+'_qc']==2)  
                 eng_inds  = (data_frame[parent_var+h+'_qc']==3)
                 for child_var in child_var_list:
-                    data_frame.loc[caut_inds, child_var+h+'_qc'] = 1
-                    data_frame.loc[eng_inds, child_var+h+'_qc']  = 3
+
+                    no_overwrite = (data_frame[child_var+h+'_qc']!=2)&(data_frame[child_var+h+'_qc']!=3)
+                    data_frame.loc[(caut_inds)&(no_overwrite), child_var+h+'_qc'] = 1
+
+                    no_overwrite = (data_frame[child_var+h+'_qc']!=2)
+
+                    data_frame.loc[(eng_inds)&(no_overwrite), child_var+h+'_qc']  = 3
                     data_frame.loc[bad_inds, child_var+h+'_qc']  = 2
+
 
         # but for "ALL_" variables we're going to manually apply the qc values for each time
         # range specified in the qc table to all of the applicable variables...
         # ... this is done here and not above because it needs to supersede any of the other
         # possible qc values specified
         else:
-            print(f".............. DOING {parent_var}")
+
             for irow, row in flag_df.iterrows():
                 if parent_var == row['var_name']: 
                     for child_var in child_var_list:
@@ -447,6 +454,7 @@ def qc_flagging(data_frame, table_file, qc_var_names, station_name):
                                     print(f"... an 'ALL_*' ({parent_var})variable had an invalid child ({child_var})"+
                                           f"! this should never happen...!!!!")
                                     raise
+
 
     if len(problem_rows)>1:
         print(f"\n\n There were some problems with the QC file {table_file}, specifically,"+
@@ -569,8 +577,8 @@ def qc_asfs_turb_data(asfs_df, turb_df):
 
     tdf = turb_df.copy()[var_list]
 
-    tdf['turbulence_qc'] = 0
-    tdf['bulk_qc'] = 0
+    tdf['turbulence_qc'] = asfs_df['turbulence_qc'] # init
+    tdf['bulk_qc']       = asfs_df['bulk_qc']
 
     asfs_df[f'turbulence_qc'] = qc_turb_data(tdf)
  
@@ -590,6 +598,9 @@ def qc_asfs_turb_data(asfs_df, turb_df):
         
     asfs_df  = qc_bulk_fluxes(asfs_df, qc_df)
 
+    tdf['turbulence_qc'] = asfs_df['turbulence_qc'] # re-copy, to be sure nothing weird happens. unnecessary 
+    tdf['bulk_qc']       = asfs_df['bulk_qc']
+
     return asfs_df, turb_df 
 
 def qc_bulk_fluxes(df, qc_df):
@@ -601,13 +612,13 @@ def qc_bulk_fluxes(df, qc_df):
             bad_inds  = qc_df[c]==2
             eng_inds  = qc_df[c]==3
 
-            df['bulk_qc'].loc[bad_inds] = 2 
+            df.loc[bad_inds, 'bulk_qc'] = 2 
 
             # only label caution if it's not bad or engineering
-            df['bulk_qc'].loc[(caut_inds) & (df['bulk_qc']!=2) & (df['bulk_qc']!=3)] = 1
+            df.loc[(caut_inds) & (df['bulk_qc']!=2) & (df['bulk_qc']!=3), 'bulk_qc'] = 1
 
             # only label engineering if it's not bad
-            df['bulk_qc'].loc[(eng_inds) & (df['bulk_qc']!=2)]  = 3
+            df.loc[(eng_inds) & (df['bulk_qc']!=2), 'bulk_qc']  = 3
 
     return df
 
