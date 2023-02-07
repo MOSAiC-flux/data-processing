@@ -194,8 +194,8 @@ def main(): # the main data crunching program
 
     #filter_up = df['up_short_hemisp'].notnull() & df['up_long_hemisp'].isna()
     #filter_down = df['down_short_hemisp'].notnull() & ~np.array(df['down_long_hemisp'].isna()
-    df['up_short_hemisp'].where(df['up_short_hemisp'].notnull(), df['up_long_hemisp']*0, inplace=True)
-    df['down_short_hemisp'].where(df['down_short_hemisp'].notnull(), df['down_long_hemisp']*0, inplace=True)
+    # df['up_short_hemisp'].where(df['up_short_hemisp'].notnull(), df['up_long_hemisp']*0, inplace=True)
+    # df['down_short_hemisp'].where(df['down_short_hemisp'].notnull(), df['down_long_hemisp']*0, inplace=True)
 
     df['radiation_LWnet'] = df['down_long_hemisp']-df['up_long_hemisp']
     df['radiation_SWnet'] = df['down_short_hemisp']-df['up_short_hemisp']

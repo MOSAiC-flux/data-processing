@@ -78,7 +78,7 @@ def main(): # the main data crunching program
 
     make_daily_plots = True
     make_leg_plots   = True # make plots that include data from each leg
-    plot_all_days    = True
+    plot_all_days    = True 
 
     leg1_start = datetime(2019,10,5)
     leg2_start = datetime(2019,12,15) 
@@ -203,10 +203,11 @@ def main(): # the main data crunching program
     df['radiation_LWnet'] = df['down_long_hemisp']-df['up_long_hemisp']
     df['radiation_SWnet'] = df['down_short_hemisp']-df['up_short_hemisp']
     df['net_radiation']   = df['radiation_LWnet'] + df['radiation_SWnet'] 
-    l2_atts, l2_cols = define_level2_variables()
+
+    l2_atts, l2_cols     = define_level2_variables()
     turb_atts, turb_cols = define_turb_variables()
 
-     l2_atts['net_radiation'] = {}
+    l2_atts['net_radiation'] = {}
     l2_atts['net_radiation'] ['units'] = 'W/m2'
     l2_atts = {**l2_atts, **turb_atts}
     unit_dict = {}

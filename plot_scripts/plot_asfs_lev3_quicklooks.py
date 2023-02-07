@@ -114,6 +114,12 @@ def main(): # the main data crunching program
     var_dict['ship']               = {'distance'       : ['ship_distance'],
                                       'bearing'        : ['ship_bearing'],
                                       }
+    var_dict['turb']           = {'hs'        : ['Hs', 'bulk_Hs'],
+                                  'hl'        : ['Hl', 'bulk_Hl'],
+                                  'ustar'     : ['ustar'],
+                                  'windspeed' : ['wspd_vec_mean'],  
+                                 }
+
 
     unit_dict                       = {}
     unit_dict['meteorology']        = {'temperature'    : 'C',
@@ -146,6 +152,12 @@ def main(): # the main data crunching program
                                       'bearing'        : 'degrees',
                                       }
 
+    unit_dict['turb']           = {'hs'        : 'W/m2', 
+                                   'hl'        : 'W/m2', 
+                                   'ustar'     : 'm/s', 
+                                   'windspeed' : 'm/s', 
+                                   }
+
     # if you put a color in the list, (rgb or hex) the function below will all lines different luminosities
     # of the same hue. if you put a 3-tuple of colors, it will use the colors provided explicitly for 30/40/50
     color_dict = {}
@@ -158,6 +170,7 @@ def main(): # the main data crunching program
                               (0.2,0.4,0.2),(0.9,0.5,0.9),(0.3,0.1,0.5),(0.1,0.01,0.01)]
     color_dict['licor']              = ['#23001a','#ffe000','#00fdff']
     color_dict['ship']               = ['#70722b','#c7a79a','#e5ca58']
+    color_dict['turb']               = ['#001C7F','#017517','#8C0900','#7600A1','#d62728','#9467bd','#8c564b','#e377c2']
 
     # gg_colors    = ['#E24A33','#348ABD','#988ED5','#777777','#FBC15E','#8EBA42','#FFB5B8']
     # muted_colors = ['#4878CF','#6ACC65','#D65F5F','#B47CC7','#C4AD66','#77BEDB','#4878CF']
