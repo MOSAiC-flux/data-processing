@@ -1592,7 +1592,8 @@ def main(): # the main data crunching program
                     data_to_return.append(('turb', turbulencenew.copy()[today:tomorrow], win_len))
                     if win_len < len(integ_time_turb_flux)-1: print('\n')
 
-            out_dir   = '/Projects/MOSAiC_internal/mgallagher/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+            out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+            #out_dir   = '/Projects/MOSAiC_internal/mgallagher/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
     
             try: 
                 trash_var = write_level2_10hz(curr_station, metek_10hz[today:tomorrow], licor_10hz[today:tomorrow], today, out_dir)
@@ -1711,7 +1712,8 @@ def main(): # the main data crunching program
 
         station_data = slow_all[curr_station][today:tomorrow].copy()
 
-        out_dir   = '/Projects/MOSAiC_internal/mgallagher/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+        out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+        #out_dir   = '/Projects/MOSAiC_internal/mgallagher/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
  
         #out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' 
         #out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?

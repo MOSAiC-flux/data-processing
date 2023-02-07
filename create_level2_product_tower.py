@@ -167,7 +167,8 @@ def main(): # the main data crunching program
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
     level2_dir = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
-    level2_dir = '/Projects/MOSAiC_internal/mgallagher/tower/2_level_product/' # where does level2 data go
+    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
+    #level2_dir = '/Projects/MOSAiC_internal/mgallagher/tower/2_level_product/' # where does level2 data go
     turb_dir   = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
     #turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
     arm_dir    = '/Projects/MOSAiC_internal/partner_data/' 
@@ -1865,12 +1866,12 @@ def main(): # the main data crunching program
         # write out all the hard work that we've done at native resolution
 
         # for debugging the write function.... ugh
-        if we_want_to_debug:
-            import pickle
-            pickle_args = [onemin_data.copy(), today, "1min"]
-            pkl_file = open(f'./tests/{today.strftime("%Y%m%d")}_pre_met_write.pkl', 'wb')
-            pickle.dump(pickle_args, pkl_file)
-            pkl_file.close()
+        # if we_want_to_debug:
+        #     import pickle
+        #     pickle_args = [onemin_data.copy(), today, "1min"]
+        #     pkl_file = open(f'./tests/{today.strftime("%Y%m%d")}_pre_met_write.pkl', 'wb')
+        #     pickle.dump(pickle_args, pkl_file)
+        #     pkl_file.close()
 
 
         write_level2_10hz(fast_data_10hz.copy(), licor_10hz.copy(), today)
