@@ -93,7 +93,7 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? this makes useful pickle files in ./tests/ ... uncomment below if you want to kill threading
-we_want_to_debug = False
+we_want_to_debug = True
 if we_want_to_debug:
 
     # from multiprocessing.dummy import Process as P
@@ -1566,6 +1566,12 @@ def main(): # the main data crunching program
                 bulk['bulk_Rq']      = empty_data*nan # 
                 bulk=bulk.reindex(index=bulk_input.index)
 
+                if we_want_to_debug:
+                    import pickle
+                    with open(f'./tests/{today.strftime("%Y%m%d")}_bulk_debug_{curr_station}.pkl', 'wb') as pkl_file:
+                        pickle.dump(bulk_input, pkl_file)
+
+
                 for ii in range(len(bulk)):
                     tmp = [bulk_input['u'][ii], bulk_input['ts'][ii], bulk_input['t'][ii], \
                            bulk_input['Q'][ii], bulk_input['zi'][ii], bulk_input['P'][ii], \
@@ -1586,7 +1592,7 @@ def main(): # the main data crunching program
                     data_to_return.append(('turb', turbulencenew.copy()[today:tomorrow], win_len))
                     if win_len < len(integ_time_turb_flux)-1: print('\n')
 
-            out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+            out_dir   = '/Projects/MOSAiC_internal/mgallagher/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
     
             try: 
                 trash_var = write_level2_10hz(curr_station, metek_10hz[today:tomorrow], licor_10hz[today:tomorrow], today, out_dir)
@@ -1683,18 +1689,18 @@ def main(): # the main data crunching program
         for win_len in range(0, len(integ_time_turb_flux)):
             turb_all[curr_station][win_len] = pd.concat( turb_data_dict[curr_station][win_len] ).sort_index()
 
-        if we_want_to_debug:
-            with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_before_{curr_station}.pkl', 'wb') as pkl_file:
-                import pickle
-                pickle.dump(slow_all[curr_station], pkl_file)
+        # if we_want_to_debug:
+        #     with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_before_{curr_station}.pkl', 'wb') as pkl_file:
+        #         import pickle
+        #         pickle.dump(slow_all[curr_station], pkl_file)
 
         slow_all[curr_station] = qc_stations(slow_all[curr_station], curr_station)
 
 
-        if we_want_to_debug:
-            with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_after_{curr_station}.pkl', 'wb') as pkl_file:
-                import pickle
-                pickle.dump(slow_all[curr_station], pkl_file)
+        # if we_want_to_debug:
+        #     with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_qc_debug_after_{curr_station}.pkl', 'wb') as pkl_file:
+        #         import pickle
+        #         pickle.dump(slow_all[curr_station], pkl_file)
 
     print(" ... done with concatting and QC, now we write! here's a sample of the output data:\n\n")
     for curr_station in flux_stations:
@@ -1705,7 +1711,7 @@ def main(): # the main data crunching program
 
         station_data = slow_all[curr_station][today:tomorrow].copy()
 
-        out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
+        out_dir   = '/Projects/MOSAiC_internal/mgallagher/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
  
         #out_dir   = '/Projects/MOSAiC_internal/flux_data_tests/'+curr_station+'/2_level_product_'+curr_station+'/' 
         #out_dir   = data_dir+'/'+curr_station+'/2_level_product_'+curr_station+'/' # where will level 2 data written?
@@ -1714,7 +1720,7 @@ def main(): # the main data crunching program
 
         # import pickle
         # met_args = [write_data.copy(), curr_station, today, "1min", out_dir]
-        # pkl_file = open(f'./{today.strftime("%Y%m%d")}_met_data_write.pkl', 'wb')
+        # pkl_file = open(f'./tests/{today.strftime("%Y%m%d")}_{curr_station}_met_data_write.pkl', 'wb')
         # pickle.dump(met_args, pkl_file)
         # pkl_file.close()
 
@@ -1757,14 +1763,19 @@ def main(): # the main data crunching program
 
             try:
 
+                # import pickle
+                # pkl_file = open(f'./tests/{today.strftime("%Y%m%d")}_{curr_station}_seb_qc_before.pkl', 'wb')
+                # pickle.dump([avged_data,turb_data], pkl_file)
+                # pkl_file.close()
+
                 wr, sr, avged_data = qc_asfs_winds(avged_data)
 
                 avged_data, turb_data = qc_asfs_turb_data(avged_data.copy(), turb_data.copy())
 
                 # for debugging the write function.... ugh
                 # import pickle
-                # seb_args = [avged_data.copy(), curr_station, today,f"{integration_window}min", out_dir, turb_data]
-                # pkl_file = open(f'./{today.strftime("%Y%m%d")}_seb_data_write.pkl', 'wb')
+                # seb_args = [avged_data.copy(), turb_data]
+                # pkl_file = open(f'./tests/{today.strftime("%Y%m%d")}_{curr_station}_seb_qc_after.pkl', 'wb')
                 # pickle.dump(seb_args, pkl_file)
                 # pkl_file.close()
 

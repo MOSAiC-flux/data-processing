@@ -72,7 +72,7 @@ if '.psd.' in hostname:
     elif hostname.split('.')[0] in ['linux64', 'linux128', 'linux256']:
         nthreads = 12  # 
     else:
-        nthreads = 90  # the new compute is hefty.... real hefty
+        nthreads = 65  # the new compute is hefty.... real hefty
 
 else: nthreads = 8     # laptops don't tend to have 12  cores... yet
 
@@ -80,7 +80,7 @@ from multiprocessing import Process as P
 from multiprocessing import Queue   as Q
 
 # need to debug something? this makes useful pickle files in ./tests/ ... uncomment below if you want to kill threading
-we_want_to_debug = True
+we_want_to_debug = False
 if we_want_to_debug:
 
     # from multiprocessing.dummy import Process as P
@@ -167,7 +167,7 @@ def main(): # the main data crunching program
     else: pickle_dir=False
     level1_dir = data_dir+'/tower/1_level_ingest/'                                  # where does level1 data live?
     level2_dir = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
-    level2_dir = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
+    level2_dir = '/Projects/MOSAiC_internal/mgallagher/tower/2_level_product/' # where does level2 data go
     turb_dir   = data_dir+'/tower/2_level_product/version2/'                        # where does level2 data go
     #turb_dir   = '/Projects/MOSAiC_internal/flux_data_tests/tower/2_level_product/' # where does level2 data go
     arm_dir    = '/Projects/MOSAiC_internal/partner_data/' 
@@ -407,7 +407,6 @@ def main(): # the main data crunching program
     twr_manual_hdg_data['metek_6m'] = twr_hdg_dates_6m
     twr_manual_hdg_data['metek_2m'] = twr_hdg_dates_2m
     
-
     # #####################################################################################################
     # Now that everything is defined, we read in the logger data for the date range requested and then
     # do vector operations for data QC, as well as any processing to derive output variables (i.e. no loops)
@@ -519,6 +518,11 @@ def main(): # the main data crunching program
                                                             # the ones that should be... one mins worth
 
     print('... finished with ARM data, processing mast heading for full time series')
+
+    if we_want_to_debug:
+        with open(f'./tests/{datetime(2022,10,10).today().strftime("%Y%m%d")}_arm_merged.pkl', 'wb') as pkl_file:
+            import pickle
+            pickle.dump(slow_data, pkl_file)
 
     if 'mast_RECORD' in slow_data: # same thing for the mast if it was up
         slow_data['mast_gps_alt'] = slow_data['gps_alt']/1000.0 # convert to meters
@@ -941,12 +945,16 @@ def main(): # the main data crunching program
     #    slow_data['azimuth']         = fl.despike(slow_data['azimuth'],2,5,'no')
 
         # Laura's product currently has NaNs in shortwave for winter, we want zeros until we get the "real" measurements
-        sd_copy = slow_data.copy()
+        slow_data.loc[(sd['zenith_true']>93)&(~sd['zenith_true'].isna()), 'up_short_hemisp']   = 0
+        slow_data.loc[(sd['zenith_true']>93)&(~sd['zenith_true'].isna()), 'down_short_hemisp'] = 0
 
-        slow_data['up_short_hemisp']   .where( sd['zenith_true']<93, 0, inplace=True)
-        slow_data['down_short_hemisp'] .where( sd['zenith_true']<93, 0, inplace=True)
-        slow_data['up_short_hemisp']   .where( ~sd['down_long_hemisp'].isna(), nan, inplace=True)
-        slow_data['down_short_hemisp'] .where( ~sd['down_long_hemisp'].isna(), nan, inplace=True)
+        slow_data.loc[(sd['down_long_hemisp'].isna())&(sd['zenith_true']>93), 'up_short_hemisp']   = nan
+        slow_data.loc[(sd['down_long_hemisp'].isna())&(sd['zenith_true']>93), 'down_short_hemisp'] = nan
+
+        if we_want_to_debug and ( datetime(2020,4,19,23) < today < datetime(2020,4,22, 0)):
+            with open(f'./tests/{today.strftime("%Y%m%d")}_sw_debug_after.pkl', 'wb') as pkl_file:
+                import pickle
+                pickle.dump(slow_data, pkl_file)
 
         # calculate budget
         slow_data['radiation_LWnet'] = slow_data['down_long_hemisp']-slow_data['up_long_hemisp']
@@ -1855,6 +1863,16 @@ def main(): # the main data crunching program
         onemin_data = qc_tower_winds(l2_data.copy(), ship_df[today:tomorrow]) # ship_df necessary for calculating ship->mast vector
 
         # write out all the hard work that we've done at native resolution
+
+        # for debugging the write function.... ugh
+        if we_want_to_debug:
+            import pickle
+            pickle_args = [onemin_data.copy(), today, "1min"]
+            pkl_file = open(f'./tests/{today.strftime("%Y%m%d")}_pre_met_write.pkl', 'wb')
+            pickle.dump(pickle_args, pkl_file)
+            pkl_file.close()
+
+
         write_level2_10hz(fast_data_10hz.copy(), licor_10hz.copy(), today)
         write_level2_netcdf(onemin_data.copy(), today, "1min")
 
